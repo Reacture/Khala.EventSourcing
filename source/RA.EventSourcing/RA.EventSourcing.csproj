@@ -45,6 +45,7 @@
     <Compile Include="EventSourcing\IEventSourced.cs" />
     <Compile Include="EventSourcing\IEventStore.cs" />
     <Compile Include="EventSourcing\IVersionedEntity.cs" />
+    <Compile Include="Messaging\Envelope.cs" />
     <Compile Include="Messaging\IPartitioned.cs" />
     <Compile Include="Messaging\JsonMessageSerializer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
