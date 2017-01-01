@@ -30,17 +30,24 @@
             }
         }
 
-        public object Deserialize(string json)
+        public object Deserialize(string value)
         {
-            if (json == null)
+            if (value == null)
             {
-                throw new ArgumentNullException(nameof(json));
+                throw new ArgumentNullException(nameof(value));
             }
 
-            using (var reader = new StringReader(json))
+            using (var reader = new StringReader(value))
             using (var jsonReader = new JsonTextReader(reader))
             {
-                return _serializer.Deserialize(jsonReader);
+                try
+                {
+                    return _serializer.Deserialize(jsonReader);
+                }
+                catch (JsonSerializationException)
+                {
+                    return JsonConvert.DeserializeObject(value);
+                }
             }
         }
     }
