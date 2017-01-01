@@ -82,7 +82,7 @@
     <Rule Id="SA1214" Action="Error" />
     <Rule Id="SA1216" Action="Error" />
     <Rule Id="SA1217" Action="Error" />
-    <Rule Id="SA1300" Action="Error" />
+    <Rule Id="SA1300" Action="None" />
     <Rule Id="SA1302" Action="Error" />
     <Rule Id="SA1303" Action="Error" />
     <Rule Id="SA1304" Action="Error" />
