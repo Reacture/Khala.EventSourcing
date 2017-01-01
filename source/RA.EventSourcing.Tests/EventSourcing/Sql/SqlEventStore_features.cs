@@ -190,6 +190,31 @@ namespace ReactiveArchitecture.EventSourcing.Sql
 
         [Theory]
         [AutoData]
+        public void SaveEvents_fails_if_events_not_have_same_source_id(
+            FakeUserCreated created,
+            FakeUsernameChanged usernameChanged)
+        {
+            // Arrange
+            created.SourceId = aggregateId;
+            created.Version = 1;
+            created.RaisedAt = DateTimeOffset.Now;
+
+            usernameChanged.SourceId = Guid.NewGuid();
+            usernameChanged.Version = 2;
+            usernameChanged.RaisedAt = DateTimeOffset.Now;
+
+            var events = new DomainEvent[] { created, usernameChanged };
+
+            // Act
+            Func<Task> action = () => sut.SaveEvents<FakeUser>(events);
+
+            // Assert
+            action.ShouldThrow<ArgumentException>()
+                .Where(x => x.ParamName == "events");
+        }
+
+        [Theory]
+        [AutoData]
         public async Task SaveEvents_saves_events_correctly(
             FakeUserCreated created,
             FakeUsernameChanged usernameChanged)

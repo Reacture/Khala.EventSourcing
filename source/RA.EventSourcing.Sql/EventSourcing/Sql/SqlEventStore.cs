@@ -62,6 +62,13 @@
                         $"Versions of {nameof(events)} must be sequential.",
                         nameof(events));
                 }
+
+                if (domainEvents[i].SourceId != firstEvent.SourceId)
+                {
+                    throw new ArgumentException(
+                        $"All events must have the same source id.",
+                        nameof(events));
+                }
             }
 
             return Save<T>(domainEvents);
@@ -87,14 +94,14 @@
 
             Aggregate aggregate = await context
                 .Aggregates
-                .Where(a => a.AggregateId == lastEvent.SourceId)
+                .Where(a => a.AggregateId == firstEvent.SourceId)
                 .SingleOrDefaultAsync();
 
             if (aggregate == null)
             {
                 aggregate = new Aggregate
                 {
-                    AggregateId = lastEvent.SourceId,
+                    AggregateId = firstEvent.SourceId,
                     AggregateType = typeof(T).FullName,
                     Version = 0
                 };
