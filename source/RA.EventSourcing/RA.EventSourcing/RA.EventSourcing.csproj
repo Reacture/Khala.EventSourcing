@@ -40,6 +40,10 @@
     <None Include="project.json" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="EventSourcing\IDomainEvent.cs" />
+    <Compile Include="EventSourcing\IEventSourced.cs" />
+    <Compile Include="EventSourcing\IEventStore.cs" />
+    <Compile Include="EventSourcing\IVersionedEntity.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.CSharp.targets" />
