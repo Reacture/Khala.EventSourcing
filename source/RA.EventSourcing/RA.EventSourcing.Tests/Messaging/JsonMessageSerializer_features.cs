@@ -1,11 +1,11 @@
-﻿namespace ReactiveArchitecture.Messaging
-{
-    using System;
-    using FluentAssertions;
-    using Microsoft.VisualStudio.TestTools.UnitTesting;
-    using Ploeh.AutoFixture;
-    using Ploeh.AutoFixture.Idioms;
+﻿using System;
+using FluentAssertions;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Ploeh.AutoFixture;
+using Ploeh.AutoFixture.Idioms;
 
+namespace ReactiveArchitecture.Messaging
+{
     [TestClass]
     public class JsonMessageSerializer_features
     {

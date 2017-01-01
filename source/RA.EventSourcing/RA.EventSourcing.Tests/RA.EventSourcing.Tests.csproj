@@ -91,6 +91,7 @@
   </Choose>
   <ItemGroup>
     <Compile Include="EventSourcing\DomainEvent_features.cs" />
+    <Compile Include="EventSourcing\Sql\Event_features.cs" />
     <Compile Include="Messaging\JsonMessageSerializer_features.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
@@ -104,6 +105,10 @@
     <Analyzer Include="..\packages\StyleCop.Analyzers.1.0.0\analyzers\dotnet\cs\StyleCop.Analyzers.dll" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\RA.EventSourcing.Sql\RA.EventSourcing.Sql.csproj">
+      <Project>{D0D8C3CA-5084-4B26-A256-FB73A1EE0FEB}</Project>
+      <Name>RA.EventSourcing.Sql</Name>
+    </ProjectReference>
     <ProjectReference Include="..\RA.EventSourcing\RA.EventSourcing.csproj">
       <Project>{AD489F2A-7554-4023-BD1C-1ADDBBD43EFF}</Project>
       <Name>RA.EventSourcing</Name>

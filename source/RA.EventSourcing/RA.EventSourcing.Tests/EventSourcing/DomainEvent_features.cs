@@ -1,14 +1,14 @@
-﻿namespace ReactiveArchitecture.EventSourcing
-{
-    using System;
-    using FluentAssertions;
-    using Messaging;
-    using Microsoft.VisualStudio.TestTools.UnitTesting;
-    using Moq;
-    using Ploeh.AutoFixture;
-    using Ploeh.AutoFixture.AutoMoq;
-    using Ploeh.AutoFixture.Idioms;
+﻿using System;
+using FluentAssertions;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
+using Ploeh.AutoFixture;
+using Ploeh.AutoFixture.AutoMoq;
+using Ploeh.AutoFixture.Idioms;
+using ReactiveArchitecture.Messaging;
 
+namespace ReactiveArchitecture.EventSourcing
+{
     [TestClass]
     public class DomainEvent_features
     {
