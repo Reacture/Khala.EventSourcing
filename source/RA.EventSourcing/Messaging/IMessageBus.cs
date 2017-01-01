@@ -5,8 +5,8 @@
 
     public interface IMessageBus
     {
-        Task Send(Envelope message);
+        Task Send(object message);
 
-        Task SendBatch(IEnumerable<Envelope> messages);
+        Task SendBatch(IEnumerable<object> messages);
     }
 }

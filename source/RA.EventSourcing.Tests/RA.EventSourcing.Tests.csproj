@@ -132,7 +132,6 @@
     <Compile Include="FakeDomain\Events\FakeUserCreated.cs" />
     <Compile Include="FakeDomain\Events\FakeUsernameChanged.cs" />
     <Compile Include="FakeDomain\FakeUser.cs" />
-    <Compile Include="Messaging\Envelope_features.cs" />
     <Compile Include="Messaging\JsonMessageSerializer_features.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
