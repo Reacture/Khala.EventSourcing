@@ -128,6 +128,7 @@
   <ItemGroup>
     <Compile Include="EventSourcing\DomainEvent_features.cs" />
     <Compile Include="EventSourcing\Sql\Event_features.cs" />
+    <Compile Include="EventSourcing\Sql\SqlEventPublisher_features.cs" />
     <Compile Include="EventSourcing\Sql\SqlEventStore_features.cs" />
     <Compile Include="FakeDomain\Events\FakeUserCreated.cs" />
     <Compile Include="FakeDomain\Events\FakeUsernameChanged.cs" />

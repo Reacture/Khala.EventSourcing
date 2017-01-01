@@ -30,8 +30,7 @@ namespace ReactiveArchitecture.EventSourcing.Sql
             this.output = output;
 
             fixture = new Fixture().Customize(new AutoMoqCustomization());
-            fixture.Inject<Func<EventStoreDbContext>>(
-                () => new EventStoreDbContext());
+            fixture.Inject<Func<EventStoreDbContext>>(() => new EventStoreDbContext());
 
             aggregateId = Guid.NewGuid();
 
