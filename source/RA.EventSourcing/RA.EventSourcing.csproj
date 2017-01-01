@@ -42,6 +42,7 @@
   <ItemGroup>
     <Compile Include="EventSourcing\DomainEvent.cs" />
     <Compile Include="EventSourcing\IDomainEvent.cs" />
+    <Compile Include="EventSourcing\IEventPublisher.cs" />
     <Compile Include="EventSourcing\IEventSourced.cs" />
     <Compile Include="EventSourcing\IEventStore.cs" />
     <Compile Include="EventSourcing\IVersionedEntity.cs" />
