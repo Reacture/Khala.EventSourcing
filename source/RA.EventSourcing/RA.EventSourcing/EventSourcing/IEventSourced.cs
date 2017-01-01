@@ -2,7 +2,7 @@
 {
     using System.Collections.Generic;
 
-    public interface IEventSourced
+    public interface IEventSourced : IVersionedEntity
     {
         IEnumerable<IDomainEvent> PendingEvents { get; }
     }

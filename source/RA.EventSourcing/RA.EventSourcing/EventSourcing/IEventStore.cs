@@ -9,7 +9,8 @@
         Task SaveEvents<T>(IEnumerable<IDomainEvent> events)
             where T : class, IEventSourced;
 
-        Task LoadEvents<T>(Guid sourceId, int afterVersion = default(int))
+        Task<IEnumerable<IDomainEvent>> LoadEvents<T>(
+            Guid sourceId, int afterVersion = default(int))
             where T : class, IEventSourced;
     }
 }
