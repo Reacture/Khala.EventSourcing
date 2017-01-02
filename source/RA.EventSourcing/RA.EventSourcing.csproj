@@ -48,6 +48,7 @@
     <Compile Include="EventSourcing\IEventSourcedRepository.cs" />
     <Compile Include="EventSourcing\IEventStore.cs" />
     <Compile Include="EventSourcing\IVersionedEntity.cs" />
+    <Compile Include="EventSourcing\Sql\ISqlEventSourcedRepository.cs" />
     <Compile Include="Messaging\IMessageBus.cs" />
     <Compile Include="Messaging\IPartitioned.cs" />
     <Compile Include="Messaging\JsonMessageSerializer.cs" />
