@@ -41,6 +41,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="EventSourcing\DomainEvent.cs" />
+    <Compile Include="EventSourcing\EventSourcedRepository.cs" />
     <Compile Include="EventSourcing\IDomainEvent.cs" />
     <Compile Include="EventSourcing\IEventPublisher.cs" />
     <Compile Include="EventSourcing\IEventSourced.cs" />

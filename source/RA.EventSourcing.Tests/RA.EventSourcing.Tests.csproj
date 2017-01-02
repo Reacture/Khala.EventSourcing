@@ -127,6 +127,7 @@
   </Choose>
   <ItemGroup>
     <Compile Include="EventSourcing\DomainEvent_features.cs" />
+    <Compile Include="EventSourcing\EventSourcedRepository_features.cs" />
     <Compile Include="EventSourcing\Sql\Event_features.cs" />
     <Compile Include="EventSourcing\Sql\SqlEventPublisher_features.cs" />
     <Compile Include="EventSourcing\Sql\SqlEventStore_features.cs" />
