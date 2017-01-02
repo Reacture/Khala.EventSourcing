@@ -57,6 +57,7 @@ namespace ReactiveArchitecture.EventSourcing.Sql
                 db.Database.ExecuteSqlCommand("DELETE FROM Aggregates WHERE AggregateId = @p0", aggregateId);
                 db.Database.ExecuteSqlCommand("DELETE FROM Events WHERE AggregateId = @p0", aggregateId);
                 db.Database.ExecuteSqlCommand("DELETE FROM PendingEvents WHERE AggregateId = @p0", aggregateId);
+                db.Database.ExecuteSqlCommand("DELETE FROM UniqueIndexedProperties WHERE AggregateId = @p0", aggregateId);
             }
         }
 

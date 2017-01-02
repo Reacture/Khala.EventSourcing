@@ -59,12 +59,13 @@ namespace ReactiveArchitecture.EventSourcing.Sql
 
         public void Dispose()
         {
-            using (var db = new EventStoreDbContext())
+            using (var db = new DataContext())
             {
                 db.Database.Log = output.WriteLine;
                 db.Database.ExecuteSqlCommand("DELETE FROM Aggregates");
                 db.Database.ExecuteSqlCommand("DELETE FROM Events");
                 db.Database.ExecuteSqlCommand("DELETE FROM PendingEvents");
+                db.Database.ExecuteSqlCommand("DELETE FROM UniqueIndexedProperties");
             }
         }
 
