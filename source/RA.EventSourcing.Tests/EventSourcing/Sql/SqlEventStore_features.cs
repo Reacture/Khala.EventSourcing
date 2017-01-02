@@ -47,6 +47,9 @@ namespace ReactiveArchitecture.EventSourcing.Sql
 
             mockDbContext.PendingEvents = Mock.Of<DbSet<PendingEvent>>();
             Mock.Get(mockDbContext.PendingEvents).SetupData();
+
+            mockDbContext.UniqueIndexedProperties = Mock.Of<DbSet<UniqueIndexedProperty>>();
+            Mock.Get(mockDbContext.UniqueIndexedProperties).SetupData();
         }
 
         public void Dispose()
@@ -94,7 +97,7 @@ namespace ReactiveArchitecture.EventSourcing.Sql
             FakeUserCreated created)
         {
             var events = new DomainEvent[] { created };
-            RaiseEvents(aggregateId, created);
+            RaiseEvents(aggregateId, events);
 
             await sut.SaveEvents<FakeUser>(events);
 
@@ -296,6 +299,140 @@ namespace ReactiveArchitecture.EventSourcing.Sql
                 });
 
                 actual.ShouldAllBeEquivalentTo(expected);
+            }
+        }
+
+        [Theory]
+        [AutoData]
+        public async Task SaveEvents_inserts_UniqueIndexedProperty_for_new_property(
+            FakeUserCreated created)
+        {
+            var events = new DomainEvent[] { created };
+            RaiseEvents(aggregateId, events);
+
+            await sut.SaveEvents<FakeUser>(events);
+
+            using (var db = new EventStoreDbContext())
+            {
+                UniqueIndexedProperty actual = await db
+                    .UniqueIndexedProperties
+                    .Where(
+                        p =>
+                        p.AggregateType == typeof(FakeUser).FullName &&
+                        p.PropertyName == nameof(FakeUserCreated.Username) &&
+                        p.PropertyValue == created.Username)
+                    .SingleOrDefaultAsync();
+                actual.Should().NotBeNull();
+                actual.AggregateId.Should().Be(aggregateId);
+                actual.Version.Should().Be(created.Version);
+            }
+        }
+
+        [Theory]
+        [AutoData]
+        public async Task SaveEvents_inserts_UniqueIndexedProperty_with_value_of_latest_indexed_event(
+            FakeUserCreated created,
+            FakeUsernameChanged usernameChanged)
+        {
+            var events = new DomainEvent[] { created, usernameChanged };
+            RaiseEvents(aggregateId, events);
+
+            await sut.SaveEvents<FakeUser>(events);
+
+            using (var db = new EventStoreDbContext())
+            {
+                UniqueIndexedProperty actual = await db
+                    .UniqueIndexedProperties
+                    .Where(
+                        p =>
+                        p.AggregateId == aggregateId &&
+                        p.PropertyName == nameof(FakeUserCreated.Username))
+                    .SingleOrDefaultAsync();
+                actual.PropertyValue.Should().Be(usernameChanged.Username);
+                actual.Version.Should().Be(usernameChanged.Version);
+            }
+        }
+
+        [Fact]
+        public async Task SaveEvents_does_not_insert_UniqueIndexedProperty_if_property_value_is_null()
+        {
+            var created = new FakeUserCreated { Username = null };
+            var events = new DomainEvent[] { created };
+            RaiseEvents(aggregateId, events);
+
+            await sut.SaveEvents<FakeUser>(events);
+
+            using (var db = new EventStoreDbContext())
+            {
+                UniqueIndexedProperty actual = await db
+                    .UniqueIndexedProperties
+                    .Where(
+                        p =>
+                        p.AggregateType == typeof(FakeUser).FullName &&
+                        p.PropertyName == nameof(FakeUserCreated.Username) &&
+                        p.PropertyValue == created.Username)
+                    .SingleOrDefaultAsync();
+                actual.Should().BeNull();
+            }
+        }
+
+        [Theory]
+        [AutoData]
+        public async Task SaveEvents_removes_existing_UniqueIndexedProperty_if_property_value_is_null(
+            FakeUserCreated created,
+            FakeUsernameChanged usernameChanged)
+        {
+            // Arrange
+            RaiseEvents(aggregateId, created);
+            await sut.SaveEvents<FakeUser>(new[] { created });
+            usernameChanged.Username = null;
+            RaiseEvents(aggregateId, 1, usernameChanged);
+
+            // Act
+            await sut.SaveEvents<FakeUser>(new[] { usernameChanged });
+
+            // Assert
+            using (var db = new EventStoreDbContext())
+            {
+                UniqueIndexedProperty actual = await db
+                    .UniqueIndexedProperties
+                    .Where(
+                        p =>
+                        p.AggregateType == typeof(FakeUser).FullName &&
+                        p.PropertyName == nameof(FakeUserCreated.Username) &&
+                        p.PropertyValue == created.Username)
+                    .SingleOrDefaultAsync();
+                actual.Should().BeNull();
+            }
+        }
+
+        [Theory]
+        [AutoData]
+        public async Task SaveEvents_updates_existing_UniqueIndexedProperty_correctly(
+            FakeUserCreated created,
+            FakeUsernameChanged usernameChanged)
+        {
+            // Arrange
+            RaiseEvents(aggregateId, created);
+            await sut.SaveEvents<FakeUser>(new[] { created });
+            RaiseEvents(aggregateId, 1, usernameChanged);
+
+            // Act
+            await sut.SaveEvents<FakeUser>(new[] { usernameChanged });
+
+            // Assert
+            using (var db = new EventStoreDbContext())
+            {
+                UniqueIndexedProperty actual = await db
+                    .UniqueIndexedProperties
+                    .Where(
+                        p =>
+                        p.AggregateId == aggregateId &&
+                        p.PropertyName == nameof(FakeUserCreated.Username))
+                    .SingleOrDefaultAsync();
+                actual.Should().NotBeNull();
+                actual.PropertyValue.Should().Be(usernameChanged.Username);
+                actual.Version.Should().Be(usernameChanged.Version);
             }
         }
 

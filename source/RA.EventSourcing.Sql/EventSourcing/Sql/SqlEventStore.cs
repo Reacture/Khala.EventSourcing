@@ -71,55 +71,56 @@
                 }
             }
 
-            return Save<T>(domainEvents);
+            return Save<T>(firstEvent.SourceId, domainEvents);
         }
 
-        private async Task Save<T>(List<IDomainEvent> events)
+        private async Task Save<T>(Guid sourceId, List<IDomainEvent> events)
             where T : class, IEventSourced
         {
             using (EventStoreDbContext context = _dbContextFactory.Invoke())
             {
-                await UpsertAggregate<T>(context, events);
+                await UpsertAggregate<T>(context, sourceId, events);
                 InsertEvents(context, events);
+                await UpdateUniqueIndexedProperties<T>(context, sourceId, events);
                 await context.SaveChangesAsync();
             }
         }
 
         private async Task UpsertAggregate<T>(
-            EventStoreDbContext context, List<IDomainEvent> events)
+            EventStoreDbContext context,
+            Guid sourceId,
+            List<IDomainEvent> events)
             where T : class, IEventSourced
         {
-            IDomainEvent firstEvent = events.First();
-            IDomainEvent lastEvent = events.Last();
-
             Aggregate aggregate = await context
                 .Aggregates
-                .Where(a => a.AggregateId == firstEvent.SourceId)
+                .Where(a => a.AggregateId == sourceId)
                 .SingleOrDefaultAsync();
 
             if (aggregate == null)
             {
                 aggregate = new Aggregate
                 {
-                    AggregateId = firstEvent.SourceId,
+                    AggregateId = sourceId,
                     AggregateType = typeof(T).FullName,
                     Version = 0
                 };
                 context.Aggregates.Add(aggregate);
             }
 
-            if (firstEvent.Version != aggregate.Version + 1)
+            if (events.First().Version != aggregate.Version + 1)
             {
                 throw new ArgumentException(
                     $"Version of the first of {nameof(events)} must follow aggregate.",
                     nameof(events));
             }
 
-            aggregate.Version = lastEvent.Version;
+            aggregate.Version = events.Last().Version;
         }
 
         private void InsertEvents(
-            EventStoreDbContext context, List<IDomainEvent> events)
+            EventStoreDbContext context,
+            List<IDomainEvent> events)
         {
             foreach (IDomainEvent e in events)
             {
@@ -132,6 +133,61 @@
                     PayloadJson = @event.PayloadJson
                 });
             }
+        }
+
+        private async Task UpdateUniqueIndexedProperties<T>(
+            EventStoreDbContext context,
+            Guid sourceId,
+            List<IDomainEvent> events)
+            where T : class, IEventSourced
+        {
+            Dictionary<string, UniqueIndexedProperty> restored = await context
+                .UniqueIndexedProperties
+                .Where(
+                    p =>
+                    p.AggregateType == typeof(T).FullName &&
+                    p.AggregateId == sourceId)
+                .ToDictionaryAsync(p => p.PropertyName);
+
+            var properties = new List<UniqueIndexedProperty>();
+
+            foreach (IUniqueIndexedDomainEvent indexedEvent in
+                events.OfType<IUniqueIndexedDomainEvent>())
+            {
+                foreach (string name in
+                    indexedEvent.UniqueIndexedProperties.Keys)
+                {
+                    UniqueIndexedProperty property;
+                    if (restored.TryGetValue(name, out property))
+                    {
+                        context.UniqueIndexedProperties.Remove(property);
+                    }
+
+                    property = properties.Find(p => p.PropertyName == name);
+                    if (property != null)
+                    {
+                        properties.Remove(property);
+                    }
+
+                    string value = indexedEvent.UniqueIndexedProperties[name];
+                    if (value == null)
+                    {
+                        continue;
+                    }
+
+                    property = new UniqueIndexedProperty
+                    {
+                        AggregateType = typeof(T).FullName,
+                        PropertyName = name,
+                        PropertyValue = value,
+                        AggregateId = sourceId,
+                        Version = indexedEvent.Version
+                    };
+                    properties.Add(property);
+                }
+            }
+
+            context.UniqueIndexedProperties.AddRange(properties);
         }
 
         public Task<IEnumerable<IDomainEvent>> LoadEvents<T>(

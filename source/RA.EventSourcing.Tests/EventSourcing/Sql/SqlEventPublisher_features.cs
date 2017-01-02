@@ -55,6 +55,9 @@ namespace ReactiveArchitecture.EventSourcing.Sql
 
             mockDbContext.PendingEvents = Mock.Of<DbSet<PendingEvent>>();
             Mock.Get(mockDbContext.PendingEvents).SetupData();
+
+            mockDbContext.UniqueIndexedProperties = Mock.Of<DbSet<UniqueIndexedProperty>>();
+            Mock.Get(mockDbContext.UniqueIndexedProperties).SetupData();
         }
 
         public void Dispose()
