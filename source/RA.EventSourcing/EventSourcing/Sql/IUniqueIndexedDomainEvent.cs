@@ -2,7 +2,7 @@
 {
     using System.Collections.Generic;
 
-    public interface IUniqueIndexedEvent
+    public interface IUniqueIndexedDomainEvent : IDomainEvent
     {
         IReadOnlyDictionary<string, string> UniqueIndexedProperties { get; }
     }
