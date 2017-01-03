@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Reflection;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using Newtonsoft.Json;
 using Ploeh.AutoFixture;
 using Ploeh.AutoFixture.AutoMoq;
 using Ploeh.AutoFixture.Idioms;
@@ -37,6 +39,13 @@ namespace ReactiveArchitecture.EventSourcing
         {
             var sut = new FakeDomainEvent();
             sut.Should().BeAssignableTo<IPartitioned>();
+        }
+
+        [TestMethod]
+        public void PartitionKey_is_decorated_with_JsonIgnore()
+        {
+            PropertyInfo property = typeof(DomainEvent).GetProperty("PartitionKey");
+            property.Should().BeDecoratedWith<JsonIgnoreAttribute>();
         }
 
         [TestMethod]

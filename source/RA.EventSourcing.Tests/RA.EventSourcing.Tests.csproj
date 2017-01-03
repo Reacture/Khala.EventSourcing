@@ -84,8 +84,8 @@
       <HintPath>..\packages\Microsoft.Data.Services.Client.5.8.1\lib\net40\Microsoft.Data.Services.Client.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Microsoft.WindowsAzure.Storage, Version=8.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\packages\WindowsAzure.Storage.8.0.0\lib\net45\Microsoft.WindowsAzure.Storage.dll</HintPath>
+    <Reference Include="Microsoft.WindowsAzure.Storage, Version=7.2.1.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\WindowsAzure.Storage.7.2.1\lib\net40\Microsoft.WindowsAzure.Storage.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Moq, Version=4.5.29.0, Culture=neutral, PublicKeyToken=69f491c39445e920, processorArchitecture=MSIL">
@@ -152,6 +152,8 @@
   </Choose>
   <ItemGroup>
     <Compile Include="EventSourcing\Azure\AzureEventStore_features.cs" />
+    <Compile Include="EventSourcing\Azure\EventTableEntity_features.cs" />
+    <Compile Include="EventSourcing\Azure\PendingEventTableEntity_features.cs" />
     <Compile Include="EventSourcing\DomainEvent_features.cs" />
     <Compile Include="EventSourcing\EventSourcedRepository_features.cs" />
     <Compile Include="EventSourcing\Sql\Event_features.cs" />

@@ -2,6 +2,7 @@
 {
     using System;
     using Messaging;
+    using Newtonsoft.Json;
 
     public abstract class DomainEvent : IDomainEvent, IPartitioned
     {
@@ -11,6 +12,7 @@
 
         public DateTimeOffset RaisedAt { get; set; }
 
+        [JsonIgnore]
         public string PartitionKey => SourceId.ToString();
 
         public void Raise(IVersionedEntity source)
