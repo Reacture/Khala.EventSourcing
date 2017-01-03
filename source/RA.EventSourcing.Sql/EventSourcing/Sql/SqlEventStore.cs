@@ -239,10 +239,10 @@
                 throw new ArgumentNullException(nameof(value));
             }
 
-            return FindIdByUProperty<T>(name, value);
+            return FindIdByProperty<T>(name, value);
         }
 
-        private async Task<Guid?> FindIdByUProperty<T>(
+        private async Task<Guid?> FindIdByProperty<T>(
             string name, string value)
             where T : class, IEventSourced
         {
