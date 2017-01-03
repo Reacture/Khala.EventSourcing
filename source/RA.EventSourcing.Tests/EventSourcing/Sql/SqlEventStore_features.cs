@@ -19,9 +19,13 @@ namespace ReactiveArchitecture.EventSourcing.Sql
 {
     public class SqlEventStore_features : IDisposable
     {
+        public class DataContext : EventStoreDbContext
+        {
+        }
+
         private ITestOutputHelper output;
         private IFixture fixture;
-        private Guid aggregateId;
+        private Guid userId;
         private SqlEventStore sut;
         private EventStoreDbContext mockDbContext;
 
@@ -30,9 +34,9 @@ namespace ReactiveArchitecture.EventSourcing.Sql
             this.output = output;
 
             fixture = new Fixture().Customize(new AutoMoqCustomization());
-            fixture.Inject<Func<EventStoreDbContext>>(() => new EventStoreDbContext());
+            fixture.Inject<Func<EventStoreDbContext>>(() => new DataContext());
 
-            aggregateId = Guid.NewGuid();
+            userId = Guid.NewGuid();
 
             sut = fixture.Create<SqlEventStore>();
 
@@ -54,13 +58,13 @@ namespace ReactiveArchitecture.EventSourcing.Sql
 
         public void Dispose()
         {
-            using (var db = new EventStoreDbContext())
+            using (var db = new DataContext())
             {
                 db.Database.Log = output.WriteLine;
-                db.Database.ExecuteSqlCommand("DELETE FROM Aggregates WHERE AggregateId = @p0", aggregateId);
-                db.Database.ExecuteSqlCommand("DELETE FROM Events WHERE AggregateId = @p0", aggregateId);
-                db.Database.ExecuteSqlCommand("DELETE FROM PendingEvents WHERE AggregateId = @p0", aggregateId);
-                db.Database.ExecuteSqlCommand("DELETE FROM UniqueIndexedProperties WHERE AggregateId = @p0", aggregateId);
+                db.Database.ExecuteSqlCommand("DELETE FROM Aggregates");
+                db.Database.ExecuteSqlCommand("DELETE FROM Events");
+                db.Database.ExecuteSqlCommand("DELETE FROM PendingEvents");
+                db.Database.ExecuteSqlCommand("DELETE FROM UniqueIndexedProperties");
             }
         }
 
@@ -79,11 +83,43 @@ namespace ReactiveArchitecture.EventSourcing.Sql
 
         [Theory]
         [AutoData]
+        public async Task SaveEvents_commits_once(
+            FakeUserCreated created,
+            FakeUsernameChanged usernameChanged)
+        {
+            var events = new DomainEvent[] { created, usernameChanged };
+            RaiseEvents(userId, events);
+            var sut = new SqlEventStore(
+                () => mockDbContext,
+                new JsonMessageSerializer());
+
+            await sut.SaveEvents<FakeUser>(events);
+
+            Mock.Get(mockDbContext)
+                .Verify(x => x.SaveChangesAsync(), Times.Once());
+        }
+
+        [Theory]
+        [AutoData]
+        public async Task SaveEvents_does_not_commit_for_empty_events()
+        {
+            var sut = new SqlEventStore(
+                () => mockDbContext,
+                new JsonMessageSerializer());
+
+            await sut.SaveEvents<FakeUser>(Enumerable.Empty<IDomainEvent>());
+
+            Mock.Get(mockDbContext)
+                .Verify(x => x.SaveChangesAsync(), Times.Never());
+        }
+
+        [Theory]
+        [AutoData]
         public void SaveEvents_fails_if_events_contains_null(
             FakeUserCreated created)
         {
             var events = new DomainEvent[] { created, null };
-            RaiseEvents(aggregateId, created);
+            RaiseEvents(userId, created);
 
             Func<Task> action = () => sut.SaveEvents<FakeUser>(events);
 
@@ -97,15 +133,15 @@ namespace ReactiveArchitecture.EventSourcing.Sql
             FakeUserCreated created)
         {
             var events = new DomainEvent[] { created };
-            RaiseEvents(aggregateId, events);
+            RaiseEvents(userId, events);
 
             await sut.SaveEvents<FakeUser>(events);
 
-            using (var db = new EventStoreDbContext())
+            using (var db = new DataContext())
             {
                 Aggregate actual = await db
                     .Aggregates
-                    .Where(a => a.AggregateId == aggregateId)
+                    .Where(a => a.AggregateId == userId)
                     .SingleOrDefaultAsync();
                 actual.Should().NotBeNull();
                 actual.AggregateType.Should().Be(typeof(FakeUser).FullName);
@@ -119,11 +155,11 @@ namespace ReactiveArchitecture.EventSourcing.Sql
             FakeUsernameChanged usernameChanged)
         {
             // Arrange
-            using (var db = new EventStoreDbContext())
+            using (var db = new DataContext())
             {
                 var aggregate = new Aggregate
                 {
-                    AggregateId = aggregateId,
+                    AggregateId = userId,
                     AggregateType = typeof(FakeUser).FullName,
                     Version = 1
                 };
@@ -131,17 +167,17 @@ namespace ReactiveArchitecture.EventSourcing.Sql
                 await db.SaveChangesAsync();
             }
             var events = new DomainEvent[] { usernameChanged };
-            RaiseEvents(aggregateId, 1, usernameChanged);
+            RaiseEvents(userId, 1, usernameChanged);
 
             // Act
             await sut.SaveEvents<FakeUser>(events);
 
             // Assert
-            using (var db = new EventStoreDbContext())
+            using (var db = new DataContext())
             {
                 Aggregate actual = await db
                     .Aggregates
-                    .Where(a => a.AggregateId == aggregateId)
+                    .Where(a => a.AggregateId == userId)
                     .SingleOrDefaultAsync();
                 actual.Version.Should().Be(usernameChanged.Version);
             }
@@ -169,11 +205,11 @@ namespace ReactiveArchitecture.EventSourcing.Sql
             FakeUsernameChanged usernameChanged)
         {
             // Arrange
-            using (var db = new EventStoreDbContext())
+            using (var db = new DataContext())
             {
                 var aggregate = new Aggregate
                 {
-                    AggregateId = aggregateId,
+                    AggregateId = userId,
                     AggregateType = typeof(FakeUser).FullName,
                     Version = 1
                 };
@@ -181,7 +217,7 @@ namespace ReactiveArchitecture.EventSourcing.Sql
                 await db.SaveChangesAsync();
             }
             var events = new DomainEvent[] { usernameChanged };
-            RaiseEvents(aggregateId, 2, usernameChanged);
+            RaiseEvents(userId, 2, usernameChanged);
 
             // Act
             Func<Task> action = () => sut.SaveEvents<FakeUser>(events);
@@ -198,7 +234,7 @@ namespace ReactiveArchitecture.EventSourcing.Sql
             FakeUsernameChanged usernameChanged)
         {
             // Arrange
-            created.SourceId = aggregateId;
+            created.SourceId = userId;
             created.Version = 1;
             created.RaisedAt = DateTimeOffset.Now;
 
@@ -224,19 +260,19 @@ namespace ReactiveArchitecture.EventSourcing.Sql
         {
             // Arrange
             var events = new DomainEvent[] { created, usernameChanged };
-            RaiseEvents(aggregateId, events);
+            RaiseEvents(userId, events);
 
             // Act
             await sut.SaveEvents<FakeUser>(events);
 
             // Asseert
-            using (var db = new EventStoreDbContext())
+            using (var db = new DataContext())
             {
                 var serializer = new JsonMessageSerializer();
 
                 IEnumerable<object> actual = db
                     .Events
-                    .Where(e => e.AggregateId == aggregateId)
+                    .Where(e => e.AggregateId == userId)
                     .OrderBy(e => e.Version)
                     .AsEnumerable()
                     .Select(e => new
@@ -268,19 +304,19 @@ namespace ReactiveArchitecture.EventSourcing.Sql
         {
             // Arrange
             var events = new DomainEvent[] { created, usernameChanged };
-            RaiseEvents(aggregateId, events);
+            RaiseEvents(userId, events);
 
             // Act
             await sut.SaveEvents<FakeUser>(events);
 
             // Asseert
-            using (var db = new EventStoreDbContext())
+            using (var db = new DataContext())
             {
                 var serializer = new JsonMessageSerializer();
 
                 IEnumerable<object> actual = db
                     .PendingEvents
-                    .Where(e => e.AggregateId == aggregateId)
+                    .Where(e => e.AggregateId == userId)
                     .OrderBy(e => e.Version)
                     .AsEnumerable()
                     .Select(e => new
@@ -308,11 +344,11 @@ namespace ReactiveArchitecture.EventSourcing.Sql
             FakeUserCreated created)
         {
             var events = new DomainEvent[] { created };
-            RaiseEvents(aggregateId, events);
+            RaiseEvents(userId, events);
 
             await sut.SaveEvents<FakeUser>(events);
 
-            using (var db = new EventStoreDbContext())
+            using (var db = new DataContext())
             {
                 UniqueIndexedProperty actual = await db
                     .UniqueIndexedProperties
@@ -323,7 +359,7 @@ namespace ReactiveArchitecture.EventSourcing.Sql
                         p.PropertyValue == created.Username)
                     .SingleOrDefaultAsync();
                 actual.Should().NotBeNull();
-                actual.AggregateId.Should().Be(aggregateId);
+                actual.AggregateId.Should().Be(userId);
                 actual.Version.Should().Be(created.Version);
             }
         }
@@ -335,17 +371,17 @@ namespace ReactiveArchitecture.EventSourcing.Sql
             FakeUsernameChanged usernameChanged)
         {
             var events = new DomainEvent[] { created, usernameChanged };
-            RaiseEvents(aggregateId, events);
+            RaiseEvents(userId, events);
 
             await sut.SaveEvents<FakeUser>(events);
 
-            using (var db = new EventStoreDbContext())
+            using (var db = new DataContext())
             {
                 UniqueIndexedProperty actual = await db
                     .UniqueIndexedProperties
                     .Where(
                         p =>
-                        p.AggregateId == aggregateId &&
+                        p.AggregateId == userId &&
                         p.PropertyName == nameof(FakeUserCreated.Username))
                     .SingleOrDefaultAsync();
                 actual.PropertyValue.Should().Be(usernameChanged.Username);
@@ -358,11 +394,11 @@ namespace ReactiveArchitecture.EventSourcing.Sql
         {
             var created = new FakeUserCreated { Username = null };
             var events = new DomainEvent[] { created };
-            RaiseEvents(aggregateId, events);
+            RaiseEvents(userId, events);
 
             await sut.SaveEvents<FakeUser>(events);
 
-            using (var db = new EventStoreDbContext())
+            using (var db = new DataContext())
             {
                 UniqueIndexedProperty actual = await db
                     .UniqueIndexedProperties
@@ -383,16 +419,16 @@ namespace ReactiveArchitecture.EventSourcing.Sql
             FakeUsernameChanged usernameChanged)
         {
             // Arrange
-            RaiseEvents(aggregateId, created);
+            RaiseEvents(userId, created);
             await sut.SaveEvents<FakeUser>(new[] { created });
             usernameChanged.Username = null;
-            RaiseEvents(aggregateId, 1, usernameChanged);
+            RaiseEvents(userId, 1, usernameChanged);
 
             // Act
             await sut.SaveEvents<FakeUser>(new[] { usernameChanged });
 
             // Assert
-            using (var db = new EventStoreDbContext())
+            using (var db = new DataContext())
             {
                 UniqueIndexedProperty actual = await db
                     .UniqueIndexedProperties
@@ -413,21 +449,21 @@ namespace ReactiveArchitecture.EventSourcing.Sql
             FakeUsernameChanged usernameChanged)
         {
             // Arrange
-            RaiseEvents(aggregateId, created);
+            RaiseEvents(userId, created);
             await sut.SaveEvents<FakeUser>(new[] { created });
-            RaiseEvents(aggregateId, 1, usernameChanged);
+            RaiseEvents(userId, 1, usernameChanged);
 
             // Act
             await sut.SaveEvents<FakeUser>(new[] { usernameChanged });
 
             // Assert
-            using (var db = new EventStoreDbContext())
+            using (var db = new DataContext())
             {
                 UniqueIndexedProperty actual = await db
                     .UniqueIndexedProperties
                     .Where(
                         p =>
-                        p.AggregateId == aggregateId &&
+                        p.AggregateId == userId &&
                         p.PropertyName == nameof(FakeUserCreated.Username))
                     .SingleOrDefaultAsync();
                 actual.Should().NotBeNull();
@@ -438,34 +474,30 @@ namespace ReactiveArchitecture.EventSourcing.Sql
 
         [Theory]
         [AutoData]
-        public async Task SaveEvents_commits_once(
-            FakeUserCreated created,
-            FakeUsernameChanged usernameChanged)
+        public async Task SaveEvents_fails_if_unique_indexed_property_duplicate(
+            Guid macId,
+            Guid toshId,
+            string duplicateUserName)
         {
-            var events = new DomainEvent[] { created, usernameChanged };
-            RaiseEvents(aggregateId, events);
-            var sut = new SqlEventStore(
-                () => mockDbContext,
-                new JsonMessageSerializer());
+            // Arrange
+            var macCreated = new FakeUserCreated { Username = duplicateUserName };
+            RaiseEvents(macId, macCreated);
+            await sut.SaveEvents<FakeUser>(new[] { macCreated });
 
-            await sut.SaveEvents<FakeUser>(events);
+            // Act
+            var toshCreated = new FakeUserCreated { Username = duplicateUserName };
+            RaiseEvents(toshId, toshCreated);
+            Func<Task> action = () => sut.SaveEvents<FakeUser>(new[] { toshCreated });
 
-            Mock.Get(mockDbContext)
-                .Verify(x => x.SaveChangesAsync(), Times.Once());
-        }
-
-        [Theory]
-        [AutoData]
-        public async Task SaveEvents_does_not_commit_for_empty_events()
-        {
-            var sut = new SqlEventStore(
-                () => mockDbContext,
-                new JsonMessageSerializer());
-
-            await sut.SaveEvents<FakeUser>(Enumerable.Empty<IDomainEvent>());
-
-            Mock.Get(mockDbContext)
-                .Verify(x => x.SaveChangesAsync(), Times.Never());
+            // Assert
+            action.ShouldThrow<Exception>();
+            using (var db = new DataContext())
+            {
+                IQueryable<Event> query = from e in db.Events
+                                          where e.AggregateId == toshId
+                                          select e;
+                (await query.AnyAsync()).Should().BeFalse();
+            }
         }
 
         [Theory]
@@ -476,12 +508,12 @@ namespace ReactiveArchitecture.EventSourcing.Sql
         {
             // Arrange
             var events = new DomainEvent[] { created, usernameChanged };
-            RaiseEvents(aggregateId, events);
+            RaiseEvents(userId, events);
             await sut.SaveEvents<FakeUser>(events);
 
             // Act
             IEnumerable<IDomainEvent> actual =
-                await sut.LoadEvents<FakeUser>(aggregateId);
+                await sut.LoadEvents<FakeUser>(userId);
 
             // Assert
             actual.ShouldAllBeEquivalentTo(events);
@@ -495,12 +527,12 @@ namespace ReactiveArchitecture.EventSourcing.Sql
         {
             // Arrange
             var events = new DomainEvent[] { created, usernameChanged };
-            RaiseEvents(aggregateId, events);
+            RaiseEvents(userId, events);
             await sut.SaveEvents<FakeUser>(events);
 
             // Act
             IEnumerable<IDomainEvent> actual =
-                await sut.LoadEvents<FakeUser>(aggregateId, afterVersion: 1);
+                await sut.LoadEvents<FakeUser>(userId, afterVersion: 1);
 
             // Assert
             actual.ShouldAllBeEquivalentTo(events.Skip(1));
