@@ -7,7 +7,7 @@
     using System.Threading.Tasks;
     using Messaging;
 
-    public class SqlEventStore : IEventStore
+    public class SqlEventStore : ISqlEventStore, IEventStore
     {
         private readonly Func<EventStoreDbContext> _dbContextFactory;
         private readonly JsonMessageSerializer _serializer;
@@ -222,6 +222,44 @@
                     .ToList();
 
                 return domainEvents;
+            }
+        }
+
+        public Task<Guid?> FindIdByUniqueIndexedProperty<T>(
+            string name, string value)
+            where T : class, IEventSourced
+        {
+            if (name == null)
+            {
+                throw new ArgumentNullException(nameof(name));
+            }
+
+            if (value == null)
+            {
+                throw new ArgumentNullException(nameof(value));
+            }
+
+            return FindIdByUProperty<T>(name, value);
+        }
+
+        private async Task<Guid?> FindIdByUProperty<T>(
+            string name, string value)
+            where T : class, IEventSourced
+        {
+            using (EventStoreDbContext context = _dbContextFactory.Invoke())
+            {
+                IQueryable<UniqueIndexedProperty> query =
+                    from p in context.UniqueIndexedProperties
+                    where
+                        p.AggregateType == typeof(T).FullName &&
+                        p.PropertyName == name &&
+                        p.PropertyValue == value
+                    select p;
+
+                UniqueIndexedProperty property =
+                    await query.SingleOrDefaultAsync();
+
+                return property?.AggregateId;
             }
         }
     }

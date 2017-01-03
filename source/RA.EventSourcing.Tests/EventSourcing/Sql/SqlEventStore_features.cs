@@ -81,6 +81,12 @@ namespace ReactiveArchitecture.EventSourcing.Sql
             sut.Should().BeAssignableTo<IEventStore>();
         }
 
+        [Fact]
+        public void sut_implements_ISqlEventStore()
+        {
+            sut.Should().BeAssignableTo<ISqlEventStore>();
+        }
+
         [Theory]
         [AutoData]
         public async Task SaveEvents_commits_once(
@@ -536,6 +542,30 @@ namespace ReactiveArchitecture.EventSourcing.Sql
 
             // Assert
             actual.ShouldAllBeEquivalentTo(events.Skip(1));
+        }
+
+        [Theory]
+        [AutoData]
+        public async Task FindIdByUniqueIndexedProperty_returns_null_if_property_not_found()
+        {
+            string value = fixture.Create("username");
+            Guid? actual = await
+                sut.FindIdByUniqueIndexedProperty<FakeUser>("Username", value);
+            actual.Should().NotHaveValue();
+        }
+
+        [Theory]
+        [AutoData]
+        public async Task FindIdByUniqueIndexedProperty_returns_aggregate_id_if_property_found(
+            FakeUserCreated created)
+        {
+            RaiseEvents(userId, created);
+            await sut.SaveEvents<FakeUser>(new[] { created });
+
+            Guid? actual = await
+                sut.FindIdByUniqueIndexedProperty<FakeUser>("Username", created.Username);
+
+            actual.Should().Be(userId);
         }
 
         private void RaiseEvents(Guid sourceId, params DomainEvent[] events)
