@@ -69,6 +69,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="EventSourcing\Azure\AzureEventCorrector.cs" />
     <Compile Include="EventSourcing\Azure\EventTableEntity.cs" />
     <Compile Include="EventSourcing\Azure\IAzureEventCorrector.cs" />
     <Compile Include="EventSourcing\Azure\PendingEventTableEntity.cs" />
