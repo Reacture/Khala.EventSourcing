@@ -333,6 +333,22 @@ namespace ReactiveArchitecture.EventSourcing.Azure
             actual.ShouldAllBeEquivalentTo(expected);
         }
 
+        [TestMethod]
+        public void CorrectEvents_does_not_invoke_SendBatch_if_pending_event_not_found()
+        {
+            // Arrange
+            var userId = Guid.NewGuid();
+
+            // Act
+            Func<Task> action = () => sut.CorrectEvents<FakeUser>(userId);
+
+            // Assert
+            action.ShouldNotThrow();
+            Mock.Get(messageBus).Verify(
+                x => x.SendBatch(It.IsAny<IEnumerable<object>>()),
+                Times.Never());
+        }
+
         private void RaiseEvents(Guid sourceId, params DomainEvent[] events)
         {
             RaiseEvents(sourceId, 0, events);

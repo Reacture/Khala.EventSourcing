@@ -56,11 +56,18 @@
         private async Task Correct<T>(Guid sourceId)
             where T : class, IEventSourced
         {
-            List<PendingEventTableEntity> pendingEvents = await GetPendingEvents<T>(sourceId);
-            List<IDomainEvent> domainEvents = RestoreDomainEvents<T>(pendingEvents);
-            await InsertUnpersistedEvents<T>(sourceId, domainEvents);
-            await SendPendingEvents(domainEvents);
-            await DeletePendingEvents(pendingEvents);
+            List<PendingEventTableEntity> pendingEvents =
+                await GetPendingEvents<T>(sourceId);
+
+            if (pendingEvents.Any())
+            {
+                List<IDomainEvent> domainEvents =
+                    RestoreDomainEvents<T>(pendingEvents);
+
+                await InsertUnpersistedEvents<T>(domainEvents);
+                await SendPendingEvents(domainEvents);
+                await DeletePendingEvents(pendingEvents);
+            }
         }
 
         private async Task<List<PendingEventTableEntity>> GetPendingEvents<T>(
@@ -112,12 +119,12 @@
         }
 
         private async Task InsertUnpersistedEvents<T>(
-            Guid sourceId,
             List<IDomainEvent> domainEvents)
             where T : class, IEventSourced
         {
+            IDomainEvent firstEvent = domainEvents.First();
             List<EventTableEntity> persistedEvents = await
-                GetPersistedEvents<T>(sourceId, domainEvents.First().Version);
+                GetPersistedEvents<T>(firstEvent.SourceId, firstEvent.Version);
 
             IEnumerable<IDomainEvent> unpersistedEvents =
                 domainEvents.Skip(persistedEvents.Count);
