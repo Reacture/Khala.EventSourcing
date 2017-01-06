@@ -76,12 +76,6 @@ namespace ReactiveArchitecture.EventSourcing.Sql
         }
 
         [Fact]
-        public void sut_implements_IEventStore()
-        {
-            sut.Should().BeAssignableTo<IEventStore>();
-        }
-
-        [Fact]
         public void sut_implements_ISqlEventStore()
         {
             sut.Should().BeAssignableTo<ISqlEventStore>();

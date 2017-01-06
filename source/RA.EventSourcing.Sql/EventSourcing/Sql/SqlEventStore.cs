@@ -7,7 +7,7 @@
     using System.Threading.Tasks;
     using Messaging;
 
-    public class SqlEventStore : ISqlEventStore, IEventStore
+    public class SqlEventStore : ISqlEventStore
     {
         private readonly Func<EventStoreDbContext> _dbContextFactory;
         private readonly JsonMessageSerializer _serializer;

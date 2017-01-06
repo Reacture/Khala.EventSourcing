@@ -75,7 +75,7 @@ namespace ReactiveArchitecture.EventSourcing.Sql
         [Fact]
         public void sut_implements_IEventPublisher()
         {
-            sut.Should().BeAssignableTo<IEventPublisher>();
+            sut.Should().BeAssignableTo<ISqlEventPublisher>();
         }
 
         [Fact]

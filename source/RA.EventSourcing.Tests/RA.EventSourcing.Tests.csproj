@@ -154,7 +154,6 @@
     <Compile Include="EventSourcing\Azure\EventTableEntity_features.cs" />
     <Compile Include="EventSourcing\Azure\PendingEventTableEntity_features.cs" />
     <Compile Include="EventSourcing\DomainEvent_features.cs" />
-    <Compile Include="EventSourcing\EventSourcedRepository_features.cs" />
     <Compile Include="EventSourcing\Sql\Event_features.cs" />
     <Compile Include="EventSourcing\Sql\SqlEventPublisher_features.cs" />
     <Compile Include="EventSourcing\Sql\SqlEventSourcedRepository_features.cs" />

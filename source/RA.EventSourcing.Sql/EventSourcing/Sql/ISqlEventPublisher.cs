@@ -1,9 +1,9 @@
-﻿namespace ReactiveArchitecture.EventSourcing
+﻿namespace ReactiveArchitecture.EventSourcing.Sql
 {
     using System;
     using System.Threading.Tasks;
 
-    public interface IEventPublisher
+    public interface ISqlEventPublisher
     {
         Task PublishPendingEvents<T>(Guid sourceId)
             where T : class, IEventSourced;

@@ -53,6 +53,7 @@
     <Compile Include="EventSourcing\Sql\Aggregate.cs" />
     <Compile Include="EventSourcing\Sql\Event.cs" />
     <Compile Include="EventSourcing\Sql\EventStoreDbContext.cs" />
+    <Compile Include="EventSourcing\Sql\ISqlEventPublisher.cs" />
     <Compile Include="EventSourcing\Sql\ISqlEventStore.cs" />
     <Compile Include="EventSourcing\Sql\PendingEvent.cs" />
     <Compile Include="EventSourcing\Sql\SqlEventPublisher.cs" />
