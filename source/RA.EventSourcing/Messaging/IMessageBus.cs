@@ -5,8 +5,6 @@
 
     public interface IMessageBus
     {
-        Task Send(object message);
-
         Task SendBatch(IEnumerable<object> messages);
     }
 }
