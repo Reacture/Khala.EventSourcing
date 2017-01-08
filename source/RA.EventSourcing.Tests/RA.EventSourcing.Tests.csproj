@@ -156,6 +156,7 @@
   </Choose>
   <ItemGroup>
     <Compile Include="EventSourcing\Azure\AzureEventCorrector_features.cs" />
+    <Compile Include="EventSourcing\Azure\AzureEventStore_features.cs" />
     <Compile Include="EventSourcing\Azure\EventTableEntity_features.cs" />
     <Compile Include="EventSourcing\Azure\PendingEventTableEntity_features.cs" />
     <Compile Include="EventSourcing\DomainEvent_features.cs" />

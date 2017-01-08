@@ -6,7 +6,7 @@
 
     public interface IAzureEventStore
     {
-        Task SeveEvents<T>(IEnumerable<IDomainEvent> events)
+        Task SaveEvents<T>(IEnumerable<IDomainEvent> events)
             where T : class, IEventSourced;
 
         Task<IEnumerable<IDomainEvent>> LoadEvents<T>(
