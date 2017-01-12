@@ -119,8 +119,6 @@ namespace ReactiveArchitecture.EventSourcing.Azure
                 .Select(e => new
                 {
                     e.RowKey,
-                    e.SourceType,
-                    e.SourceId,
                     e.EventType,
                     e.RaisedAt,
                     Payload = serializer.Deserialize(e.PayloadJson)
@@ -130,8 +128,6 @@ namespace ReactiveArchitecture.EventSourcing.Azure
                 .Select(e => new
                 {
                     RowKey = PendingEventTableEntity.GetRowKey(e.Version),
-                    SourceType = typeof(FakeUser).FullName,
-                    SourceId = userId,
                     EventType = e.GetType().FullName,
                     e.RaisedAt,
                     Payload = e
@@ -160,8 +156,6 @@ namespace ReactiveArchitecture.EventSourcing.Azure
                 .Select(e => new
                 {
                     e.RowKey,
-                    e.SourceType,
-                    e.SourceId,
                     e.EventType,
                     e.RaisedAt,
                     Payload = serializer.Deserialize(e.PayloadJson)
@@ -171,8 +165,6 @@ namespace ReactiveArchitecture.EventSourcing.Azure
                 .Select(e => new
                 {
                     RowKey = EventTableEntity.GetRowKey(e.Version),
-                    SourceType = typeof(FakeUser).FullName,
-                    SourceId = userId,
                     EventType = e.GetType().FullName,
                     e.RaisedAt,
                     Payload = e

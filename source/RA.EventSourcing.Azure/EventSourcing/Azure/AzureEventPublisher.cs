@@ -7,16 +7,15 @@
     using Messaging;
     using Microsoft.WindowsAzure.Storage.Table;
     using static Microsoft.WindowsAzure.Storage.Table.QueryComparisons;
-    using static Microsoft.WindowsAzure.Storage.Table.TableOperators;
     using static Microsoft.WindowsAzure.Storage.Table.TableQuery;
 
-    public class AzureEventCorrector : IAzureEventCorrector
+    public class AzureEventPublisher : IAzureEventPublisher
     {
         private readonly CloudTable _eventTable;
         private readonly JsonMessageSerializer _serializer;
         private readonly IMessageBus _messageBus;
 
-        public AzureEventCorrector(
+        public AzureEventPublisher(
             CloudTable eventTable,
             JsonMessageSerializer serializer,
             IMessageBus messageBus)
@@ -41,19 +40,19 @@
             _messageBus = messageBus;
         }
 
-        public Task CorrectEvents<T>(Guid sourceId)
+        public Task PublishPendingEvents<T>(Guid sourceId)
             where T : class, IEventSourced
         {
             if (sourceId == Guid.Empty)
             {
                 throw new ArgumentException(
-                    $"{sourceId} cannot be empty.", nameof(sourceId));
+                    $"{nameof(sourceId)} cannot be empty.", nameof(sourceId));
             }
 
-            return Correct<T>(sourceId);
+            return Publish<T>(sourceId);
         }
 
-        private async Task Correct<T>(Guid sourceId)
+        private async Task Publish<T>(Guid sourceId)
             where T : class, IEventSourced
         {
             List<PendingEventTableEntity> pendingEvents =
@@ -64,7 +63,6 @@
                 List<IDomainEvent> domainEvents =
                     RestoreDomainEvents(pendingEvents);
 
-                await InsertUnpersistedEvents<T>(domainEvents);
                 await SendPendingEvents(domainEvents);
                 await DeletePendingEvents(pendingEvents);
             }
@@ -95,62 +93,17 @@
                 .ToList();
         }
 
-        private async Task<List<EventTableEntity>> GetPersistedEvents<T>(
-            Guid sourceId,
-            int version)
-            where T : class, IEventSourced
+        private async Task SendPendingEvents(List<IDomainEvent> domainEvents)
         {
-            var query = new TableQuery<EventTableEntity>();
-
-            string filter = CombineFilters(
-                GenerateFilterCondition(
-                    nameof(ITableEntity.PartitionKey),
-                    Equal,
-                    EventTableEntity.GetPartitionKey(typeof(T), sourceId)),
-                And,
-                GenerateFilterCondition(
-                    nameof(ITableEntity.RowKey),
-                    GreaterThanOrEqual,
-                    EventTableEntity.GetRowKey(version)));
-
-            return new List<EventTableEntity>(
-                await ExecuteQuery(query.Where(filter)));
+            await _messageBus.SendBatch(domainEvents);
         }
 
-        private async Task InsertUnpersistedEvents<T>(
-            List<IDomainEvent> domainEvents)
-            where T : class, IEventSourced
-        {
-            IDomainEvent firstEvent = domainEvents.First();
-            List<EventTableEntity> persistedEvents = await
-                GetPersistedEvents<T>(firstEvent.SourceId, firstEvent.Version);
-
-            IEnumerable<IDomainEvent> unpersistedEvents =
-                domainEvents.Skip(persistedEvents.Count);
-
-            var batch = new TableBatchOperation();
-
-            foreach (IDomainEvent @event in unpersistedEvents)
-            {
-                var entity =
-                    EventTableEntity.FromDomainEvent<T>(@event, _serializer);
-                batch.Insert(entity);
-            }
-
-            await _eventTable.ExecuteBatchAsync(batch);
-        }
-
-        private Task SendPendingEvents(List<IDomainEvent> domainEvents)
-        {
-            return _messageBus.SendBatch(domainEvents);
-        }
-
-        private Task DeletePendingEvents(
+        private async Task DeletePendingEvents(
             List<PendingEventTableEntity> pendingEvents)
         {
             var batch = new TableBatchOperation();
             pendingEvents.ForEach(batch.Delete);
-            return _eventTable.ExecuteBatchAsync(batch);
+            await _eventTable.ExecuteBatchAsync(batch);
         }
 
         private async Task<IEnumerable<TEntity>> ExecuteQuery<TEntity>(
