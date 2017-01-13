@@ -57,16 +57,16 @@
             where T : class, IEventSourced
         {
             List<PendingEventTableEntity> pendingEvents =
-                await GetPendingEvents<T>(sourceId);
+                await GetPendingEvents<T>(sourceId).ConfigureAwait(false);
 
             if (pendingEvents.Any())
             {
                 List<IDomainEvent> domainEvents =
                     RestoreDomainEvents(pendingEvents);
 
-                await InsertUnpersistedEvents<T>(domainEvents);
-                await SendPendingEvents(domainEvents);
-                await DeletePendingEvents(pendingEvents);
+                await InsertUnpersistedEvents<T>(domainEvents).ConfigureAwait(false);
+                await SendPendingEvents(domainEvents).ConfigureAwait(false);
+                await DeletePendingEvents(pendingEvents).ConfigureAwait(false);
             }
         }
 
@@ -82,7 +82,7 @@
                 PendingEventTableEntity.GetPartitionKey(typeof(T), sourceId));
 
             return new List<PendingEventTableEntity>(
-                await ExecuteQuery(query.Where(filter)));
+                await ExecuteQuery(query.Where(filter)).ConfigureAwait(false));
         }
 
         private List<IDomainEvent> RestoreDomainEvents(
@@ -114,7 +114,7 @@
                     EventTableEntity.GetRowKey(version)));
 
             return new List<EventTableEntity>(
-                await ExecuteQuery(query.Where(filter)));
+                await ExecuteQuery(query.Where(filter)).ConfigureAwait(false));
         }
 
         private async Task InsertUnpersistedEvents<T>(
@@ -137,20 +137,20 @@
                 batch.Insert(entity);
             }
 
-            await _eventTable.ExecuteBatchAsync(batch);
+            await _eventTable.ExecuteBatchAsync(batch).ConfigureAwait(false);
         }
 
-        private Task SendPendingEvents(List<IDomainEvent> domainEvents)
+        private async Task SendPendingEvents(List<IDomainEvent> domainEvents)
         {
-            return _messageBus.SendBatch(domainEvents);
+            await _messageBus.SendBatch(domainEvents).ConfigureAwait(false);
         }
 
-        private Task DeletePendingEvents(
+        private async Task DeletePendingEvents(
             List<PendingEventTableEntity> pendingEvents)
         {
             var batch = new TableBatchOperation();
             pendingEvents.ForEach(batch.Delete);
-            return _eventTable.ExecuteBatchAsync(batch);
+            await _eventTable.ExecuteBatchAsync(batch).ConfigureAwait(false);
         }
 
         private async Task<IEnumerable<TEntity>> ExecuteQuery<TEntity>(
@@ -162,8 +162,9 @@
 
             do
             {
-                TableQuerySegment<TEntity> segment = await
-                    _eventTable.ExecuteQuerySegmentedAsync(query, continuation);
+                TableQuerySegment<TEntity> segment = await _eventTable
+                    .ExecuteQuerySegmentedAsync(query, continuation)
+                    .ConfigureAwait(false);
                 entities.AddRange(segment);
                 continuation = segment.ContinuationToken;
             }

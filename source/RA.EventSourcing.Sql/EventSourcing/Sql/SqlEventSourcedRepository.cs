@@ -73,14 +73,14 @@
 
         private async Task SaveSource(T source)
         {
-            await _eventStore.SaveEvents<T>(source.PendingEvents);
-            await _eventPublisher.PublishPendingEvents<T>(source.Id);
+            await _eventStore.SaveEvents<T>(source.PendingEvents).ConfigureAwait(false);
+            await _eventPublisher.PublishPendingEvents<T>(source.Id).ConfigureAwait(false);
 
             var mementoOriginator = source as IMementoOriginator;
             if (mementoOriginator != null)
             {
                 IMemento memento = mementoOriginator.SaveToMemento();
-                await _mementoStore.Save<T>(source.Id, memento);
+                await _mementoStore.Save<T>(source.Id, memento).ConfigureAwait(false);
             }
         }
 
@@ -97,10 +97,13 @@
 
         private async Task<T> FindSource(Guid sourceId)
         {
-            IMemento memento = await _mementoStore.Find<T>(sourceId);
+            IMemento memento = await _mementoStore
+                .Find<T>(sourceId)
+                .ConfigureAwait(false);
 
-            IEnumerable<IDomainEvent> domainEvents = await
-                _eventStore.LoadEvents<T>(sourceId, memento?.Version ?? 0);
+            IEnumerable<IDomainEvent> domainEvents = await _eventStore
+                .LoadEvents<T>(sourceId, memento?.Version ?? 0)
+                .ConfigureAwait(false);
 
             return
                 memento == null

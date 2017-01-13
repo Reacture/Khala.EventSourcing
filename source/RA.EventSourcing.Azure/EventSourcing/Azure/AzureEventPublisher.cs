@@ -56,15 +56,15 @@
             where T : class, IEventSourced
         {
             List<PendingEventTableEntity> pendingEvents =
-                await GetPendingEvents<T>(sourceId);
+                await GetPendingEvents<T>(sourceId).ConfigureAwait(false);
 
             if (pendingEvents.Any())
             {
                 List<IDomainEvent> domainEvents =
                     RestoreDomainEvents(pendingEvents);
 
-                await SendPendingEvents(domainEvents);
-                await DeletePendingEvents(pendingEvents);
+                await SendPendingEvents(domainEvents).ConfigureAwait(false);
+                await DeletePendingEvents(pendingEvents).ConfigureAwait(false);
             }
         }
 
@@ -80,7 +80,7 @@
                 PendingEventTableEntity.GetPartitionKey(typeof(T), sourceId));
 
             return new List<PendingEventTableEntity>(
-                await ExecuteQuery(query.Where(filter)));
+                await ExecuteQuery(query.Where(filter)).ConfigureAwait(false));
         }
 
         private List<IDomainEvent> RestoreDomainEvents(
@@ -95,7 +95,7 @@
 
         private async Task SendPendingEvents(List<IDomainEvent> domainEvents)
         {
-            await _messageBus.SendBatch(domainEvents);
+            await _messageBus.SendBatch(domainEvents).ConfigureAwait(false);
         }
 
         private async Task DeletePendingEvents(
@@ -103,7 +103,7 @@
         {
             var batch = new TableBatchOperation();
             pendingEvents.ForEach(batch.Delete);
-            await _eventTable.ExecuteBatchAsync(batch);
+            await _eventTable.ExecuteBatchAsync(batch).ConfigureAwait(false);
         }
 
         private async Task<IEnumerable<TEntity>> ExecuteQuery<TEntity>(
@@ -115,8 +115,9 @@
 
             do
             {
-                TableQuerySegment<TEntity> segment = await
-                    _eventTable.ExecuteQuerySegmentedAsync(query, continuation);
+                TableQuerySegment<TEntity> segment = await _eventTable
+                    .ExecuteQuerySegmentedAsync(query, continuation)
+                    .ConfigureAwait(false);
                 entities.AddRange(segment);
                 continuation = segment.ContinuationToken;
             }

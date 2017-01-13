@@ -58,8 +58,8 @@
         private async Task Save<T>(List<IDomainEvent> domainEvents)
             where T : class, IEventSourced
         {
-            await InsertPendingEvents<T>(domainEvents);
-            await InsertEvents<T>(domainEvents);
+            await InsertPendingEvents<T>(domainEvents).ConfigureAwait(false);
+            await InsertEvents<T>(domainEvents).ConfigureAwait(false);
         }
 
         private async Task InsertPendingEvents<T>(List<IDomainEvent> domainEvents)
@@ -72,7 +72,7 @@
                 batch.Insert(PendingEventTableEntity.FromDomainEvent<T>(e, _serializer));
             }
 
-            await _eventTable.ExecuteBatchAsync(batch);
+            await _eventTable.ExecuteBatchAsync(batch).ConfigureAwait(false);
         }
 
         private async Task InsertEvents<T>(List<IDomainEvent> domainEvents)
@@ -85,7 +85,7 @@
                 batch.Insert(EventTableEntity.FromDomainEvent<T>(e, _serializer));
             }
 
-            await _eventTable.ExecuteBatchAsync(batch);
+            await _eventTable.ExecuteBatchAsync(batch).ConfigureAwait(false);
         }
 
         public Task<IEnumerable<IDomainEvent>> LoadEvents<T>(
@@ -119,7 +119,7 @@
                     EventTableEntity.GetRowKey(afterVersion)));
 
             IEnumerable<EventTableEntity> events =
-                await ExecuteQuery(query.Where(filter));
+                await ExecuteQuery(query.Where(filter)).ConfigureAwait(false);
 
             return new List<IDomainEvent>(events
                 .Select(e => e.PayloadJson)
@@ -136,8 +136,9 @@
 
             do
             {
-                TableQuerySegment<TEntity> segment = await
-                    _eventTable.ExecuteQuerySegmentedAsync(query, continuation);
+                TableQuerySegment<TEntity> segment = await _eventTable
+                    .ExecuteQuerySegmentedAsync(query, continuation)
+                    .ConfigureAwait(false);
                 entities.AddRange(segment);
                 continuation = segment.ContinuationToken;
             }

@@ -79,10 +79,10 @@
         {
             using (EventStoreDbContext context = _dbContextFactory.Invoke())
             {
-                await UpsertAggregate<T>(context, sourceId, events);
+                await UpsertAggregate<T>(context, sourceId, events).ConfigureAwait(false);
                 InsertEvents(context, events);
-                await UpdateUniqueIndexedProperties<T>(context, sourceId, events);
-                await context.SaveChangesAsync();
+                await UpdateUniqueIndexedProperties<T>(context, sourceId, events).ConfigureAwait(false);
+                await context.SaveChangesAsync().ConfigureAwait(false);
             }
         }
 
@@ -95,7 +95,8 @@
             Aggregate aggregate = await context
                 .Aggregates
                 .Where(a => a.AggregateId == sourceId)
-                .SingleOrDefaultAsync();
+                .SingleOrDefaultAsync()
+                .ConfigureAwait(false);
 
             if (aggregate == null)
             {
@@ -147,7 +148,8 @@
                     p =>
                     p.AggregateType == typeof(T).FullName &&
                     p.AggregateId == sourceId)
-                .ToDictionaryAsync(p => p.PropertyName);
+                .ToDictionaryAsync(p => p.PropertyName)
+                .ConfigureAwait(false);
 
             var properties = new List<UniqueIndexedProperty>();
 
@@ -213,7 +215,8 @@
                     .Where(e => e.AggregateId == sourceId)
                     .Where(e => e.Version > afterVersion)
                     .OrderBy(e => e.Version)
-                    .ToListAsync();
+                    .ToListAsync()
+                    .ConfigureAwait(false);
 
                 List<IDomainEvent> domainEvents = events
                     .Select(e => e.PayloadJson)
@@ -257,7 +260,7 @@
                     select p;
 
                 UniqueIndexedProperty property =
-                    await query.SingleOrDefaultAsync();
+                    await query.SingleOrDefaultAsync().ConfigureAwait(false);
 
                 return property?.AggregateId;
             }

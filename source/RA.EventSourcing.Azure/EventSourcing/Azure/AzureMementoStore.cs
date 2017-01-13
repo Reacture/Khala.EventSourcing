@@ -74,7 +74,7 @@
             string blobName = GetMementoBlobName<T>(sourceId);
             CloudBlockBlob blob = _container.GetBlockBlobReference(blobName);
             blob.Properties.ContentType = "application/json";
-            await blob.UploadTextAsync(_serializer.Serialize(memento));
+            await blob.UploadTextAsync(_serializer.Serialize(memento)).ConfigureAwait(false);
         }
 
         public Task<IMemento> Find<T>(Guid sourceId)
@@ -94,15 +94,15 @@
         {
             string blobName = GetMementoBlobName<T>(sourceId);
             CloudBlockBlob blob = _container.GetBlockBlobReference(blobName);
-            if (await blob.ExistsAsync() == false)
+            if (await blob.ExistsAsync().ConfigureAwait(false) == false)
             {
                 return null;
             }
 
-            using (Stream stream = await blob.OpenReadAsync())
+            using (Stream stream = await blob.OpenReadAsync().ConfigureAwait(false))
             using (var reader = new StreamReader(stream))
             {
-                string content = await reader.ReadToEndAsync();
+                string content = await reader.ReadToEndAsync().ConfigureAwait(false);
                 return (IMemento)_serializer.Deserialize(content);
             }
         }

@@ -57,8 +57,8 @@
 
         private async Task SaveAndPublish(T source)
         {
-            await _eventStore.SaveEvents<T>(source.PendingEvents);
-            await _eventPublisher.PublishPendingEvents<T>(source.Id);
+            await _eventStore.SaveEvents<T>(source.PendingEvents).ConfigureAwait(false);
+            await _eventPublisher.PublishPendingEvents<T>(source.Id).ConfigureAwait(false);
         }
 
         public Task<T> Find(Guid sourceId)
@@ -74,9 +74,14 @@
 
         private async Task<T> CorrectAndRestore(Guid sourceId)
         {
-            await _eventCorrector.CorrectEvents<T>(sourceId);
-            var domainEvents = new List<IDomainEvent>(
-                await _eventStore.LoadEvents<T>(sourceId));
+            await _eventCorrector
+                .CorrectEvents<T>(sourceId)
+                .ConfigureAwait(false);
+
+            IEnumerable<IDomainEvent> domainEvents = await _eventStore
+                .LoadEvents<T>(sourceId)
+                .ConfigureAwait(false);
+
             return domainEvents.Any()
                 ? _factory.Invoke(sourceId, domainEvents)
                 : default(T);

@@ -58,18 +58,19 @@
                     .PendingEvents
                     .Where(e => e.AggregateId == sourceId)
                     .OrderBy(e => e.Version)
-                    .ToListAsync();
+                    .ToListAsync()
+                    .ConfigureAwait(false);
 
                 List<object> messages = pendingEvents
                     .Select(e => e.PayloadJson)
                     .Select(_serializer.Deserialize)
                     .ToList();
 
-                await _messageBus.SendBatch(messages);
+                await _messageBus.SendBatch(messages).ConfigureAwait(false);
 
                 context.PendingEvents.RemoveRange(pendingEvents);
 
-                await context.SaveChangesAsync();
+                await context.SaveChangesAsync().ConfigureAwait(false);
             }
         }
 
@@ -81,9 +82,10 @@
                     .PendingEvents
                     .Select(e => e.AggregateId)
                     .Distinct()
-                    .ToListAsync())
+                    .ToListAsync()
+                    .ConfigureAwait(false))
                 {
-                    await PublishEvents(sourceId);
+                    await PublishEvents(sourceId).ConfigureAwait(false);
                 }
             }
         }
