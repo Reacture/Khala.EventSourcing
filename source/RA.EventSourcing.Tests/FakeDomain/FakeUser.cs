@@ -8,24 +8,21 @@ namespace ReactiveArchitecture.FakeDomain
     public class FakeUser : EventSourced
     {
         public FakeUser(Guid id, string username)
-            : this(id)
+            : base(id)
         {
             RaiseEvent(new FakeUserCreated { Username = username });
         }
 
-        private FakeUser(Guid id)
+        private FakeUser(Guid id, IEnumerable<IDomainEvent> pastEvents)
             : base(id)
         {
-            SetEventHandler<FakeUserCreated>(Handle);
-            SetEventHandler<FakeUsernameChanged>(Handle);
+            HandlePastEvents(pastEvents);
         }
 
         public static FakeUser Factory(
             Guid id, IEnumerable<IDomainEvent> pastEvents)
         {
-            var user = new FakeUser(id);
-            user.HandlePastEvents(pastEvents);
-            return user;
+            return new FakeUser(id, pastEvents);
         }
 
         public void ChangeUsername(string username)
