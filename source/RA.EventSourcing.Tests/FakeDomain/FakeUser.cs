@@ -50,7 +50,11 @@ namespace ReactiveArchitecture.FakeDomain
 
         public IMemento SaveToMemento()
         {
-            return new FakeUserMemento { Username = Username };
+            return new FakeUserMemento
+            {
+                Version = Version,
+                Username = Username
+            };
         }
 
         private void Handle(FakeUserCreated domainEvent)

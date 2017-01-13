@@ -10,12 +10,14 @@
     {
         private readonly ISqlEventStore _eventStore;
         private readonly ISqlEventPublisher _eventPublisher;
-        private readonly Func<Guid, IEnumerable<IDomainEvent>, T> _factory;
+        private readonly IMementoStore _mementoStore;
+        private readonly Func<Guid, IEnumerable<IDomainEvent>, T> _entityFactory;
+        private readonly Func<Guid, IMemento, IEnumerable<IDomainEvent>, T> _mementoEntityFactory;
 
         public SqlEventSourcedRepository(
             ISqlEventStore eventStore,
             ISqlEventPublisher eventPublisher,
-            Func<Guid, IEnumerable<IDomainEvent>, T> factory)
+            Func<Guid, IEnumerable<IDomainEvent>, T> entityFactory)
         {
             if (eventStore == null)
             {
@@ -27,14 +29,36 @@
                 throw new ArgumentNullException(nameof(eventPublisher));
             }
 
-            if (factory == null)
+            if (entityFactory == null)
             {
-                throw new ArgumentNullException(nameof(factory));
+                throw new ArgumentNullException(nameof(entityFactory));
             }
 
             _eventStore = eventStore;
             _eventPublisher = eventPublisher;
-            _factory = factory;
+            _entityFactory = entityFactory;
+        }
+
+        public SqlEventSourcedRepository(
+            ISqlEventStore eventStore,
+            ISqlEventPublisher eventPublisher,
+            IMementoStore mementoStore,
+            Func<Guid, IEnumerable<IDomainEvent>, T> entityFactory,
+            Func<Guid, IMemento, IEnumerable<IDomainEvent>, T> mementoEntityFactory)
+            : this(eventStore, eventPublisher, entityFactory)
+        {
+            if (mementoStore == null)
+            {
+                throw new ArgumentNullException(nameof(mementoStore));
+            }
+
+            if (mementoEntityFactory == null)
+            {
+                throw new ArgumentNullException(nameof(mementoEntityFactory));
+            }
+
+            _mementoStore = mementoStore;
+            _mementoEntityFactory = mementoEntityFactory;
         }
 
         public Task Save(T source)
@@ -51,6 +75,13 @@
         {
             await _eventStore.SaveEvents<T>(source.PendingEvents);
             await _eventPublisher.PublishPendingEvents<T>(source.Id);
+
+            var mementoOriginator = source as IMementoOriginator;
+            if (mementoOriginator != null)
+            {
+                IMemento memento = mementoOriginator.SaveToMemento();
+                await _mementoStore.Save<T>(source.Id, memento);
+            }
         }
 
         public Task<T> Find(Guid sourceId)
@@ -66,12 +97,17 @@
 
         private async Task<T> FindSource(Guid sourceId)
         {
-            var domainEvents = new List<IDomainEvent>(
-                await _eventStore.LoadEvents<T>(sourceId));
+            IMemento memento = await _mementoStore.Find<T>(sourceId);
 
-            return domainEvents.Any()
-                ? _factory.Invoke(sourceId, domainEvents)
-                : default(T);
+            IEnumerable<IDomainEvent> domainEvents = await
+                _eventStore.LoadEvents<T>(sourceId, memento?.Version ?? 0);
+
+            return
+                memento == null
+                ? domainEvents.Any()
+                    ? _entityFactory.Invoke(sourceId, domainEvents)
+                    : default(T)
+                : _mementoEntityFactory.Invoke(sourceId, memento, domainEvents);
         }
 
         public Task<Guid?> FindIdByUniqueIndexedProperty(

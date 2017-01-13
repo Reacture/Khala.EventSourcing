@@ -15,22 +15,11 @@ namespace ReactiveArchitecture.EventSourcing.Sql
     [TestClass]
     public class SqlEventSourcedRepository_features
     {
-        public interface IFakeEventSourced : IEventSourced
-        {
-        }
-
-        public interface IFactory
-        {
-            IFakeEventSourced Func(
-                Guid sourceId,
-                IEnumerable<IDomainEvent> domainEvents);
-        }
-
         private IFixture fixture;
         private ISqlEventStore eventStore;
         private ISqlEventPublisher eventPublisher;
-        private IFactory factory;
-        private SqlEventSourcedRepository<IFakeEventSourced> sut;
+        private IMementoStore mementoStore;
+        private SqlEventSourcedRepository<FakeUser> sut;
 
         [TestInitialize]
         public void TestInitialize()
@@ -38,23 +27,27 @@ namespace ReactiveArchitecture.EventSourcing.Sql
             fixture = new Fixture().Customize(new AutoMoqCustomization());
             eventStore = Mock.Of<ISqlEventStore>();
             eventPublisher = Mock.Of<ISqlEventPublisher>();
-            factory = Mock.Of<IFactory>();
-            sut = new SqlEventSourcedRepository<IFakeEventSourced>(
-                eventStore, eventPublisher, factory.Func);
+            mementoStore = Mock.Of<IMementoStore>();
+            sut = new SqlEventSourcedRepository<FakeUser>(
+                eventStore,
+                eventPublisher,
+                mementoStore,
+                FakeUser.Factory,
+                FakeUser.Factory);
         }
 
         [TestMethod]
         public void sut_implements_ISqlEventSourcedRepository()
         {
             sut.Should().BeAssignableTo
-                <ISqlEventSourcedRepository<IFakeEventSourced>>();
+                <ISqlEventSourcedRepository<FakeUser>>();
         }
 
         [TestMethod]
         public void sut_implements_IEventSourcedRepositoryT()
         {
             sut.Should().BeAssignableTo
-                <IEventSourcedRepository<IFakeEventSourced>>();
+                <IEventSourcedRepository<FakeUser>>();
         }
 
         [TestMethod]
@@ -67,65 +60,89 @@ namespace ReactiveArchitecture.EventSourcing.Sql
         [TestMethod]
         public async Task Save_saves_events()
         {
-            var events = fixture.CreateMany<IDomainEvent>();
-            var source = Mock.Of<IFakeEventSourced>(
-                x => x.PendingEvents == events);
+            var user = fixture.Create<FakeUser>();
+            user.ChangeUsername(fixture.Create("username"));
 
-            await sut.Save(source);
+            await sut.Save(user);
 
             Mock.Get(eventStore).Verify(
-                x => x.SaveEvents<IFakeEventSourced>(events), Times.Once());
+                x => x.SaveEvents<FakeUser>(user.PendingEvents), Times.Once());
         }
 
         [TestMethod]
         public async Task Save_publishes_events()
         {
-            var sourceId = Guid.NewGuid();
-            var source = Mock.Of<IFakeEventSourced>(x => x.Id == sourceId);
+            var user = fixture.Create<FakeUser>();
+            user.ChangeUsername(fixture.Create("username"));
 
-            await sut.Save(source);
+            await sut.Save(user);
 
             Mock.Get(eventPublisher).Verify(
-                x => x.PublishPendingEvents<IFakeEventSourced>(sourceId),
+                x => x.PublishPendingEvents<FakeUser>(user.Id),
                 Times.Once());
         }
 
         [TestMethod]
         public void Save_does_not_publish_events_if_fails_to_save_events()
         {
-            // Arrange
-            var sourceId = Guid.NewGuid();
-            var events = fixture.CreateMany<IDomainEvent>();
-            var source = Mock.Of<IFakeEventSourced>(
-                x =>
-                x.Id == sourceId &&
-                x.PendingEvents == events);
-
+            var user = fixture.Create<FakeUser>();
+            user.ChangeUsername(fixture.Create("username"));
             Mock.Get(eventStore)
-                .Setup(x => x.SaveEvents<IFakeEventSourced>(events))
+                .Setup(x => x.SaveEvents<FakeUser>(user.PendingEvents))
                 .Throws<InvalidOperationException>();
 
-            // Act
-            Func<Task> action = () => sut.Save(source);
+            Func<Task> action = () => sut.Save(user);
 
-            // Assert
             action.ShouldThrow<InvalidOperationException>();
             Mock.Get(eventPublisher).Verify(
-                x => x.PublishPendingEvents<IFakeEventSourced>(sourceId),
+                x => x.PublishPendingEvents<FakeUser>(user.Id),
+                Times.Never());
+        }
+
+        [TestMethod]
+        public async Task Save_saves_memento()
+        {
+            var user = fixture.Create<FakeUser>();
+
+            await sut.Save(user);
+
+            Mock.Get(mementoStore).Verify(
+                x =>
+                x.Save<FakeUser>(
+                    user.Id,
+                    It.Is<FakeUserMemento>(
+                        p =>
+                        p.Username == user.Username)),
+                Times.Once());
+        }
+
+        [TestMethod]
+        public void Save_does_not_saves_memento_if_fails_to_save_events()
+        {
+            var user = fixture.Create<FakeUser>();
+            Mock.Get(eventStore)
+                .Setup(x => x.SaveEvents<FakeUser>(user.PendingEvents))
+                .Throws<InvalidOperationException>();
+
+            Func<Task> action = () => sut.Save(user);
+
+            action.ShouldThrow<InvalidOperationException>();
+            Mock.Get(mementoStore).Verify(
+                x => x.Save<FakeUser>(user.Id, It.IsAny<IMemento>()),
                 Times.Never());
         }
 
         [TestMethod]
         public async Task Find_loads_events()
         {
-            var sourceId = Guid.NewGuid();
-            var events = fixture.CreateMany<IDomainEvent>();
+            var user = fixture.Create<FakeUser>();
+            user.ChangeUsername(fixture.Create("username"));
             Mock.Get(eventStore)
-                .Setup(x => x.LoadEvents<IFakeEventSourced>(sourceId, 0))
-                .ReturnsAsync(events)
+                .Setup(x => x.LoadEvents<FakeUser>(user.Id, 0))
+                .ReturnsAsync(user.PendingEvents)
                 .Verifiable();
 
-            await sut.Find(sourceId);
+            await sut.Find(user.Id);
 
             Mock.Get(eventStore).Verify();
         }
@@ -134,56 +151,59 @@ namespace ReactiveArchitecture.EventSourcing.Sql
         public async Task Find_restores_aggregate_from_events()
         {
             // Arrange
-            var sourceId = Guid.NewGuid();
-            var source = Mock.Of<IFakeEventSourced>();
-            var events = fixture.CreateMany<IDomainEvent>();
+            var user = fixture.Create<FakeUser>();
+            user.ChangeUsername(fixture.Create("username"));
 
             Mock.Get(eventStore)
-                .Setup(x => x.LoadEvents<IFakeEventSourced>(sourceId, 0))
-                .ReturnsAsync(events);
-
-            Mock.Get(factory)
-                .Setup(
-                    x =>
-                    x.Func(
-                        sourceId,
-                        It.Is<IEnumerable<IDomainEvent>>(
-                            p =>
-                            p.SequenceEqual(events))))
-                .Returns(source)
+                .Setup(x => x.LoadEvents<FakeUser>(user.Id, 0))
+                .ReturnsAsync(user.PendingEvents)
                 .Verifiable();
 
             // Act
-            IFakeEventSourced actual = await sut.Find(sourceId);
+            FakeUser actual = await sut.Find(user.Id);
 
             // Assert
-            Mock.Get(factory).Verify();
-            actual.Should().BeSameAs(source);
+            Mock.Get(eventStore).Verify();
+            actual.ShouldBeEquivalentTo(
+                user, opts => opts.Excluding(x => x.PendingEvents));
+        }
+
+        [TestMethod]
+        public async Task Find_restores_aggregate_using_memento_if_found()
+        {
+            // Arrange
+            var user = fixture.Create<FakeUser>();
+            IMemento memento = user.SaveToMemento();
+            user.ChangeUsername(fixture.Create("username"));
+
+            Mock.Get(mementoStore)
+                .Setup(x => x.Find<FakeUser>(user.Id))
+                .ReturnsAsync(memento);
+
+            Mock.Get(eventStore)
+                .Setup(x => x.LoadEvents<FakeUser>(user.Id, 1))
+                .ReturnsAsync(user.PendingEvents.Skip(1))
+                .Verifiable();
+
+            // Act
+            FakeUser actual = await sut.Find(user.Id);
+
+            // Assert
+            Mock.Get(eventStore).Verify();
+            actual.ShouldBeEquivalentTo(
+                user, opts => opts.Excluding(x => x.PendingEvents));
         }
 
         [TestMethod]
         public async Task Find_returns_null_if_no_event()
         {
-            // Arrange
-            var sourceId = Guid.NewGuid();
-            var source = Mock.Of<IFakeEventSourced>();
-            var events = new IDomainEvent[0];
-
+            var userId = Guid.NewGuid();
             Mock.Get(eventStore)
-                .Setup(x => x.LoadEvents<IFakeEventSourced>(sourceId, 0))
-                .ReturnsAsync(events);
+                .Setup(x => x.LoadEvents<FakeUser>(userId, 0))
+                .ReturnsAsync(new IDomainEvent[0]);
 
-            Mock.Get(factory)
-                .Setup(x => x.Func(sourceId, events))
-                .Returns(source);
+            FakeUser actual = await sut.Find(userId);
 
-            // Act
-            IFakeEventSourced actual = await sut.Find(sourceId);
-
-            // Assert
-            Mock.Get(factory).Verify(
-                x => x.Func(sourceId, It.IsAny<IEnumerable<IDomainEvent>>()),
-                Times.Never());
             actual.Should().BeNull();
         }
 
