@@ -73,6 +73,7 @@
     <Compile Include="EventSourcing\Azure\AzureEventPublisher.cs" />
     <Compile Include="EventSourcing\Azure\AzureEventSourcedRepository.cs" />
     <Compile Include="EventSourcing\Azure\AzureEventStore.cs" />
+    <Compile Include="EventSourcing\Azure\AzureMementoStore.cs" />
     <Compile Include="EventSourcing\Azure\IAzureEventPublisher.cs" />
     <Compile Include="EventSourcing\Azure\IAzureEventStore.cs" />
     <Compile Include="EventSourcing\Azure\EventTableEntity.cs" />

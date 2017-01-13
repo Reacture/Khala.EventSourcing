@@ -5,8 +5,10 @@
 
     public interface IMementoStore
     {
-        Task Save<T>(IMemento memento);
+        Task Save<T>(IMemento memento)
+            where T : class, IEventSourced;
 
-        IMemento Find<T>(Guid sourceId);
+        Task<IMemento> Find<T>(Guid sourceId)
+            where T : class, IEventSourced;
     }
 }
