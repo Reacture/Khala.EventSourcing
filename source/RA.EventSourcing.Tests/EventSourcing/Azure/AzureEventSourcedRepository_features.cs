@@ -9,7 +9,6 @@ using Ploeh.AutoFixture.AutoMoq;
 using Ploeh.AutoFixture.Idioms;
 using Ploeh.AutoFixture.Xunit2;
 using ReactiveArchitecture.FakeDomain;
-using ReactiveArchitecture.FakeDomain.Events;
 using Xunit;
 
 namespace ReactiveArchitecture.EventSourcing.Azure
@@ -58,154 +57,96 @@ namespace ReactiveArchitecture.EventSourcing.Azure
         [Theory]
         [AutoData]
         public async Task Save_saves_events(
-            Guid userId,
-            FakeUserCreated userCreated,
-            FakeUsernameChanged userNameChanged)
+            FakeUser user,
+            string username)
         {
-            var events = new DomainEvent[] { userCreated, userNameChanged };
-            RaiseEvents(userId, events);
-            var source = new FakeUser
-            {
-                Id = userId,
-                Version = events.Last().Version,
-                PendingEvents = events
-            };
-
-            await sut.Save(source);
-
-            Mock.Get(eventStore).Verify(x => x.SaveEvents<FakeUser>(events), Times.Once());
+            user.ChangeUsername(username);
+            await sut.Save(user);
+            Mock.Get(eventStore).Verify(x => x.SaveEvents<FakeUser>(user.PendingEvents), Times.Once());
         }
 
         [Theory]
         [AutoData]
         public async Task Save_publishes_events(
-            Guid userId,
-            FakeUserCreated userCreated,
-            FakeUsernameChanged userNameChanged)
+            FakeUser user,
+            string username)
         {
-            var events = new DomainEvent[] { userCreated, userNameChanged };
-            RaiseEvents(userId, events);
-            var source = new FakeUser
-            {
-                Id = userId,
-                Version = events.Last().Version,
-                PendingEvents = events
-            };
-
-            await sut.Save(source);
-
-            Mock.Get(eventPublisher).Verify(x => x.PublishPendingEvents<FakeUser>(userId), Times.Once());
+            user.ChangeUsername(username);
+            await sut.Save(user);
+            Mock.Get(eventPublisher).Verify(x => x.PublishPendingEvents<FakeUser>(user.Id), Times.Once());
         }
 
         [Theory]
         [AutoData]
         public void Save_does_not_publish_events_if_fails_to_save(
-            Guid userId,
-            FakeUserCreated userCreated,
-            FakeUsernameChanged userNameChanged)
+            FakeUser user,
+            string username)
         {
-            // Arrange
-            var events = new DomainEvent[] { userCreated, userNameChanged };
-            RaiseEvents(userId, events);
-            var source = new FakeUser
-            {
-                Id = userId,
-                Version = events.Last().Version,
-                PendingEvents = events
-            };
-
+            user.ChangeUsername(username);
             Mock.Get(eventStore)
                 .Setup(x => x.SaveEvents<FakeUser>(It.IsAny<IEnumerable<IDomainEvent>>()))
                 .Throws<InvalidOperationException>();
 
-            // Act
-            Func<Task> action = () => sut.Save(source);
+            Func<Task> action = () => sut.Save(user);
 
-            // Assert
             action.ShouldThrow<InvalidOperationException>();
-            Mock.Get(eventPublisher).Verify(x => x.PublishPendingEvents<FakeUser>(userId), Times.Never());
+            Mock.Get(eventPublisher).Verify(x => x.PublishPendingEvents<FakeUser>(user.Id), Times.Never());
         }
 
         [Theory]
         [AutoData]
         public async Task Find_corrects_damaged_events(
-            Guid userId,
-            FakeUserCreated userCreated,
-            FakeUsernameChanged userNameChanged)
+            FakeUser user,
+            string username)
         {
-            var events = new DomainEvent[] { userCreated, userNameChanged };
-            RaiseEvents(userId, events);
-            var source = new FakeUser
-            {
-                Id = userId,
-                Version = events.Last().Version,
-                PendingEvents = events
-            };
-
-            await sut.Find(userId);
-
-            Mock.Get(eventCorrector).Verify(x => x.CorrectEvents<FakeUser>(userId), Times.Once());
+            user.ChangeUsername(username);
+            await sut.Find(user.Id);
+            Mock.Get(eventCorrector).Verify(x => x.CorrectEvents<FakeUser>(user.Id), Times.Once());
         }
 
         [Theory]
         [AutoData]
         public async Task Find_restores_aggregate(
-            Guid userId,
-            FakeUserCreated userCreated,
-            FakeUsernameChanged userNameChanged)
+            FakeUser user,
+            string username)
         {
             // Arrange
-            var events = new DomainEvent[] { userCreated, userNameChanged };
-            RaiseEvents(userId, events);
-            var source = new FakeUser
-            {
-                Id = userId,
-                Version = events.Last().Version,
-                PendingEvents = events
-            };
+            user.ChangeUsername(username);
 
             Mock.Get(eventStore)
-                .Setup(x => x.LoadEvents<FakeUser>(userId, 0))
-                .ReturnsAsync(source.PendingEvents);
+                .Setup(x => x.LoadEvents<FakeUser>(user.Id, 0))
+                .ReturnsAsync(user.PendingEvents);
 
             Mock.Get(factory)
-                .Setup(x => x.Func(userId, source.PendingEvents))
-                .Returns(source);
+                .Setup(x => x.Func(user.Id, user.PendingEvents))
+                .Returns(user);
 
             // Act
-            FakeUser actual = await sut.Find(userId);
+            FakeUser actual = await sut.Find(user.Id);
 
             // Assert
-            actual.Should().BeSameAs(source);
+            actual.Should().BeSameAs(user);
         }
 
         [Theory]
         [AutoData]
         public void Find_does_not_load_events_if_fails_to_correct_events(
-            Guid userId,
-            FakeUserCreated userCreated,
-            FakeUsernameChanged userNameChanged)
+            FakeUser user,
+            string username)
         {
             // Arrange
-            var events = new DomainEvent[] { userCreated, userNameChanged };
-            RaiseEvents(userId, events);
-            var source = new FakeUser
-            {
-                Id = userId,
-                Version = events.Last().Version,
-                PendingEvents = events
-            };
+            user.ChangeUsername(username);
 
             Mock.Get(eventCorrector)
-                .Setup(x => x.CorrectEvents<FakeUser>(userId))
+                .Setup(x => x.CorrectEvents<FakeUser>(user.Id))
                 .Throws<InvalidOperationException>();
 
             // Act
-            Func<Task> action = () => sut.Find(userId);
+            Func<Task> action = () => sut.Find(user.Id);
 
             // Assert
             action.ShouldThrow<InvalidOperationException>();
-            Mock.Get(eventStore).Verify(x => x.LoadEvents<FakeUser>(userId, 0), Times.Never());
+            Mock.Get(eventStore).Verify(x => x.LoadEvents<FakeUser>(user.Id, It.IsAny<int>()), Times.Never());
         }
 
         [Theory]
