@@ -51,25 +51,30 @@
             return string.Join("/", fragments);
         }
 
-        public Task Save<T>(IMemento memento)
+        public Task Save<T>(Guid sourceId, IMemento memento)
             where T : class, IEventSourced
         {
+            if (sourceId == Guid.Empty)
+            {
+                throw new ArgumentException(
+                    $"{nameof(sourceId)} cannot be empty.", nameof(sourceId));
+            }
+
             if (memento == null)
             {
                 throw new ArgumentNullException(nameof(memento));
             }
 
-            return SaveMemento<T>(memento);
+            return SaveMemento<T>(sourceId, memento);
         }
 
-        private async Task SaveMemento<T>(IMemento memento)
+        private async Task SaveMemento<T>(Guid sourceId, IMemento memento)
             where T : class, IEventSourced
         {
-            string content = _serializer.Serialize(memento);
-            string blobName = GetMementoBlobName<T>(memento.SourceId);
+            string blobName = GetMementoBlobName<T>(sourceId);
             CloudBlockBlob blob = _container.GetBlockBlobReference(blobName);
             blob.Properties.ContentType = "application/json";
-            await blob.UploadTextAsync(content);
+            await blob.UploadTextAsync(_serializer.Serialize(memento));
         }
 
         public Task<IMemento> Find<T>(Guid sourceId)

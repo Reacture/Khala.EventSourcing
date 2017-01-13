@@ -96,12 +96,9 @@ namespace ReactiveArchitecture.EventSourcing.Azure
         public async Task Save_uploads_memento_blob_correctly()
         {
             var userId = Guid.NewGuid();
-            FakeUserMemento memento = fixture
-                .Build<FakeUserMemento>()
-                .With(x => x.SourceId, userId)
-                .Create();
+            FakeUserMemento memento = fixture.Create<FakeUserMemento>();
 
-            await sut.Save<FakeUser>(memento);
+            await sut.Save<FakeUser>(userId, memento);
 
             CloudBlockBlob blob = s_container.GetBlockBlobReference(
                 AzureMementoStore.GetMementoBlobName<FakeUser>(userId));
@@ -121,22 +118,16 @@ namespace ReactiveArchitecture.EventSourcing.Azure
         {
             // Arrange
             var userId = Guid.NewGuid();
-            FakeUserMemento oldMemento = fixture
-                .Build<FakeUserMemento>()
-                .With(x => x.SourceId, userId)
-                .Create();
+            FakeUserMemento oldMemento = fixture.Create<FakeUserMemento>();
 
             CloudBlockBlob blob = s_container.GetBlockBlobReference(
                 AzureMementoStore.GetMementoBlobName<FakeUser>(userId));
             await blob.UploadTextAsync(serializer.Serialize(oldMemento));
 
-            FakeUserMemento memento = fixture
-                .Build<FakeUserMemento>()
-                .With(x => x.SourceId, userId)
-                .Create();
+            FakeUserMemento memento = fixture.Create<FakeUserMemento>();
 
             // Act
-            Func<Task> action = () => sut.Save<FakeUser>(memento);
+            Func<Task> action = () => sut.Save<FakeUser>(userId, memento);
 
             // Assert
             action.ShouldNotThrow();
@@ -155,12 +146,9 @@ namespace ReactiveArchitecture.EventSourcing.Azure
         public async Task Save_sets_ContentType_to_application_json()
         {
             var userId = Guid.NewGuid();
-            FakeUserMemento memento = fixture
-                .Build<FakeUserMemento>()
-                .With(x => x.SourceId, userId)
-                .Create();
+            FakeUserMemento memento = fixture.Create<FakeUserMemento>();
 
-            await sut.Save<FakeUser>(memento);
+            await sut.Save<FakeUser>(userId, memento);
 
             string blobName =
                 AzureMementoStore.GetMementoBlobName<FakeUser>(userId);
@@ -174,11 +162,8 @@ namespace ReactiveArchitecture.EventSourcing.Azure
         {
             // Arrange
             var userId = Guid.NewGuid();
-            FakeUserMemento memento = fixture
-                .Build<FakeUserMemento>()
-                .With(x => x.SourceId, userId)
-                .Create();
-            await sut.Save<FakeUser>(memento);
+            FakeUserMemento memento = fixture.Create<FakeUserMemento>();
+            await sut.Save<FakeUser>(userId, memento);
 
             // Act
             IMemento actual = await sut.Find<FakeUser>(userId);
