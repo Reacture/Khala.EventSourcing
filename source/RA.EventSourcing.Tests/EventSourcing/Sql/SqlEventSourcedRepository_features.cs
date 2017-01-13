@@ -112,6 +112,7 @@ namespace ReactiveArchitecture.EventSourcing.Sql
                     user.Id,
                     It.Is<FakeUserMemento>(
                         p =>
+                        p.Version == user.Version &&
                         p.Username == user.Username)),
                 Times.Once());
         }

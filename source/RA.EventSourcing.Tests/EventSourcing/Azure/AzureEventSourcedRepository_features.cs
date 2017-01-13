@@ -15,16 +15,11 @@ namespace ReactiveArchitecture.EventSourcing.Azure
 {
     public class AzureEventSourcedRepository_features
     {
-        public interface IFactory<T>
-        {
-            T Func(Guid sourceId, IEnumerable<IDomainEvent> pastEvents);
-        }
-
         private IFixture fixture;
         private IAzureEventStore eventStore;
         private IAzureEventPublisher eventPublisher;
+        private IMementoStore mementoStore;
         private IAzureEventCorrector eventCorrector;
-        private IFactory<FakeUser> factory;
         private AzureEventSourcedRepository<FakeUser> sut;
 
         public AzureEventSourcedRepository_features()
@@ -32,13 +27,15 @@ namespace ReactiveArchitecture.EventSourcing.Azure
             fixture = new Fixture().Customize(new AutoMoqCustomization());
             eventStore = Mock.Of<IAzureEventStore>();
             eventPublisher = Mock.Of<IAzureEventPublisher>();
+            mementoStore = Mock.Of<IMementoStore>();
             eventCorrector = Mock.Of<IAzureEventCorrector>();
-            factory = Mock.Of<IFactory<FakeUser>>();
             sut = new AzureEventSourcedRepository<FakeUser>(
                 eventStore,
                 eventPublisher,
+                mementoStore,
                 eventCorrector,
-                factory.Func);
+                FakeUser.Factory,
+                FakeUser.Factory);
         }
 
         [Fact]
@@ -95,6 +92,42 @@ namespace ReactiveArchitecture.EventSourcing.Azure
 
         [Theory]
         [AutoData]
+        public async Task Save_saves_memento(FakeUser user, string username)
+        {
+            user.ChangeUsername(username);
+
+            await sut.Save(user);
+
+            Mock.Get(mementoStore).Verify(
+                x =>
+                x.Save<FakeUser>(
+                    user.Id,
+                    It.Is<FakeUserMemento>(
+                        p =>
+                        p.Version == user.Version &&
+                        p.Username == user.Username)),
+                Times.Once());
+        }
+
+        [Theory]
+        [AutoData]
+        public void Save_does_not_save_memento_if_fails_to_save_events(
+            FakeUser user,
+            string username)
+        {
+            user.ChangeUsername(username);
+            Mock.Get(eventStore)
+                .Setup(x => x.SaveEvents<FakeUser>(It.IsAny<IEnumerable<IDomainEvent>>()))
+                .Throws<InvalidOperationException>();
+
+            Func<Task> action = () => sut.Save(user);
+
+            action.ShouldThrow<InvalidOperationException>();
+            Mock.Get(mementoStore).Verify(x => x.Save<FakeUser>(user.Id, It.IsAny<IMemento>()), Times.Never());
+        }
+
+        [Theory]
+        [AutoData]
         public async Task Find_corrects_damaged_events(
             FakeUser user,
             string username)
@@ -110,22 +143,14 @@ namespace ReactiveArchitecture.EventSourcing.Azure
             FakeUser user,
             string username)
         {
-            // Arrange
             user.ChangeUsername(username);
-
             Mock.Get(eventStore)
                 .Setup(x => x.LoadEvents<FakeUser>(user.Id, 0))
                 .ReturnsAsync(user.PendingEvents);
 
-            Mock.Get(factory)
-                .Setup(x => x.Func(user.Id, user.PendingEvents))
-                .Returns(user);
-
-            // Act
             FakeUser actual = await sut.Find(user.Id);
 
-            // Assert
-            actual.Should().BeSameAs(user);
+            actual.ShouldBeEquivalentTo(user, opts => opts.Excluding(x => x.PendingEvents));
         }
 
         [Theory]
@@ -160,7 +185,34 @@ namespace ReactiveArchitecture.EventSourcing.Azure
             FakeUser actual = await sut.Find(userId);
 
             actual.Should().BeNull();
-            Mock.Get(factory).Verify(x => x.Func(userId, It.IsAny<IEnumerable<IDomainEvent>>()), Times.Never());
+        }
+
+        [Theory]
+        [AutoData]
+        public async Task Find_restores_aggregate_using_memento_if_found(
+            FakeUser user,
+            string username)
+        {
+            // Arrange
+            var memento = user.SaveToMemento();
+            user.ChangeUsername(username);
+
+            Mock.Get(mementoStore)
+                .Setup(x => x.Find<FakeUser>(user.Id))
+                .ReturnsAsync(memento);
+
+            Mock.Get(eventStore)
+                .Setup(x => x.LoadEvents<FakeUser>(user.Id, 1))
+                .ReturnsAsync(user.PendingEvents.Skip(1))
+                .Verifiable();
+
+            // Act
+            FakeUser actual = await sut.Find(user.Id);
+
+            // Assert
+            Mock.Get(eventStore).Verify();
+            actual.ShouldBeEquivalentTo(
+                user, opts => opts.Excluding(x => x.PendingEvents));
         }
 
         private void RaiseEvents(Guid sourceId, params DomainEvent[] events)
