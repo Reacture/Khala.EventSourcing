@@ -5,7 +5,7 @@ using ReactiveArchitecture.FakeDomain.Events;
 
 namespace ReactiveArchitecture.FakeDomain
 {
-    public class FakeUser : EventSourced
+    public class FakeUser : EventSourced, IMementoOriginator
     {
         public FakeUser(Guid id, string username)
             : base(id)
@@ -19,10 +19,28 @@ namespace ReactiveArchitecture.FakeDomain
             HandlePastEvents(pastEvents);
         }
 
+        private FakeUser(
+            Guid id,
+            FakeUserMemento memento,
+            IEnumerable<IDomainEvent> pastEvents)
+            : base(id, memento)
+        {
+            Username = memento.Username;
+            HandlePastEvents(pastEvents);
+        }
+
+        public string Username { get; private set; }
+
         public static FakeUser Factory(
             Guid id, IEnumerable<IDomainEvent> pastEvents)
         {
             return new FakeUser(id, pastEvents);
+        }
+
+        public static FakeUser Factory(
+            Guid id, IMemento memento, IEnumerable<IDomainEvent> pastEvents)
+        {
+            return new FakeUser(id, (FakeUserMemento)memento, pastEvents);
         }
 
         public void ChangeUsername(string username)
@@ -30,12 +48,19 @@ namespace ReactiveArchitecture.FakeDomain
             RaiseEvent(new FakeUsernameChanged { Username = username });
         }
 
+        public IMemento SaveToMemento()
+        {
+            return new FakeUserMemento { Username = Username };
+        }
+
         private void Handle(FakeUserCreated domainEvent)
         {
+            Username = domainEvent.Username;
         }
 
         private void Handle(FakeUsernameChanged domainEvent)
         {
+            Username = domainEvent.Username;
         }
     }
 }

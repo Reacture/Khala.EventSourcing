@@ -25,7 +25,18 @@
             _pendingEvents = new List<IDomainEvent>();
             _version = 0;
 
-            WireupEvents(this);
+            WireupEvents();
+        }
+
+        protected EventSourced(Guid id, IMemento memento)
+            : this(id)
+        {
+            if (memento == null)
+            {
+                throw new ArgumentNullException(nameof(memento));
+            }
+
+            _version = memento.Version;
         }
 
         protected delegate void DomainEventHandler<TEvent>(TEvent domainEvent)
@@ -37,10 +48,10 @@
 
         public IEnumerable<IDomainEvent> PendingEvents => _pendingEvents;
 
-        private static void WireupEvents(EventSourced source)
+        private void WireupEvents()
         {
             var handlers =
-                from m in source.GetType().GetTypeInfo().GetDeclaredMethods("Handle")
+                from m in GetType().GetTypeInfo().GetDeclaredMethods("Handle")
                 let parameters = m.GetParameters()
                 where parameters.Length == 1
                 let parameter = parameters.Single()
@@ -50,7 +61,7 @@
 
             foreach (var handler in handlers)
             {
-                source.WireupEvent(handler.EventType, handler.Method);
+                WireupEvent(handler.EventType, handler.Method);
             }
         }
 
