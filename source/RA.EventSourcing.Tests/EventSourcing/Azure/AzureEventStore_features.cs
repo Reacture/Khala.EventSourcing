@@ -13,9 +13,9 @@ using Moq;
 using Ploeh.AutoFixture;
 using Ploeh.AutoFixture.AutoMoq;
 using Ploeh.AutoFixture.Idioms;
+using ReactiveArchitecture.EventSourcing.Messaging;
 using ReactiveArchitecture.FakeDomain;
 using ReactiveArchitecture.FakeDomain.Events;
-using ReactiveArchitecture.Messaging;
 
 namespace ReactiveArchitecture.EventSourcing.Azure
 {

@@ -7,7 +7,7 @@ using Newtonsoft.Json;
 using Ploeh.AutoFixture;
 using Ploeh.AutoFixture.AutoMoq;
 using Ploeh.AutoFixture.Idioms;
-using ReactiveArchitecture.Messaging;
+using ReactiveArchitecture.EventSourcing.Messaging;
 
 namespace ReactiveArchitecture.EventSourcing
 {

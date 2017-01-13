@@ -10,8 +10,8 @@ using Microsoft.WindowsAzure.Storage.RetryPolicies;
 using Ploeh.AutoFixture;
 using Ploeh.AutoFixture.AutoMoq;
 using Ploeh.AutoFixture.Idioms;
+using ReactiveArchitecture.EventSourcing.Messaging;
 using ReactiveArchitecture.FakeDomain;
-using ReactiveArchitecture.Messaging;
 
 namespace ReactiveArchitecture.EventSourcing.Azure
 {

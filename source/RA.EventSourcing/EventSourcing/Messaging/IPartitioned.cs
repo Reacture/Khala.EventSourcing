@@ -1,4 +1,4 @@
-﻿namespace ReactiveArchitecture.Messaging
+﻿namespace ReactiveArchitecture.EventSourcing.Messaging
 {
     public interface IPartitioned
     {

@@ -9,9 +9,9 @@ using Ploeh.AutoFixture;
 using Ploeh.AutoFixture.AutoMoq;
 using Ploeh.AutoFixture.Idioms;
 using Ploeh.AutoFixture.Xunit2;
+using ReactiveArchitecture.EventSourcing.Messaging;
 using ReactiveArchitecture.FakeDomain;
 using ReactiveArchitecture.FakeDomain.Events;
-using ReactiveArchitecture.Messaging;
 using Xunit;
 using Xunit.Abstractions;
 

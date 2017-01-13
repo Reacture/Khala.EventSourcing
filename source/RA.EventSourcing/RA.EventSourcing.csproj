@@ -51,9 +51,9 @@
     <Compile Include="EventSourcing\IVersionedEntity.cs" />
     <Compile Include="EventSourcing\Sql\ISqlEventSourcedRepository.cs" />
     <Compile Include="EventSourcing\Sql\IUniqueIndexedDomainEvent.cs" />
-    <Compile Include="Messaging\IMessageBus.cs" />
-    <Compile Include="Messaging\IPartitioned.cs" />
-    <Compile Include="Messaging\JsonMessageSerializer.cs" />
+    <Compile Include="EventSourcing\Messaging\IMessageBus.cs" />
+    <Compile Include="EventSourcing\Messaging\IPartitioned.cs" />
+    <Compile Include="EventSourcing\Messaging\JsonMessageSerializer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.CSharp.targets" />

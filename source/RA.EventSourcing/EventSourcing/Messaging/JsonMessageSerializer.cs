@@ -1,4 +1,4 @@
-﻿namespace ReactiveArchitecture.Messaging
+﻿namespace ReactiveArchitecture.EventSourcing.Messaging
 {
     using System;
     using System.IO;

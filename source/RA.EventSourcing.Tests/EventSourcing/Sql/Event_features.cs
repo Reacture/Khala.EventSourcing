@@ -4,7 +4,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Ploeh.AutoFixture;
 using Ploeh.AutoFixture.AutoMoq;
 using Ploeh.AutoFixture.Idioms;
-using ReactiveArchitecture.Messaging;
+using ReactiveArchitecture.EventSourcing.Messaging;
 
 namespace ReactiveArchitecture.EventSourcing.Sql
 {
