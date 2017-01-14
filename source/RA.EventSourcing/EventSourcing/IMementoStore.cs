@@ -10,5 +10,8 @@
 
         Task<IMemento> Find<T>(Guid sourceId)
             where T : class, IEventSourced;
+
+        Task Delete<T>(Guid sourceId)
+            where T : class, IEventSourced;
     }
 }

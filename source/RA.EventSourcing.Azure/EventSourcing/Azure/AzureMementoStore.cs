@@ -106,5 +106,25 @@
                 return (IMemento)_serializer.Deserialize(content);
             }
         }
+
+        public Task Delete<T>(Guid sourceId)
+            where T : class, IEventSourced
+        {
+            if (sourceId == Guid.Empty)
+            {
+                throw new ArgumentException(
+                    $"{nameof(sourceId)} cannot be empty.", nameof(sourceId));
+            }
+
+            return DeleteMemento<T>(sourceId);
+        }
+
+        private async Task DeleteMemento<T>(Guid sourceId)
+            where T : class, IEventSourced
+        {
+            string blobName = GetMementoBlobName<T>(sourceId);
+            CloudBlockBlob blob = _container.GetBlockBlobReference(blobName);
+            await blob.DeleteIfExistsAsync();
+        }
     }
 }

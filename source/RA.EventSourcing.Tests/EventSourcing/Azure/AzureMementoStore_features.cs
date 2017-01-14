@@ -180,5 +180,27 @@ namespace ReactiveArchitecture.EventSourcing.Azure
             IMemento actual = await sut.Find<FakeUser>(userId);
             actual.Should().BeNull();
         }
+
+        [TestMethod]
+        public async Task Delete_deletes_memento_blob()
+        {
+            var userId = Guid.NewGuid();
+            FakeUserMemento memento = fixture.Create<FakeUserMemento>();
+            await sut.Save<FakeUser>(userId, memento);
+
+            await sut.Delete<FakeUser>(userId);
+
+            CloudBlockBlob blob = s_container.GetBlockBlobReference(
+                AzureMementoStore.GetMementoBlobName<FakeUser>(userId));
+            blob.Exists().Should().BeFalse();
+        }
+
+        [TestMethod]
+        public void Delete_does_not_fails_even_if_memento_not_found()
+        {
+            var userId = Guid.NewGuid();
+            Func<Task> action = () => sut.Delete<FakeUser>(userId);
+            action.ShouldNotThrow();
+        }
     }
 }
