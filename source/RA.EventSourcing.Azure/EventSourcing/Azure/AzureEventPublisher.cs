@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
     using Messaging;
     using Microsoft.WindowsAzure.Storage.Table;
@@ -40,7 +41,9 @@
             _messageBus = messageBus;
         }
 
-        public Task PublishPendingEvents<T>(Guid sourceId)
+        public Task PublishPendingEvents<T>(
+            Guid sourceId,
+            CancellationToken cancellationToken = default(CancellationToken))
             where T : class, IEventSourced
         {
             if (sourceId == Guid.Empty)
@@ -49,27 +52,28 @@
                     $"{nameof(sourceId)} cannot be empty.", nameof(sourceId));
             }
 
-            return Publish<T>(sourceId);
+            return Publish<T>(sourceId, cancellationToken);
         }
 
-        private async Task Publish<T>(Guid sourceId)
+        private async Task Publish<T>(
+            Guid sourceId, CancellationToken cancellationToken)
             where T : class, IEventSourced
         {
-            List<PendingEventTableEntity> pendingEvents =
-                await GetPendingEvents<T>(sourceId).ConfigureAwait(false);
+            List<PendingEventTableEntity> pendingEvents = await
+                GetPendingEvents<T>(sourceId, cancellationToken).ConfigureAwait(false);
 
             if (pendingEvents.Any())
             {
                 List<IDomainEvent> domainEvents =
                     RestoreDomainEvents(pendingEvents);
 
-                await SendPendingEvents(domainEvents).ConfigureAwait(false);
-                await DeletePendingEvents(pendingEvents).ConfigureAwait(false);
+                await SendPendingEvents(domainEvents, cancellationToken).ConfigureAwait(false);
+                await DeletePendingEvents(pendingEvents, cancellationToken).ConfigureAwait(false);
             }
         }
 
         private async Task<List<PendingEventTableEntity>> GetPendingEvents<T>(
-            Guid sourceId)
+            Guid sourceId, CancellationToken cancellationToken)
             where T : class, IEventSourced
         {
             var query = new TableQuery<PendingEventTableEntity>();
@@ -79,8 +83,8 @@
                 Equal,
                 PendingEventTableEntity.GetPartitionKey(typeof(T), sourceId));
 
-            return new List<PendingEventTableEntity>(
-                await ExecuteQuery(query.Where(filter)).ConfigureAwait(false));
+            return new List<PendingEventTableEntity>(await
+                ExecuteQuery(query.Where(filter), cancellationToken).ConfigureAwait(false));
         }
 
         private List<IDomainEvent> RestoreDomainEvents(
@@ -93,21 +97,25 @@
                 .ToList();
         }
 
-        private async Task SendPendingEvents(List<IDomainEvent> domainEvents)
+        private async Task SendPendingEvents(
+            List<IDomainEvent> domainEvents,
+            CancellationToken cancellationToken)
         {
             await _messageBus.SendBatch(domainEvents).ConfigureAwait(false);
         }
 
         private async Task DeletePendingEvents(
-            List<PendingEventTableEntity> pendingEvents)
+            List<PendingEventTableEntity> pendingEvents,
+            CancellationToken cancellationToken)
         {
             var batch = new TableBatchOperation();
             pendingEvents.ForEach(batch.Delete);
-            await _eventTable.ExecuteBatchAsync(batch).ConfigureAwait(false);
+            await _eventTable.ExecuteBatchAsync(batch, cancellationToken).ConfigureAwait(false);
         }
 
         private async Task<IEnumerable<TEntity>> ExecuteQuery<TEntity>(
-            TableQuery<TEntity> query)
+            TableQuery<TEntity> query,
+            CancellationToken cancellationToken)
             where TEntity : ITableEntity, new()
         {
             var entities = new List<TEntity>();
@@ -116,7 +124,7 @@
             do
             {
                 TableQuerySegment<TEntity> segment = await _eventTable
-                    .ExecuteQuerySegmentedAsync(query, continuation)
+                    .ExecuteQuerySegmentedAsync(query, continuation, cancellationToken)
                     .ConfigureAwait(false);
                 entities.AddRange(segment);
                 continuation = segment.ContinuationToken;

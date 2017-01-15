@@ -77,8 +77,15 @@ namespace ReactiveArchitecture.EventSourcing.Azure
             string username)
         {
             user.ChangeUsername(username);
+
             await sut.Save(user);
-            Mock.Get(eventPublisher).Verify(x => x.PublishPendingEvents<FakeUser>(user.Id), Times.Once());
+
+            Mock.Get(eventPublisher).Verify(
+                x =>
+                x.PublishPendingEvents<FakeUser>(
+                    user.Id,
+                    CancellationToken.None),
+                Times.Once());
         }
 
         [Theory]
@@ -87,6 +94,7 @@ namespace ReactiveArchitecture.EventSourcing.Azure
             FakeUser user,
             string username)
         {
+            // Arrange
             user.ChangeUsername(username);
             Mock.Get(eventStore)
                 .Setup(
@@ -96,10 +104,17 @@ namespace ReactiveArchitecture.EventSourcing.Azure
                         CancellationToken.None))
                 .Throws<InvalidOperationException>();
 
+            // Act
             Func<Task> action = () => sut.Save(user);
 
+            // Assert
             action.ShouldThrow<InvalidOperationException>();
-            Mock.Get(eventPublisher).Verify(x => x.PublishPendingEvents<FakeUser>(user.Id), Times.Never());
+            Mock.Get(eventPublisher).Verify(
+                x =>
+                x.PublishPendingEvents<FakeUser>(
+                    user.Id,
+                    CancellationToken.None),
+                Times.Never());
         }
 
         [Theory]
