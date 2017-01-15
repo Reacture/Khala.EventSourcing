@@ -4,6 +4,7 @@
     using System.Collections.Generic;
     using System.Data.Entity;
     using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
     using Messaging;
 
@@ -38,7 +39,9 @@
             _messageBus = messageBus;
         }
 
-        public Task PublishPendingEvents<T>(Guid sourceId)
+        public Task PublishPendingEvents<T>(
+            Guid sourceId,
+            CancellationToken cancellationToken = default(CancellationToken))
             where T : class, IEventSourced
         {
             if (sourceId == Guid.Empty)
@@ -47,10 +50,12 @@
                     $"{nameof(sourceId)} cannot be empty.", nameof(sourceId));
             }
 
-            return PublishEvents(sourceId);
+            return PublishEvents(sourceId, cancellationToken);
         }
 
-        private async Task PublishEvents(Guid sourceId)
+        private async Task PublishEvents(
+            Guid sourceId,
+            CancellationToken cancellationToken)
         {
             using (EventStoreDbContext context = _dbContextFactory.Invoke())
             {
@@ -58,7 +63,7 @@
                     .PendingEvents
                     .Where(e => e.AggregateId == sourceId)
                     .OrderBy(e => e.Version)
-                    .ToListAsync()
+                    .ToListAsync(cancellationToken)
                     .ConfigureAwait(false);
 
                 List<object> messages = pendingEvents
@@ -70,11 +75,11 @@
 
                 context.PendingEvents.RemoveRange(pendingEvents);
 
-                await context.SaveChangesAsync().ConfigureAwait(false);
+                await context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
             }
         }
 
-        public async void EnqueueAll()
+        public async void EnqueueAll(CancellationToken cancellationToken)
         {
             using (EventStoreDbContext context = _dbContextFactory.Invoke())
             {
@@ -85,7 +90,7 @@
                     .ToListAsync()
                     .ConfigureAwait(false))
                 {
-                    await PublishEvents(sourceId).ConfigureAwait(false);
+                    await PublishEvents(sourceId, cancellationToken).ConfigureAwait(false);
                 }
             }
         }

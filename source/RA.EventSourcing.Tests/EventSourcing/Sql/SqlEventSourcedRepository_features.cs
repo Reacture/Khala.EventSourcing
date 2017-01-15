@@ -83,7 +83,10 @@ namespace ReactiveArchitecture.EventSourcing.Sql
             await sut.Save(user);
 
             Mock.Get(eventPublisher).Verify(
-                x => x.PublishPendingEvents<FakeUser>(user.Id),
+                x =>
+                x.PublishPendingEvents<FakeUser>(
+                    user.Id,
+                    CancellationToken.None),
                 Times.Once());
         }
 
@@ -104,7 +107,10 @@ namespace ReactiveArchitecture.EventSourcing.Sql
 
             action.ShouldThrow<InvalidOperationException>();
             Mock.Get(eventPublisher).Verify(
-                x => x.PublishPendingEvents<FakeUser>(user.Id),
+                x =>
+                x.PublishPendingEvents<FakeUser>(
+                    user.Id,
+                    It.IsAny<CancellationToken>()),
                 Times.Never());
         }
 
