@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Moq;
@@ -95,8 +96,8 @@ namespace ReactiveArchitecture.EventSourcing.Sql
 
             await sut.SaveEvents<FakeUser>(events);
 
-            Mock.Get(mockDbContext)
-                .Verify(x => x.SaveChangesAsync(), Times.Once());
+            Mock.Get(mockDbContext).Verify(
+                x => x.SaveChangesAsync(CancellationToken.None), Times.Once());
         }
 
         [Theory]

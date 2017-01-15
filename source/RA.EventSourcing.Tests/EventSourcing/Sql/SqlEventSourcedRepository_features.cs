@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -66,7 +67,11 @@ namespace ReactiveArchitecture.EventSourcing.Sql
             await sut.Save(user);
 
             Mock.Get(eventStore).Verify(
-                x => x.SaveEvents<FakeUser>(user.PendingEvents), Times.Once());
+                x =>
+                x.SaveEvents<FakeUser>(
+                    user.PendingEvents,
+                    CancellationToken.None),
+                Times.Once());
         }
 
         [TestMethod]
@@ -88,7 +93,11 @@ namespace ReactiveArchitecture.EventSourcing.Sql
             var user = fixture.Create<FakeUser>();
             user.ChangeUsername(fixture.Create("username"));
             Mock.Get(eventStore)
-                .Setup(x => x.SaveEvents<FakeUser>(user.PendingEvents))
+                .Setup(
+                    x =>
+                    x.SaveEvents<FakeUser>(
+                        user.PendingEvents,
+                        CancellationToken.None))
                 .Throws<InvalidOperationException>();
 
             Func<Task> action = () => sut.Save(user);
@@ -122,7 +131,11 @@ namespace ReactiveArchitecture.EventSourcing.Sql
         {
             var user = fixture.Create<FakeUser>();
             Mock.Get(eventStore)
-                .Setup(x => x.SaveEvents<FakeUser>(user.PendingEvents))
+                .Setup(
+                    x =>
+                    x.SaveEvents<FakeUser>(
+                        user.PendingEvents,
+                        CancellationToken.None))
                 .Throws<InvalidOperationException>();
 
             Func<Task> action = () => sut.Save(user);
@@ -139,7 +152,9 @@ namespace ReactiveArchitecture.EventSourcing.Sql
             var user = fixture.Create<FakeUser>();
             user.ChangeUsername(fixture.Create("username"));
             Mock.Get(eventStore)
-                .Setup(x => x.LoadEvents<FakeUser>(user.Id, 0))
+                .Setup(
+                    x =>
+                    x.LoadEvents<FakeUser>(user.Id, 0, CancellationToken.None))
                 .ReturnsAsync(user.PendingEvents)
                 .Verifiable();
 
@@ -156,7 +171,9 @@ namespace ReactiveArchitecture.EventSourcing.Sql
             user.ChangeUsername(fixture.Create("username"));
 
             Mock.Get(eventStore)
-                .Setup(x => x.LoadEvents<FakeUser>(user.Id, 0))
+                .Setup(
+                    x =>
+                    x.LoadEvents<FakeUser>(user.Id, 0, CancellationToken.None))
                 .ReturnsAsync(user.PendingEvents)
                 .Verifiable();
 
@@ -182,7 +199,9 @@ namespace ReactiveArchitecture.EventSourcing.Sql
                 .ReturnsAsync(memento);
 
             Mock.Get(eventStore)
-                .Setup(x => x.LoadEvents<FakeUser>(user.Id, 1))
+                .Setup(
+                    x =>
+                    x.LoadEvents<FakeUser>(user.Id, 1, CancellationToken.None))
                 .ReturnsAsync(user.PendingEvents.Skip(1))
                 .Verifiable();
 
@@ -200,7 +219,9 @@ namespace ReactiveArchitecture.EventSourcing.Sql
         {
             var userId = Guid.NewGuid();
             Mock.Get(eventStore)
-                .Setup(x => x.LoadEvents<FakeUser>(userId, 0))
+                .Setup(
+                    x =>
+                    x.LoadEvents<FakeUser>(userId, 0, CancellationToken.None))
                 .ReturnsAsync(new IDomainEvent[0]);
 
             FakeUser actual = await sut.Find(userId);
@@ -216,9 +237,15 @@ namespace ReactiveArchitecture.EventSourcing.Sql
             var value = fixture.Create<string>();
             var expected = fixture.Create<Guid?>();
 
-            var eventStore = Mock.Of<ISqlEventStore>(
-                x =>
-                x.FindIdByUniqueIndexedProperty<FakeUser>(name, value) == Task.FromResult(expected));
+            var eventStore = Mock.Of<ISqlEventStore>();
+            Mock.Get(eventStore)
+                .Setup(
+                    x =>
+                    x.FindIdByUniqueIndexedProperty<FakeUser>(
+                        name,
+                        value,
+                        CancellationToken.None))
+                .ReturnsAsync(expected);
 
             var sut = new SqlEventSourcedRepository<FakeUser>(
                 eventStore,

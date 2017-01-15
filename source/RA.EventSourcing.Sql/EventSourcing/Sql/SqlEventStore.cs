@@ -4,6 +4,7 @@
     using System.Collections.Generic;
     using System.Data.Entity;
     using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
     using Messaging;
 
@@ -30,7 +31,9 @@
             _serializer = serializer;
         }
 
-        public Task SaveEvents<T>(IEnumerable<IDomainEvent> events)
+        public Task SaveEvents<T>(
+            IEnumerable<IDomainEvent> events,
+            CancellationToken cancellationToken = default(CancellationToken))
             where T : class, IEventSourced
         {
             if (events == null)
@@ -71,31 +74,35 @@
                 }
             }
 
-            return Save<T>(firstEvent.SourceId, domainEvents);
+            return Save<T>(firstEvent.SourceId, domainEvents, cancellationToken);
         }
 
-        private async Task Save<T>(Guid sourceId, List<IDomainEvent> events)
+        private async Task Save<T>(
+            Guid sourceId,
+            List<IDomainEvent> events,
+            CancellationToken cancellationToken)
             where T : class, IEventSourced
         {
             using (EventStoreDbContext context = _dbContextFactory.Invoke())
             {
-                await UpsertAggregate<T>(context, sourceId, events).ConfigureAwait(false);
+                await UpsertAggregate<T>(context, sourceId, events, cancellationToken).ConfigureAwait(false);
                 InsertEvents(context, events);
-                await UpdateUniqueIndexedProperties<T>(context, sourceId, events).ConfigureAwait(false);
-                await context.SaveChangesAsync().ConfigureAwait(false);
+                await UpdateUniqueIndexedProperties<T>(context, sourceId, events, cancellationToken).ConfigureAwait(false);
+                await context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
             }
         }
 
         private async Task UpsertAggregate<T>(
             EventStoreDbContext context,
             Guid sourceId,
-            List<IDomainEvent> events)
+            List<IDomainEvent> events,
+            CancellationToken cancellationToken)
             where T : class, IEventSourced
         {
             Aggregate aggregate = await context
                 .Aggregates
                 .Where(a => a.AggregateId == sourceId)
-                .SingleOrDefaultAsync()
+                .SingleOrDefaultAsync(cancellationToken)
                 .ConfigureAwait(false);
 
             if (aggregate == null)
@@ -139,7 +146,8 @@
         private async Task UpdateUniqueIndexedProperties<T>(
             EventStoreDbContext context,
             Guid sourceId,
-            List<IDomainEvent> events)
+            List<IDomainEvent> events,
+            CancellationToken cancellationToken)
             where T : class, IEventSourced
         {
             Dictionary<string, UniqueIndexedProperty> restored = await context
@@ -148,7 +156,7 @@
                     p =>
                     p.AggregateType == typeof(T).FullName &&
                     p.AggregateId == sourceId)
-                .ToDictionaryAsync(p => p.PropertyName)
+                .ToDictionaryAsync(p => p.PropertyName, cancellationToken)
                 .ConfigureAwait(false);
 
             var properties = new List<UniqueIndexedProperty>();
@@ -193,7 +201,9 @@
         }
 
         public Task<IEnumerable<IDomainEvent>> LoadEvents<T>(
-            Guid sourceId, int afterVersion = default(int))
+            Guid sourceId,
+            int afterVersion = default(int),
+            CancellationToken cancellationToken = default(CancellationToken))
             where T : class, IEventSourced
         {
             if (sourceId == Guid.Empty)
@@ -202,11 +212,13 @@
                     $"{sourceId} cannot be empty", nameof(sourceId));
             }
 
-            return Load(sourceId, afterVersion);
+            return Load(sourceId, afterVersion, cancellationToken);
         }
 
         private async Task<IEnumerable<IDomainEvent>> Load(
-            Guid sourceId, int afterVersion)
+            Guid sourceId,
+            int afterVersion,
+            CancellationToken cancellationToken)
         {
             using (EventStoreDbContext context = _dbContextFactory.Invoke())
             {
@@ -215,7 +227,7 @@
                     .Where(e => e.AggregateId == sourceId)
                     .Where(e => e.Version > afterVersion)
                     .OrderBy(e => e.Version)
-                    .ToListAsync()
+                    .ToListAsync(cancellationToken)
                     .ConfigureAwait(false);
 
                 List<IDomainEvent> domainEvents = events
@@ -229,7 +241,9 @@
         }
 
         public Task<Guid?> FindIdByUniqueIndexedProperty<T>(
-            string name, string value)
+            string name,
+            string value,
+            CancellationToken cancellationToken = default(CancellationToken))
             where T : class, IEventSourced
         {
             if (name == null)
@@ -242,11 +256,13 @@
                 throw new ArgumentNullException(nameof(value));
             }
 
-            return FindIdByProperty<T>(name, value);
+            return FindIdByProperty<T>(name, value, cancellationToken);
         }
 
         private async Task<Guid?> FindIdByProperty<T>(
-            string name, string value)
+            string name,
+            string value,
+            CancellationToken cancellationToken)
             where T : class, IEventSourced
         {
             using (EventStoreDbContext context = _dbContextFactory.Invoke())
@@ -259,8 +275,9 @@
                         p.PropertyValue == value
                     select p;
 
-                UniqueIndexedProperty property =
-                    await query.SingleOrDefaultAsync().ConfigureAwait(false);
+                UniqueIndexedProperty property = await query
+                    .SingleOrDefaultAsync(cancellationToken)
+                    .ConfigureAwait(false);
 
                 return property?.AggregateId;
             }

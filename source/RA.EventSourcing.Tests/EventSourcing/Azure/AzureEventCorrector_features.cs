@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -207,7 +208,11 @@ namespace ReactiveArchitecture.EventSourcing.Azure
                 eventTableMock.Object, serializer, messageBus);
 
             eventTableMock
-                .Setup(x => x.ExecuteBatchAsync(It.IsAny<TableBatchOperation>()))
+                .Setup(
+                    x =>
+                    x.ExecuteBatchAsync(
+                        It.IsAny<TableBatchOperation>(),
+                        It.IsAny<CancellationToken>()))
                 .ThrowsAsync(new StorageException());
 
             // Act
