@@ -7,7 +7,7 @@
     public interface IAzureEventPublisher
     {
         Task PublishPendingEvents<T>(
-            Guid sourceId, CancellationToken cancellationToken = default(CancellationToken))
+            Guid sourceId, CancellationToken cancellationToken)
             where T : class, IEventSourced;
     }
 }

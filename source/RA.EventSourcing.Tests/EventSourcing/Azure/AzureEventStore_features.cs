@@ -91,7 +91,7 @@ namespace ReactiveArchitecture.EventSourcing.Azure
                 null
             };
 
-            Func<Task> action = () => sut.SaveEvents<FakeUser>(events);
+            Func<Task> action = () => sut.SaveEvents<FakeUser>(events, CancellationToken.None);
 
             action.ShouldThrow<ArgumentException>()
                 .Where(x => x.ParamName == "events");
@@ -110,7 +110,7 @@ namespace ReactiveArchitecture.EventSourcing.Azure
             RaiseEvents(userId, events);
 
             // Act
-            await sut.SaveEvents<FakeUser>(events);
+            await sut.SaveEvents<FakeUser>(events, CancellationToken.None);
 
             // Assert
             string partitionKey = PendingEventTableEntity.GetPartitionKey(typeof(FakeUser), userId);
@@ -147,7 +147,7 @@ namespace ReactiveArchitecture.EventSourcing.Azure
             RaiseEvents(userId, events);
 
             // Act
-            await sut.SaveEvents<FakeUser>(events);
+            await sut.SaveEvents<FakeUser>(events, CancellationToken.None);
 
             // Assert
             string partitionKey = EventTableEntity.GetPartitionKey(typeof(FakeUser), userId);
@@ -183,7 +183,7 @@ namespace ReactiveArchitecture.EventSourcing.Azure
             var events = new DomainEvent[] { created };
             RaiseEvents(userId, events);
 
-            await sut.SaveEvents<FakeUser>(events);
+            await sut.SaveEvents<FakeUser>(events, CancellationToken.None);
 
             Mock.Get(eventTable).Verify(
                 x =>
@@ -218,7 +218,7 @@ namespace ReactiveArchitecture.EventSourcing.Azure
             RaiseEvents(userId, events);
 
             // Act
-            Func<Task> action = () => sut.SaveEvents<FakeUser>(events);
+            Func<Task> action = () => sut.SaveEvents<FakeUser>(events, CancellationToken.None);
 
             // Assert
             action.ShouldThrow<StorageException>();
@@ -240,12 +240,12 @@ namespace ReactiveArchitecture.EventSourcing.Azure
             var created = fixture.Create<FakeUserCreated>();
             var events = new DomainEvent[] { created };
             RaiseEvents(userId, events);
-            await sut.SaveEvents<FakeUser>(events);
+            await sut.SaveEvents<FakeUser>(events, CancellationToken.None);
 
             // Act
             var usernameChanged = fixture.Create<FakeUsernameChanged>();
             RaiseEvents(userId, usernameChanged);
-            Func<Task> action = () => sut.SaveEvents<FakeUser>(new[] { usernameChanged });
+            Func<Task> action = () => sut.SaveEvents<FakeUser>(new[] { usernameChanged }, CancellationToken.None);
 
             // Assert
             action.ShouldThrow<StorageException>();
@@ -261,11 +261,11 @@ namespace ReactiveArchitecture.EventSourcing.Azure
             var usernameChanged = fixture.Create<FakeUsernameChanged>();
             var events = new DomainEvent[] { created, usernameChanged };
             RaiseEvents(userId, events);
-            await sut.SaveEvents<FakeUser>(events);
+            await sut.SaveEvents<FakeUser>(events, CancellationToken.None);
 
             // Act
             IEnumerable<IDomainEvent> actual =
-                await sut.LoadEvents<FakeUser>(userId);
+                await sut.LoadEvents<FakeUser>(userId, 0, CancellationToken.None);
 
             // Assert
             actual.Should().BeInAscendingOrder(e => e.Version);
@@ -280,11 +280,11 @@ namespace ReactiveArchitecture.EventSourcing.Azure
             var usernameChanged = fixture.Create<FakeUsernameChanged>();
             var events = new DomainEvent[] { created, usernameChanged };
             RaiseEvents(userId, events);
-            await sut.SaveEvents<FakeUser>(events);
+            await sut.SaveEvents<FakeUser>(events, CancellationToken.None);
 
             // Act
             IEnumerable<IDomainEvent> actual =
-                await sut.LoadEvents<FakeUser>(userId, afterVersion: 1);
+                await sut.LoadEvents<FakeUser>(userId, 1, CancellationToken.None);
 
             // Assert
             actual.Should().BeInAscendingOrder(e => e.Version);

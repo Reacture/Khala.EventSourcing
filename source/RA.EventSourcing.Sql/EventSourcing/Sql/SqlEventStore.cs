@@ -33,7 +33,7 @@
 
         public Task SaveEvents<T>(
             IEnumerable<IDomainEvent> events,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken)
             where T : class, IEventSourced
         {
             if (events == null)
@@ -202,8 +202,8 @@
 
         public Task<IEnumerable<IDomainEvent>> LoadEvents<T>(
             Guid sourceId,
-            int afterVersion = default(int),
-            CancellationToken cancellationToken = default(CancellationToken))
+            int afterVersion,
+            CancellationToken cancellationToken)
             where T : class, IEventSourced
         {
             if (sourceId == Guid.Empty)
@@ -243,7 +243,7 @@
         public Task<Guid?> FindIdByUniqueIndexedProperty<T>(
             string name,
             string value,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken)
             where T : class, IEventSourced
         {
             if (name == null)

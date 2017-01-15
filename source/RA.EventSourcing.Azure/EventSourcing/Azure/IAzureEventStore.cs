@@ -9,13 +9,13 @@
     {
         Task SaveEvents<T>(
             IEnumerable<IDomainEvent> events,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken)
             where T : class, IEventSourced;
 
         Task<IEnumerable<IDomainEvent>> LoadEvents<T>(
             Guid sourceId,
             int afterVersion,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken)
             where T : class, IEventSourced;
     }
 }

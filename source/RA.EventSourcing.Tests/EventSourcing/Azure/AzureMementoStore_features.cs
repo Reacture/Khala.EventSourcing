@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Net;
+using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -95,11 +96,14 @@ namespace ReactiveArchitecture.EventSourcing.Azure
         [TestMethod]
         public async Task Save_uploads_memento_blob_correctly()
         {
+            // Arrange
             var userId = Guid.NewGuid();
             FakeUserMemento memento = fixture.Create<FakeUserMemento>();
 
-            await sut.Save<FakeUser>(userId, memento);
+            // Act
+            await sut.Save<FakeUser>(userId, memento, CancellationToken.None);
 
+            // Assert
             CloudBlockBlob blob = s_container.GetBlockBlobReference(
                 AzureMementoStore.GetMementoBlobName<FakeUser>(userId));
             blob.Exists().Should().BeTrue();
@@ -127,7 +131,7 @@ namespace ReactiveArchitecture.EventSourcing.Azure
             FakeUserMemento memento = fixture.Create<FakeUserMemento>();
 
             // Act
-            Func<Task> action = () => sut.Save<FakeUser>(userId, memento);
+            Func<Task> action = () => sut.Save<FakeUser>(userId, memento, CancellationToken.None);
 
             // Assert
             action.ShouldNotThrow();
@@ -148,7 +152,7 @@ namespace ReactiveArchitecture.EventSourcing.Azure
             var userId = Guid.NewGuid();
             FakeUserMemento memento = fixture.Create<FakeUserMemento>();
 
-            await sut.Save<FakeUser>(userId, memento);
+            await sut.Save<FakeUser>(userId, memento, CancellationToken.None);
 
             string blobName =
                 AzureMementoStore.GetMementoBlobName<FakeUser>(userId);
@@ -163,10 +167,10 @@ namespace ReactiveArchitecture.EventSourcing.Azure
             // Arrange
             var userId = Guid.NewGuid();
             FakeUserMemento memento = fixture.Create<FakeUserMemento>();
-            await sut.Save<FakeUser>(userId, memento);
+            await sut.Save<FakeUser>(userId, memento, CancellationToken.None);
 
             // Act
-            IMemento actual = await sut.Find<FakeUser>(userId);
+            IMemento actual = await sut.Find<FakeUser>(userId, CancellationToken.None);
 
             // Assert
             actual.Should().BeOfType<FakeUserMemento>();
@@ -177,7 +181,7 @@ namespace ReactiveArchitecture.EventSourcing.Azure
         public async Task Find_returns_null_if_blob_not_found()
         {
             var userId = Guid.NewGuid();
-            IMemento actual = await sut.Find<FakeUser>(userId);
+            IMemento actual = await sut.Find<FakeUser>(userId, CancellationToken.None);
             actual.Should().BeNull();
         }
 
@@ -186,9 +190,9 @@ namespace ReactiveArchitecture.EventSourcing.Azure
         {
             var userId = Guid.NewGuid();
             FakeUserMemento memento = fixture.Create<FakeUserMemento>();
-            await sut.Save<FakeUser>(userId, memento);
+            await sut.Save<FakeUser>(userId, memento, CancellationToken.None);
 
-            await sut.Delete<FakeUser>(userId);
+            await sut.Delete<FakeUser>(userId, CancellationToken.None);
 
             CloudBlockBlob blob = s_container.GetBlockBlobReference(
                 AzureMementoStore.GetMementoBlobName<FakeUser>(userId));
@@ -199,7 +203,7 @@ namespace ReactiveArchitecture.EventSourcing.Azure
         public void Delete_does_not_fails_even_if_memento_not_found()
         {
             var userId = Guid.NewGuid();
-            Func<Task> action = () => sut.Delete<FakeUser>(userId);
+            Func<Task> action = () => sut.Delete<FakeUser>(userId, CancellationToken.None);
             action.ShouldNotThrow();
         }
     }

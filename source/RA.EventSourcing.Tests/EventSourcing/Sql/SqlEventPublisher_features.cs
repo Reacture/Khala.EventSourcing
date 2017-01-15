@@ -124,7 +124,7 @@ namespace ReactiveArchitecture.EventSourcing.Sql
                 .Returns(Task.FromResult(true));
 
             // Act
-            await sut.PublishPendingEvents<FakeUser>(sourceId);
+            await sut.PublishPendingEvents<FakeUser>(sourceId, CancellationToken.None);
 
             // Assert
             Mock.Get(messageBus).Verify(
@@ -165,7 +165,7 @@ namespace ReactiveArchitecture.EventSourcing.Sql
             }
 
             // Act
-            await sut.PublishPendingEvents<FakeUser>(sourceId);
+            await sut.PublishPendingEvents<FakeUser>(sourceId, CancellationToken.None);
 
             // Assert
             using (var db = new DataContext())
@@ -194,7 +194,7 @@ namespace ReactiveArchitecture.EventSourcing.Sql
                 () => mockDbContext, serializer, messageBus);
 
             // Act
-            await sut.PublishPendingEvents<FakeUser>(sourceId);
+            await sut.PublishPendingEvents<FakeUser>(sourceId, CancellationToken.None);
 
             // Assert
             Mock.Get(mockDbContext).Verify(

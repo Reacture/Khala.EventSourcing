@@ -9,17 +9,17 @@
         Task Save<T>(
             Guid sourceId,
             IMemento memento,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken)
             where T : class, IEventSourced;
 
         Task<IMemento> Find<T>(
             Guid sourceId,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken)
             where T : class, IEventSourced;
 
         Task Delete<T>(
             Guid sourceId,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken)
             where T : class, IEventSourced;
     }
 }

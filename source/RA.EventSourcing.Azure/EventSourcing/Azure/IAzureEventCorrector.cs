@@ -8,7 +8,7 @@
     {
         Task CorrectEvents<T>(
             Guid sourceId,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken)
             where T : class, IEventSourced;
     }
 }

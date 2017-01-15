@@ -64,7 +64,7 @@ namespace ReactiveArchitecture.EventSourcing.Sql
             var user = fixture.Create<FakeUser>();
             user.ChangeUsername(fixture.Create("username"));
 
-            await sut.Save(user);
+            await sut.Save(user, CancellationToken.None);
 
             Mock.Get(eventStore).Verify(
                 x =>
@@ -80,7 +80,7 @@ namespace ReactiveArchitecture.EventSourcing.Sql
             var user = fixture.Create<FakeUser>();
             user.ChangeUsername(fixture.Create("username"));
 
-            await sut.Save(user);
+            await sut.Save(user, CancellationToken.None);
 
             Mock.Get(eventPublisher).Verify(
                 x =>
@@ -103,7 +103,7 @@ namespace ReactiveArchitecture.EventSourcing.Sql
                         CancellationToken.None))
                 .Throws<InvalidOperationException>();
 
-            Func<Task> action = () => sut.Save(user);
+            Func<Task> action = () => sut.Save(user, CancellationToken.None);
 
             action.ShouldThrow<InvalidOperationException>();
             Mock.Get(eventPublisher).Verify(
@@ -119,7 +119,7 @@ namespace ReactiveArchitecture.EventSourcing.Sql
         {
             var user = fixture.Create<FakeUser>();
 
-            await sut.Save(user);
+            await sut.Save(user, CancellationToken.None);
 
             Mock.Get(mementoStore).Verify(
                 x =>
@@ -147,7 +147,7 @@ namespace ReactiveArchitecture.EventSourcing.Sql
                 .Throws<InvalidOperationException>();
 
             // Act
-            Func<Task> action = () => sut.Save(user);
+            Func<Task> action = () => sut.Save(user, CancellationToken.None);
 
             // Assert
             action.ShouldThrow<InvalidOperationException>();
@@ -172,7 +172,7 @@ namespace ReactiveArchitecture.EventSourcing.Sql
                 .ReturnsAsync(user.PendingEvents)
                 .Verifiable();
 
-            await sut.Find(user.Id);
+            await sut.Find(user.Id, CancellationToken.None);
 
             Mock.Get(eventStore).Verify();
         }
@@ -192,7 +192,7 @@ namespace ReactiveArchitecture.EventSourcing.Sql
                 .Verifiable();
 
             // Act
-            FakeUser actual = await sut.Find(user.Id);
+            FakeUser actual = await sut.Find(user.Id, CancellationToken.None);
 
             // Assert
             Mock.Get(eventStore).Verify();
@@ -220,7 +220,7 @@ namespace ReactiveArchitecture.EventSourcing.Sql
                 .Verifiable();
 
             // Act
-            FakeUser actual = await sut.Find(user.Id);
+            FakeUser actual = await sut.Find(user.Id, CancellationToken.None);
 
             // Assert
             Mock.Get(eventStore).Verify();
@@ -238,7 +238,7 @@ namespace ReactiveArchitecture.EventSourcing.Sql
                     x.LoadEvents<FakeUser>(userId, 0, CancellationToken.None))
                 .ReturnsAsync(new IDomainEvent[0]);
 
-            FakeUser actual = await sut.Find(userId);
+            FakeUser actual = await sut.Find(userId, CancellationToken.None);
 
             actual.Should().BeNull();
         }
@@ -267,7 +267,7 @@ namespace ReactiveArchitecture.EventSourcing.Sql
                 Mock.Of<Func<Guid, IEnumerable<IDomainEvent>, FakeUser>>());
 
             // Act
-            Guid? actual = await sut.FindIdByUniqueIndexedProperty(name, value);
+            Guid? actual = await sut.FindIdByUniqueIndexedProperty(name, value, CancellationToken.None);
 
             // Assert
             actual.Should().Be(expected);

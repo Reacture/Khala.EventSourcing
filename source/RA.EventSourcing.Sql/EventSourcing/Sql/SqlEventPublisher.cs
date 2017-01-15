@@ -41,7 +41,7 @@
 
         public Task PublishPendingEvents<T>(
             Guid sourceId,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken)
             where T : class, IEventSourced
         {
             if (sourceId == Guid.Empty)

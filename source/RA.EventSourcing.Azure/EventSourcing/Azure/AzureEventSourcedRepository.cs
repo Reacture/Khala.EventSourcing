@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
 
     public class AzureEventSourcedRepository<T> : IEventSourcedRepository<T>
@@ -70,20 +71,21 @@
             _mementoEntityFactory = mementoEntityFactory;
         }
 
-        public Task Save(T source)
+        public Task Save(T source, CancellationToken cancellationToken)
         {
             if (source == null)
             {
                 throw new ArgumentNullException(nameof(source));
             }
 
-            return SaveAndPublish(source);
+            return SaveAndPublish(source, cancellationToken);
         }
 
-        private async Task SaveAndPublish(T source)
+        private async Task SaveAndPublish(
+            T source, CancellationToken cancellationToken)
         {
-            await _eventStore.SaveEvents<T>(source.PendingEvents).ConfigureAwait(false);
-            await _eventPublisher.PublishPendingEvents<T>(source.Id).ConfigureAwait(false);
+            await _eventStore.SaveEvents<T>(source.PendingEvents, cancellationToken).ConfigureAwait(false);
+            await _eventPublisher.PublishPendingEvents<T>(source.Id, cancellationToken).ConfigureAwait(false);
 
             if (_mementoStore != null)
             {
@@ -91,12 +93,12 @@
                 if (mementoOriginator != null)
                 {
                     IMemento memento = mementoOriginator.SaveToMemento();
-                    await _mementoStore.Save<T>(source.Id, memento).ConfigureAwait(false);
+                    await _mementoStore.Save<T>(source.Id, memento, cancellationToken).ConfigureAwait(false);
                 }
             }
         }
 
-        public Task<T> Find(Guid sourceId)
+        public Task<T> Find(Guid sourceId, CancellationToken cancellationToken)
         {
             if (sourceId == Guid.Empty)
             {
@@ -104,25 +106,26 @@
                     $"{nameof(sourceId)} cannot be empty.", nameof(sourceId));
             }
 
-            return CorrectAndRestore(sourceId);
+            return CorrectAndRestore(sourceId, cancellationToken);
         }
 
-        private async Task<T> CorrectAndRestore(Guid sourceId)
+        private async Task<T> CorrectAndRestore(
+            Guid sourceId, CancellationToken cancellationToken)
         {
             IMemento memento = null;
             if (_mementoStore != null && _mementoEntityFactory != null)
             {
                 memento = await _mementoStore
-                    .Find<T>(sourceId)
+                    .Find<T>(sourceId, cancellationToken)
                     .ConfigureAwait(false);
             }
 
             await _eventCorrector
-                .CorrectEvents<T>(sourceId)
+                .CorrectEvents<T>(sourceId, cancellationToken)
                 .ConfigureAwait(false);
 
             IEnumerable<IDomainEvent> domainEvents = await _eventStore
-                .LoadEvents<T>(sourceId, memento?.Version ?? 0)
+                .LoadEvents<T>(sourceId, memento?.Version ?? 0, cancellationToken)
                 .ConfigureAwait(false);
 
             return

@@ -110,7 +110,7 @@ namespace ReactiveArchitecture.EventSourcing.Azure
                 .Returns(Task.FromResult(true));
 
             // Act
-            await sut.PublishPendingEvents<FakeUser>(userId);
+            await sut.PublishPendingEvents<FakeUser>(userId, CancellationToken.None);
 
             // Assert
             Mock.Get(messageBus).Verify(
@@ -144,7 +144,7 @@ namespace ReactiveArchitecture.EventSourcing.Azure
             await s_eventTable.ExecuteBatchAsync(batchOperation);
 
             // Act
-            await sut.PublishPendingEvents<FakeUser>(userId);
+            await sut.PublishPendingEvents<FakeUser>(userId, CancellationToken.None);
 
             // Assert
             string partitionKey = PendingEventTableEntity.GetPartitionKey(typeof(FakeUser), userId);
@@ -183,7 +183,7 @@ namespace ReactiveArchitecture.EventSourcing.Azure
             // Act
             try
             {
-                await sut.PublishPendingEvents<FakeUser>(userId);
+                await sut.PublishPendingEvents<FakeUser>(userId, CancellationToken.None);
             }
             catch (InvalidOperationException)
             {
@@ -220,7 +220,7 @@ namespace ReactiveArchitecture.EventSourcing.Azure
             var userId = Guid.NewGuid();
 
             // Act
-            Func<Task> action = () => sut.PublishPendingEvents<FakeUser>(userId);
+            Func<Task> action = () => sut.PublishPendingEvents<FakeUser>(userId, CancellationToken.None);
 
             // Assert
             action.ShouldNotThrow();

@@ -9,19 +9,19 @@
     {
         Task SaveEvents<T>(
             IEnumerable<IDomainEvent> events,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken)
             where T : class, IEventSourced;
 
         Task<IEnumerable<IDomainEvent>> LoadEvents<T>(
             Guid sourceId,
-            int afterVersion = default(int),
-            CancellationToken cancellationToken = default(CancellationToken))
+            int afterVersion,
+            CancellationToken cancellationToken)
             where T : class, IEventSourced;
 
         Task<Guid?> FindIdByUniqueIndexedProperty<T>(
             string name,
             string value,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken)
             where T : class, IEventSourced;
     }
 }
