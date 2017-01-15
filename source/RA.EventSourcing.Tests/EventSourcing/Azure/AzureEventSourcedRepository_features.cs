@@ -132,7 +132,8 @@ namespace ReactiveArchitecture.EventSourcing.Azure
                     It.Is<FakeUserMemento>(
                         p =>
                         p.Version == user.Version &&
-                        p.Username == user.Username)),
+                        p.Username == user.Username),
+                    CancellationToken.None),
                 Times.Once());
         }
 
@@ -142,6 +143,7 @@ namespace ReactiveArchitecture.EventSourcing.Azure
             FakeUser user,
             string username)
         {
+            // Arrange
             user.ChangeUsername(username);
             Mock.Get(eventStore)
                 .Setup(
@@ -151,10 +153,18 @@ namespace ReactiveArchitecture.EventSourcing.Azure
                         CancellationToken.None))
                 .Throws<InvalidOperationException>();
 
+            // Act
             Func<Task> action = () => sut.Save(user);
 
+            // Assert
             action.ShouldThrow<InvalidOperationException>();
-            Mock.Get(mementoStore).Verify(x => x.Save<FakeUser>(user.Id, It.IsAny<IMemento>()), Times.Never());
+            Mock.Get(mementoStore).Verify(
+                x =>
+                x.Save<FakeUser>(
+                        user.Id,
+                        It.IsAny<IMemento>(),
+                        It.IsAny<CancellationToken>()),
+                Times.Never());
         }
 
         [Theory]
@@ -242,7 +252,7 @@ namespace ReactiveArchitecture.EventSourcing.Azure
             user.ChangeUsername(username);
 
             Mock.Get(mementoStore)
-                .Setup(x => x.Find<FakeUser>(user.Id))
+                .Setup(x => x.Find<FakeUser>(user.Id, CancellationToken.None))
                 .ReturnsAsync(memento);
 
             Mock.Get(eventStore)

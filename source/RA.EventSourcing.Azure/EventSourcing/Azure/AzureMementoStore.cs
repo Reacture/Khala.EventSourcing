@@ -2,6 +2,7 @@
 {
     using System;
     using System.IO;
+    using System.Threading;
     using System.Threading.Tasks;
     using Messaging;
     using Microsoft.WindowsAzure.Storage.Blob;
@@ -51,7 +52,10 @@
             return string.Join("/", fragments);
         }
 
-        public Task Save<T>(Guid sourceId, IMemento memento)
+        public Task Save<T>(
+            Guid sourceId,
+            IMemento memento,
+            CancellationToken cancellationToken = default(CancellationToken))
             where T : class, IEventSourced
         {
             if (sourceId == Guid.Empty)
@@ -65,19 +69,24 @@
                 throw new ArgumentNullException(nameof(memento));
             }
 
-            return SaveMemento<T>(sourceId, memento);
+            return SaveMemento<T>(sourceId, memento, cancellationToken);
         }
 
-        private async Task SaveMemento<T>(Guid sourceId, IMemento memento)
+        private async Task SaveMemento<T>(
+            Guid sourceId,
+            IMemento memento,
+            CancellationToken cancellationToken)
             where T : class, IEventSourced
         {
             string blobName = GetMementoBlobName<T>(sourceId);
             CloudBlockBlob blob = _container.GetBlockBlobReference(blobName);
             blob.Properties.ContentType = "application/json";
-            await blob.UploadTextAsync(_serializer.Serialize(memento)).ConfigureAwait(false);
+            await blob.UploadTextAsync(_serializer.Serialize(memento), cancellationToken).ConfigureAwait(false);
         }
 
-        public Task<IMemento> Find<T>(Guid sourceId)
+        public Task<IMemento> Find<T>(
+            Guid sourceId,
+            CancellationToken cancellationToken = default(CancellationToken))
             where T : class, IEventSourced
         {
             if (sourceId == Guid.Empty)
@@ -86,20 +95,22 @@
                     $"{nameof(sourceId)} cannot be empty.", nameof(sourceId));
             }
 
-            return FindMemento<T>(sourceId);
+            return FindMemento<T>(sourceId, cancellationToken);
         }
 
-        private async Task<IMemento> FindMemento<T>(Guid sourceId)
+        private async Task<IMemento> FindMemento<T>(
+            Guid sourceId,
+            CancellationToken cancellationToken)
             where T : class, IEventSourced
         {
             string blobName = GetMementoBlobName<T>(sourceId);
             CloudBlockBlob blob = _container.GetBlockBlobReference(blobName);
-            if (await blob.ExistsAsync().ConfigureAwait(false) == false)
+            if (await blob.ExistsAsync(cancellationToken).ConfigureAwait(false) == false)
             {
                 return null;
             }
 
-            using (Stream stream = await blob.OpenReadAsync().ConfigureAwait(false))
+            using (Stream stream = await blob.OpenReadAsync(cancellationToken).ConfigureAwait(false))
             using (var reader = new StreamReader(stream))
             {
                 string content = await reader.ReadToEndAsync().ConfigureAwait(false);
@@ -107,7 +118,9 @@
             }
         }
 
-        public Task Delete<T>(Guid sourceId)
+        public Task Delete<T>(
+            Guid sourceId,
+            CancellationToken cancellationToken = default(CancellationToken))
             where T : class, IEventSourced
         {
             if (sourceId == Guid.Empty)
@@ -116,15 +129,17 @@
                     $"{nameof(sourceId)} cannot be empty.", nameof(sourceId));
             }
 
-            return DeleteMemento<T>(sourceId);
+            return DeleteMemento<T>(sourceId, cancellationToken);
         }
 
-        private async Task DeleteMemento<T>(Guid sourceId)
+        private async Task DeleteMemento<T>(
+            Guid sourceId,
+            CancellationToken cancellationToken)
             where T : class, IEventSourced
         {
             string blobName = GetMementoBlobName<T>(sourceId);
             CloudBlockBlob blob = _container.GetBlockBlobReference(blobName);
-            await blob.DeleteIfExistsAsync();
+            await blob.DeleteIfExistsAsync(cancellationToken);
         }
     }
 }

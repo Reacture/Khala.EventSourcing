@@ -128,13 +128,15 @@ namespace ReactiveArchitecture.EventSourcing.Sql
                     It.Is<FakeUserMemento>(
                         p =>
                         p.Version == user.Version &&
-                        p.Username == user.Username)),
+                        p.Username == user.Username),
+                    CancellationToken.None),
                 Times.Once());
         }
 
         [TestMethod]
         public void Save_does_not_saves_memento_if_fails_to_save_events()
         {
+            // Arrange
             var user = fixture.Create<FakeUser>();
             Mock.Get(eventStore)
                 .Setup(
@@ -144,11 +146,17 @@ namespace ReactiveArchitecture.EventSourcing.Sql
                         CancellationToken.None))
                 .Throws<InvalidOperationException>();
 
+            // Act
             Func<Task> action = () => sut.Save(user);
 
+            // Assert
             action.ShouldThrow<InvalidOperationException>();
             Mock.Get(mementoStore).Verify(
-                x => x.Save<FakeUser>(user.Id, It.IsAny<IMemento>()),
+                x =>
+                x.Save<FakeUser>(
+                    user.Id,
+                    It.IsAny<IMemento>(),
+                    It.IsAny<CancellationToken>()),
                 Times.Never());
         }
 
@@ -201,7 +209,7 @@ namespace ReactiveArchitecture.EventSourcing.Sql
             user.ChangeUsername(fixture.Create("username"));
 
             Mock.Get(mementoStore)
-                .Setup(x => x.Find<FakeUser>(user.Id))
+                .Setup(x => x.Find<FakeUser>(user.Id, CancellationToken.None))
                 .ReturnsAsync(memento);
 
             Mock.Get(eventStore)
