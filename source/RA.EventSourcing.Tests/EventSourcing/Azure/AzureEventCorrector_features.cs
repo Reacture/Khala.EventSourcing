@@ -162,8 +162,12 @@ namespace ReactiveArchitecture.EventSourcing.Azure
             List<object> batch = null;
 
             Mock.Get(messageBus)
-                .Setup(x => x.SendBatch(It.IsAny<IEnumerable<object>>()))
-                .Callback<IEnumerable<object>>(b => batch = b.ToList())
+                .Setup(
+                    x =>
+                    x.SendBatch(
+                        It.IsAny<IEnumerable<object>>(),
+                        It.IsAny<CancellationToken>()))
+                .Callback<IEnumerable<object>, CancellationToken>((b, t) => batch = b.ToList())
                 .Returns(Task.FromResult(true));
 
             // Act
@@ -172,7 +176,9 @@ namespace ReactiveArchitecture.EventSourcing.Azure
             // Assert
             Mock.Get(messageBus).Verify(
                 x =>
-                x.SendBatch(It.IsAny<IEnumerable<object>>()),
+                x.SendBatch(
+                    It.IsAny<IEnumerable<object>>(),
+                    CancellationToken.None),
                 Times.Once());
             batch.Should().OnlyContain(e => e is IDomainEvent);
             batch.Cast<IDomainEvent>().Should().BeInAscendingOrder(e => e.Version);
@@ -226,7 +232,10 @@ namespace ReactiveArchitecture.EventSourcing.Azure
 
             // Assert
             Mock.Get(messageBus).Verify(
-                x => x.SendBatch(It.IsAny<IEnumerable<object>>()),
+                x =>
+                x.SendBatch(
+                    It.IsAny<IEnumerable<object>>(),
+                    It.IsAny<CancellationToken>()),
                 Times.Never());
         }
 
@@ -293,7 +302,11 @@ namespace ReactiveArchitecture.EventSourcing.Azure
             await s_eventTable.ExecuteBatchAsync(batchOperation);
 
             Mock.Get(messageBus)
-                .Setup(x => x.SendBatch(It.IsAny<IEnumerable<object>>()))
+                .Setup(
+                    x =>
+                    x.SendBatch(
+                        It.IsAny<IEnumerable<object>>(),
+                        It.IsAny<CancellationToken>()))
                 .Throws(new InvalidOperationException());
 
             // Act
@@ -342,7 +355,10 @@ namespace ReactiveArchitecture.EventSourcing.Azure
             // Assert
             action.ShouldNotThrow();
             Mock.Get(messageBus).Verify(
-                x => x.SendBatch(It.IsAny<IEnumerable<object>>()),
+                x =>
+                x.SendBatch(
+                    It.IsAny<IEnumerable<object>>(),
+                    It.IsAny<CancellationToken>()),
                 Times.Never());
         }
 

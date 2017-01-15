@@ -101,7 +101,7 @@
             List<IDomainEvent> domainEvents,
             CancellationToken cancellationToken)
         {
-            await _messageBus.SendBatch(domainEvents).ConfigureAwait(false);
+            await _messageBus.SendBatch(domainEvents, cancellationToken).ConfigureAwait(false);
         }
 
         private async Task DeletePendingEvents(

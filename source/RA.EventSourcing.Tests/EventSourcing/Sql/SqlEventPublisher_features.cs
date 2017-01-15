@@ -115,8 +115,12 @@ namespace ReactiveArchitecture.EventSourcing.Sql
             List<object> batch = null;
 
             Mock.Get(messageBus)
-                .Setup(x => x.SendBatch(It.IsAny<IEnumerable<object>>()))
-                .Callback<IEnumerable<object>>(b => batch = b.ToList())
+                .Setup(
+                    x =>
+                    x.SendBatch(
+                        It.IsAny<IEnumerable<object>>(),
+                        It.IsAny<CancellationToken>()))
+                .Callback<IEnumerable<object>, CancellationToken>((b, t) => batch = b.ToList())
                 .Returns(Task.FromResult(true));
 
             // Act
@@ -125,7 +129,9 @@ namespace ReactiveArchitecture.EventSourcing.Sql
             // Assert
             Mock.Get(messageBus).Verify(
                 x =>
-                x.SendBatch(It.IsAny<IEnumerable<object>>()),
+                x.SendBatch(
+                    It.IsAny<IEnumerable<object>>(),
+                    CancellationToken.None),
                 Times.Once());
             batch.Should().OnlyContain(e => e is IDomainEvent);
             batch.Cast<IDomainEvent>().Should().BeInAscendingOrder(e => e.Version);

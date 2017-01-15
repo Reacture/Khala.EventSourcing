@@ -71,7 +71,7 @@
                     .Select(_serializer.Deserialize)
                     .ToList();
 
-                await _messageBus.SendBatch(messages).ConfigureAwait(false);
+                await _messageBus.SendBatch(messages, cancellationToken).ConfigureAwait(false);
 
                 context.PendingEvents.RemoveRange(pendingEvents);
 
