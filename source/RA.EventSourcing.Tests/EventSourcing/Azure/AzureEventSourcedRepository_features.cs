@@ -164,8 +164,12 @@ namespace ReactiveArchitecture.EventSourcing.Azure
             string username)
         {
             user.ChangeUsername(username);
+
             await sut.Find(user.Id);
-            Mock.Get(eventCorrector).Verify(x => x.CorrectEvents<FakeUser>(user.Id), Times.Once());
+
+            Mock.Get(eventCorrector).Verify(
+                x => x.CorrectEvents<FakeUser>(user.Id, CancellationToken.None),
+                Times.Once());
         }
 
         [Theory]
@@ -192,9 +196,10 @@ namespace ReactiveArchitecture.EventSourcing.Azure
         {
             // Arrange
             user.ChangeUsername(username);
-
             Mock.Get(eventCorrector)
-                .Setup(x => x.CorrectEvents<FakeUser>(user.Id))
+                .Setup(
+                    x =>
+                    x.CorrectEvents<FakeUser>(user.Id, CancellationToken.None))
                 .Throws<InvalidOperationException>();
 
             // Act

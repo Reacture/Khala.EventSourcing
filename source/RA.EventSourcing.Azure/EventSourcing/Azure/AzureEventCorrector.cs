@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
     using Messaging;
     using Microsoft.WindowsAzure.Storage.Table;
@@ -41,7 +42,9 @@
             _messageBus = messageBus;
         }
 
-        public Task CorrectEvents<T>(Guid sourceId)
+        public Task CorrectEvents<T>(
+            Guid sourceId,
+            CancellationToken cancellationToken = default(CancellationToken))
             where T : class, IEventSourced
         {
             if (sourceId == Guid.Empty)
@@ -50,28 +53,31 @@
                     $"{sourceId} cannot be empty.", nameof(sourceId));
             }
 
-            return Correct<T>(sourceId);
+            return Correct<T>(sourceId, cancellationToken);
         }
 
-        private async Task Correct<T>(Guid sourceId)
+        private async Task Correct<T>(
+            Guid sourceId,
+            CancellationToken cancellationToken)
             where T : class, IEventSourced
         {
             List<PendingEventTableEntity> pendingEvents =
-                await GetPendingEvents<T>(sourceId).ConfigureAwait(false);
+                await GetPendingEvents<T>(sourceId, cancellationToken).ConfigureAwait(false);
 
             if (pendingEvents.Any())
             {
                 List<IDomainEvent> domainEvents =
                     RestoreDomainEvents(pendingEvents);
 
-                await InsertUnpersistedEvents<T>(domainEvents).ConfigureAwait(false);
-                await SendPendingEvents(domainEvents).ConfigureAwait(false);
-                await DeletePendingEvents(pendingEvents).ConfigureAwait(false);
+                await InsertUnpersistedEvents<T>(domainEvents, cancellationToken).ConfigureAwait(false);
+                await SendPendingEvents(domainEvents, cancellationToken).ConfigureAwait(false);
+                await DeletePendingEvents(pendingEvents, cancellationToken).ConfigureAwait(false);
             }
         }
 
         private async Task<List<PendingEventTableEntity>> GetPendingEvents<T>(
-            Guid sourceId)
+            Guid sourceId,
+            CancellationToken cancellationToken)
             where T : class, IEventSourced
         {
             var query = new TableQuery<PendingEventTableEntity>();
@@ -81,8 +87,8 @@
                 Equal,
                 PendingEventTableEntity.GetPartitionKey(typeof(T), sourceId));
 
-            return new List<PendingEventTableEntity>(
-                await ExecuteQuery(query.Where(filter)).ConfigureAwait(false));
+            return new List<PendingEventTableEntity>(await
+                ExecuteQuery(query.Where(filter), cancellationToken).ConfigureAwait(false));
         }
 
         private List<IDomainEvent> RestoreDomainEvents(
@@ -97,7 +103,8 @@
 
         private async Task<List<EventTableEntity>> GetPersistedEvents<T>(
             Guid sourceId,
-            int version)
+            int version,
+            CancellationToken cancellationToken)
             where T : class, IEventSourced
         {
             var query = new TableQuery<EventTableEntity>();
@@ -113,17 +120,18 @@
                     GreaterThanOrEqual,
                     EventTableEntity.GetRowKey(version)));
 
-            return new List<EventTableEntity>(
-                await ExecuteQuery(query.Where(filter)).ConfigureAwait(false));
+            return new List<EventTableEntity>(await
+                ExecuteQuery(query.Where(filter), cancellationToken).ConfigureAwait(false));
         }
 
         private async Task InsertUnpersistedEvents<T>(
-            List<IDomainEvent> domainEvents)
+            List<IDomainEvent> domainEvents,
+            CancellationToken cancellationToken)
             where T : class, IEventSourced
         {
             IDomainEvent firstEvent = domainEvents.First();
             List<EventTableEntity> persistedEvents = await
-                GetPersistedEvents<T>(firstEvent.SourceId, firstEvent.Version);
+                GetPersistedEvents<T>(firstEvent.SourceId, firstEvent.Version, cancellationToken);
 
             IEnumerable<IDomainEvent> unpersistedEvents =
                 domainEvents.Skip(persistedEvents.Count);
@@ -137,24 +145,28 @@
                 batch.Insert(entity);
             }
 
-            await _eventTable.ExecuteBatchAsync(batch).ConfigureAwait(false);
+            await _eventTable.ExecuteBatchAsync(batch, cancellationToken).ConfigureAwait(false);
         }
 
-        private async Task SendPendingEvents(List<IDomainEvent> domainEvents)
+        private async Task SendPendingEvents(
+            List<IDomainEvent> domainEvents,
+            CancellationToken cancellationToken)
         {
             await _messageBus.SendBatch(domainEvents).ConfigureAwait(false);
         }
 
         private async Task DeletePendingEvents(
-            List<PendingEventTableEntity> pendingEvents)
+            List<PendingEventTableEntity> pendingEvents,
+            CancellationToken cancellationToken)
         {
             var batch = new TableBatchOperation();
             pendingEvents.ForEach(batch.Delete);
-            await _eventTable.ExecuteBatchAsync(batch).ConfigureAwait(false);
+            await _eventTable.ExecuteBatchAsync(batch, cancellationToken).ConfigureAwait(false);
         }
 
         private async Task<IEnumerable<TEntity>> ExecuteQuery<TEntity>(
-            TableQuery<TEntity> query)
+            TableQuery<TEntity> query,
+            CancellationToken cancellationToken)
             where TEntity : ITableEntity, new()
         {
             var entities = new List<TEntity>();
@@ -163,7 +175,7 @@
             do
             {
                 TableQuerySegment<TEntity> segment = await _eventTable
-                    .ExecuteQuerySegmentedAsync(query, continuation)
+                    .ExecuteQuerySegmentedAsync(query, continuation, cancellationToken)
                     .ConfigureAwait(false);
                 entities.AddRange(segment);
                 continuation = segment.ContinuationToken;
