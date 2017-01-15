@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Reflection;
+using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -185,7 +186,10 @@ namespace ReactiveArchitecture.EventSourcing.Azure
             await sut.SaveEvents<FakeUser>(events);
 
             Mock.Get(eventTable).Verify(
-                x => x.ExecuteBatchAsync(It.IsAny<TableBatchOperation>()),
+                x =>
+                x.ExecuteBatchAsync(
+                    It.IsAny<TableBatchOperation>(),
+                    CancellationToken.None),
                 Times.Exactly(2));
         }
 
@@ -200,9 +204,11 @@ namespace ReactiveArchitecture.EventSourcing.Azure
             Mock.Get(eventTable)
                 .Setup(
                     x =>
-                    x.ExecuteBatchAsync(It.Is<TableBatchOperation>(
-                        p =>
-                        ((TableEntity)entityProperty.GetValue(p[0])).PartitionKey.StartsWith("PendingEvent"))))
+                    x.ExecuteBatchAsync(
+                        It.Is<TableBatchOperation>(
+                            p =>
+                            ((TableEntity)entityProperty.GetValue(p[0])).PartitionKey.StartsWith("PendingEvent")),
+                        CancellationToken.None))
                 .ThrowsAsync(new StorageException());
 
             var sut = new AzureEventStore(eventTable, serializer);
@@ -219,9 +225,11 @@ namespace ReactiveArchitecture.EventSourcing.Azure
             Mock.Get(eventTable)
                 .Verify(
                     x =>
-                    x.ExecuteBatchAsync(It.Is<TableBatchOperation>(
-                        p =>
-                        ((TableEntity)entityProperty.GetValue(p[0])).PartitionKey.StartsWith("Event"))),
+                    x.ExecuteBatchAsync(
+                        It.Is<TableBatchOperation>(
+                            p =>
+                            ((TableEntity)entityProperty.GetValue(p[0])).PartitionKey.StartsWith("Event")),
+                        It.IsAny<CancellationToken>()),
                     Times.Never());
         }
 

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Moq;
@@ -58,8 +59,15 @@ namespace ReactiveArchitecture.EventSourcing.Azure
             string username)
         {
             user.ChangeUsername(username);
+
             await sut.Save(user);
-            Mock.Get(eventStore).Verify(x => x.SaveEvents<FakeUser>(user.PendingEvents), Times.Once());
+
+            Mock.Get(eventStore).Verify(
+                x =>
+                x.SaveEvents<FakeUser>(
+                    user.PendingEvents,
+                    CancellationToken.None),
+                Times.Once());
         }
 
         [Theory]
@@ -81,7 +89,11 @@ namespace ReactiveArchitecture.EventSourcing.Azure
         {
             user.ChangeUsername(username);
             Mock.Get(eventStore)
-                .Setup(x => x.SaveEvents<FakeUser>(It.IsAny<IEnumerable<IDomainEvent>>()))
+                .Setup(
+                    x =>
+                    x.SaveEvents<FakeUser>(
+                        It.IsAny<IEnumerable<IDomainEvent>>(),
+                        CancellationToken.None))
                 .Throws<InvalidOperationException>();
 
             Func<Task> action = () => sut.Save(user);
@@ -117,7 +129,11 @@ namespace ReactiveArchitecture.EventSourcing.Azure
         {
             user.ChangeUsername(username);
             Mock.Get(eventStore)
-                .Setup(x => x.SaveEvents<FakeUser>(It.IsAny<IEnumerable<IDomainEvent>>()))
+                .Setup(
+                    x =>
+                    x.SaveEvents<FakeUser>(
+                        It.IsAny<IEnumerable<IDomainEvent>>(),
+                        CancellationToken.None))
                 .Throws<InvalidOperationException>();
 
             Func<Task> action = () => sut.Save(user);
@@ -145,7 +161,7 @@ namespace ReactiveArchitecture.EventSourcing.Azure
         {
             user.ChangeUsername(username);
             Mock.Get(eventStore)
-                .Setup(x => x.LoadEvents<FakeUser>(user.Id, 0))
+                .Setup(x => x.LoadEvents<FakeUser>(user.Id, 0, CancellationToken.None))
                 .ReturnsAsync(user.PendingEvents);
 
             FakeUser actual = await sut.Find(user.Id);
@@ -171,7 +187,13 @@ namespace ReactiveArchitecture.EventSourcing.Azure
 
             // Assert
             action.ShouldThrow<InvalidOperationException>();
-            Mock.Get(eventStore).Verify(x => x.LoadEvents<FakeUser>(user.Id, It.IsAny<int>()), Times.Never());
+            Mock.Get(eventStore).Verify(
+                x =>
+                x.LoadEvents<FakeUser>(
+                    user.Id,
+                    It.IsAny<int>(),
+                    It.IsAny<CancellationToken>()),
+                Times.Never());
         }
 
         [Theory]
@@ -179,7 +201,9 @@ namespace ReactiveArchitecture.EventSourcing.Azure
         public async Task Find_returns_null_if_event_not_found(Guid userId)
         {
             Mock.Get(eventStore)
-                .Setup(x => x.LoadEvents<FakeUser>(userId, 0))
+                .Setup(
+                    x =>
+                    x.LoadEvents<FakeUser>(userId, 0, CancellationToken.None))
                 .ReturnsAsync(Enumerable.Empty<IDomainEvent>());
 
             FakeUser actual = await sut.Find(userId);
@@ -202,7 +226,9 @@ namespace ReactiveArchitecture.EventSourcing.Azure
                 .ReturnsAsync(memento);
 
             Mock.Get(eventStore)
-                .Setup(x => x.LoadEvents<FakeUser>(user.Id, 1))
+                .Setup(
+                    x =>
+                    x.LoadEvents<FakeUser>(user.Id, 1, CancellationToken.None))
                 .ReturnsAsync(user.PendingEvents.Skip(1))
                 .Verifiable();
 
