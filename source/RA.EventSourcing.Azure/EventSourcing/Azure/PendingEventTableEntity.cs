@@ -3,17 +3,34 @@
     using System;
     using Messaging;
     using Microsoft.WindowsAzure.Storage.Table;
+    using static Microsoft.WindowsAzure.Storage.Table.QueryComparisons;
+    using static Microsoft.WindowsAzure.Storage.Table.TableOperators;
+    using static Microsoft.WindowsAzure.Storage.Table.TableQuery;
 
     public class PendingEventTableEntity : TableEntity
     {
+        public const string PartitionPrefix = "PendingEvent";
+
         public string EventType { get; set; }
 
         public string PayloadJson { get; set; }
 
         public DateTimeOffset RaisedAt { get; set; }
 
+        internal static string ScanFilter =>
+            CombineFilters(
+                GenerateFilterCondition(
+                    nameof(ITableEntity.PartitionKey),
+                    GreaterThan,
+                    PartitionPrefix),
+                And,
+                GenerateFilterCondition(
+                    nameof(ITableEntity.PartitionKey),
+                    LessThan,
+                    $"{PartitionPrefix}."));
+
         public static string GetPartitionKey(Type sourceType, Guid sourceId)
-            => $"PendingEvent-{sourceType.Name}-{sourceId.ToString("n")}";
+            => $"{PartitionPrefix}-{sourceType.Name}-{sourceId.ToString("n")}";
 
         public static string GetRowKey(int version) => $"{version:D10}";
 

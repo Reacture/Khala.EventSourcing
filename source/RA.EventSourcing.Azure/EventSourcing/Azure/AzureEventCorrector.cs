@@ -87,8 +87,9 @@
                 Equal,
                 PendingEventTableEntity.GetPartitionKey(typeof(T), sourceId));
 
-            return new List<PendingEventTableEntity>(await
-                ExecuteQuery(query.Where(filter), cancellationToken).ConfigureAwait(false));
+            return new List<PendingEventTableEntity>(await _eventTable
+                .ExecuteQuery(query.Where(filter), cancellationToken)
+                .ConfigureAwait(false));
         }
 
         private List<IDomainEvent> RestoreDomainEvents(
@@ -120,8 +121,9 @@
                     GreaterThanOrEqual,
                     EventTableEntity.GetRowKey(version)));
 
-            return new List<EventTableEntity>(await
-                ExecuteQuery(query.Where(filter), cancellationToken).ConfigureAwait(false));
+            return new List<EventTableEntity>(await _eventTable
+                .ExecuteQuery(query.Where(filter), cancellationToken)
+                .ConfigureAwait(false));
         }
 
         private async Task InsertUnpersistedEvents<T>(
@@ -162,27 +164,6 @@
             var batch = new TableBatchOperation();
             pendingEvents.ForEach(batch.Delete);
             await _eventTable.ExecuteBatchAsync(batch, cancellationToken).ConfigureAwait(false);
-        }
-
-        private async Task<IEnumerable<TEntity>> ExecuteQuery<TEntity>(
-            TableQuery<TEntity> query,
-            CancellationToken cancellationToken)
-            where TEntity : ITableEntity, new()
-        {
-            var entities = new List<TEntity>();
-            TableContinuationToken continuation = null;
-
-            do
-            {
-                TableQuerySegment<TEntity> segment = await _eventTable
-                    .ExecuteQuerySegmentedAsync(query, continuation, cancellationToken)
-                    .ConfigureAwait(false);
-                entities.AddRange(segment);
-                continuation = segment.ContinuationToken;
-            }
-            while (continuation != null);
-
-            return entities;
         }
     }
 }

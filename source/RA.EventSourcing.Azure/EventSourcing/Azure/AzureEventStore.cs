@@ -131,34 +131,14 @@
                     GreaterThan,
                     EventTableEntity.GetRowKey(afterVersion)));
 
-            IEnumerable<EventTableEntity> events = await
-                ExecuteQuery(query.Where(filter), cancellationToken).ConfigureAwait(false);
+            IEnumerable<EventTableEntity> events = await _eventTable
+                .ExecuteQuery(query.Where(filter), cancellationToken)
+                .ConfigureAwait(false);
 
             return new List<IDomainEvent>(events
                 .Select(e => e.PayloadJson)
                 .Select(_serializer.Deserialize)
                 .Cast<IDomainEvent>());
-        }
-
-        private async Task<IEnumerable<TEntity>> ExecuteQuery<TEntity>(
-            TableQuery<TEntity> query,
-            CancellationToken cancellationToken)
-            where TEntity : ITableEntity, new()
-        {
-            var entities = new List<TEntity>();
-            TableContinuationToken continuation = null;
-
-            do
-            {
-                TableQuerySegment<TEntity> segment = await _eventTable
-                    .ExecuteQuerySegmentedAsync(query, continuation, cancellationToken)
-                    .ConfigureAwait(false);
-                entities.AddRange(segment);
-                continuation = segment.ContinuationToken;
-            }
-            while (continuation != null);
-
-            return entities;
         }
     }
 }

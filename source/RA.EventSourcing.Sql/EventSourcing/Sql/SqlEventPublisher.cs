@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.ComponentModel;
     using System.Data.Entity;
     using System.Linq;
     using System.Threading;
@@ -81,13 +82,19 @@
 
         public async void EnqueueAll(CancellationToken cancellationToken)
         {
+            await AwaitEnqueueAll(cancellationToken);
+        }
+
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public async Task AwaitEnqueueAll(CancellationToken cancellationToken)
+        {
             using (EventStoreDbContext context = _dbContextFactory.Invoke())
             {
                 foreach (Guid sourceId in await context
                     .PendingEvents
                     .Select(e => e.AggregateId)
                     .Distinct()
-                    .ToListAsync()
+                    .ToListAsync(cancellationToken)
                     .ConfigureAwait(false))
                 {
                     await PublishEvents(sourceId, cancellationToken).ConfigureAwait(false);

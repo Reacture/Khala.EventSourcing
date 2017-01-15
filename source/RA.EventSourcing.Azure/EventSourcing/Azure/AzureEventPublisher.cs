@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.ComponentModel;
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
@@ -59,8 +60,15 @@
             Guid sourceId, CancellationToken cancellationToken)
             where T : class, IEventSourced
         {
+            string partition = PendingEventTableEntity.GetPartitionKey(typeof(T), sourceId);
+            await Publish(partition, cancellationToken);
+        }
+
+        private async Task Publish(
+            string partition, CancellationToken cancellationToken)
+        {
             List<PendingEventTableEntity> pendingEvents = await
-                GetPendingEvents<T>(sourceId, cancellationToken).ConfigureAwait(false);
+                GetPendingEvents(partition, cancellationToken).ConfigureAwait(false);
 
             if (pendingEvents.Any())
             {
@@ -72,19 +80,19 @@
             }
         }
 
-        private async Task<List<PendingEventTableEntity>> GetPendingEvents<T>(
-            Guid sourceId, CancellationToken cancellationToken)
-            where T : class, IEventSourced
+        private async Task<List<PendingEventTableEntity>> GetPendingEvents(
+            string partition, CancellationToken cancellationToken)
         {
             var query = new TableQuery<PendingEventTableEntity>();
 
             string filter = GenerateFilterCondition(
                 nameof(ITableEntity.PartitionKey),
                 Equal,
-                PendingEventTableEntity.GetPartitionKey(typeof(T), sourceId));
+                partition);
 
-            return new List<PendingEventTableEntity>(await
-                ExecuteQuery(query.Where(filter), cancellationToken).ConfigureAwait(false));
+            return new List<PendingEventTableEntity>(await _eventTable
+                .ExecuteQuery(query.Where(filter), cancellationToken)
+                .ConfigureAwait(false));
         }
 
         private List<IDomainEvent> RestoreDomainEvents(
@@ -97,41 +105,54 @@
                 .ToList();
         }
 
-        private async Task SendPendingEvents(
+        private Task SendPendingEvents(
             List<IDomainEvent> domainEvents,
             CancellationToken cancellationToken)
         {
-            await _messageBus.SendBatch(domainEvents, cancellationToken).ConfigureAwait(false);
+            return _messageBus.SendBatch(domainEvents, cancellationToken);
         }
 
-        private async Task DeletePendingEvents(
+        private Task DeletePendingEvents(
             List<PendingEventTableEntity> pendingEvents,
             CancellationToken cancellationToken)
         {
             var batch = new TableBatchOperation();
             pendingEvents.ForEach(batch.Delete);
-            await _eventTable.ExecuteBatchAsync(batch, cancellationToken).ConfigureAwait(false);
+            return _eventTable.ExecuteBatchAsync(batch, cancellationToken);
         }
 
-        private async Task<IEnumerable<TEntity>> ExecuteQuery<TEntity>(
-            TableQuery<TEntity> query,
-            CancellationToken cancellationToken)
-            where TEntity : ITableEntity, new()
+        public async void EnqueueAll(CancellationToken cancellationToken)
         {
-            var entities = new List<TEntity>();
+            await AwaitEnqueueAll(cancellationToken);
+        }
+
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public async Task AwaitEnqueueAll(CancellationToken cancellationToken)
+        {
+            var partitions = new HashSet<string>();
+            var query = new TableQuery<PendingEventTableEntity>();
+            var filter = PendingEventTableEntity.ScanFilter;
             TableContinuationToken continuation = null;
 
             do
             {
-                TableQuerySegment<TEntity> segment = await _eventTable
-                    .ExecuteQuerySegmentedAsync(query, continuation, cancellationToken)
+                TableQuerySegment<PendingEventTableEntity> segment = await _eventTable
+                    .ExecuteQuerySegmentedAsync(query.Where(filter), continuation, cancellationToken)
                     .ConfigureAwait(false);
-                entities.AddRange(segment);
+
+                foreach (PendingEventTableEntity entity in segment)
+                {
+                    partitions.Add(entity.PartitionKey);
+                }
+
                 continuation = segment.ContinuationToken;
             }
             while (continuation != null);
 
-            return entities;
+            foreach (string partition in partitions)
+            {
+                await Publish(partition, cancellationToken);
+            }
         }
     }
 }
