@@ -52,6 +52,7 @@
         {
             var handlers =
                 from m in GetType().GetTypeInfo().GetDeclaredMethods("Handle")
+                where m.ReturnType == typeof(void)
                 let parameters = m.GetParameters()
                 where parameters.Length == 1
                 let parameter = parameters.Single()
