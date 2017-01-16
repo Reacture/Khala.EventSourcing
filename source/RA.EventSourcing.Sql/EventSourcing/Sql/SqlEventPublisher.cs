@@ -82,11 +82,11 @@
 
         public async void EnqueueAll(CancellationToken cancellationToken)
         {
-            await AwaitEnqueueAll(cancellationToken);
+            await PublishAllPendingEvents(cancellationToken);
         }
 
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public async Task AwaitEnqueueAll(CancellationToken cancellationToken)
+        public async Task PublishAllPendingEvents(CancellationToken cancellationToken)
         {
             using (EventStoreDbContext context = _dbContextFactory.Invoke())
             {
