@@ -254,6 +254,14 @@ namespace ReactiveArchitecture.EventSourcing.Azure
         }
 
         [TestMethod]
+        public void SaveEvents_does_not_fail_even_if_events_empty()
+        {
+            var events = new DomainEvent[] { };
+            Func<Task> action = () => sut.SaveEvents<FakeUser>(events, CancellationToken.None);
+            action.ShouldNotThrow();
+        }
+
+        [TestMethod]
         public async Task LoadEvents_restores_domain_events_correctly()
         {
             // Arrange

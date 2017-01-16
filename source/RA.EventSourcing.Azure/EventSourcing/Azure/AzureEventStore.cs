@@ -63,6 +63,11 @@
             CancellationToken cancellationToken)
             where T : class, IEventSourced
         {
+            if (domainEvents.Any() == false)
+            {
+                return;
+            }
+
             await InsertPendingEvents<T>(domainEvents, cancellationToken).ConfigureAwait(false);
             await InsertEvents<T>(domainEvents, cancellationToken).ConfigureAwait(false);
         }

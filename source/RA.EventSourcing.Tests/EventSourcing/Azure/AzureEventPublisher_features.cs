@@ -521,6 +521,87 @@ namespace ReactiveArchitecture.EventSourcing.Azure
                 Times.Never());
         }
 
+        [TestMethod]
+        public async Task CorrectEvents_does_not_fails_even_if_all_events_persisted()
+        {
+            // Arrange
+            var userId = Guid.NewGuid();
+
+            var userCreated = fixture.Create<FakeUserCreated>();
+            var usernameChanged = fixture.Create<FakeUsernameChanged>();
+            var domainEvents = new DomainEvent[] { userCreated, usernameChanged };
+            RaiseEvents(userId, domainEvents);
+
+            var serializer = new JsonMessageSerializer();
+
+            var batchOperation = new TableBatchOperation();
+            domainEvents
+                .Select(e => PendingEventTableEntity.FromDomainEvent<FakeUser>(e, serializer))
+                .ForEach(batchOperation.Insert);
+            await s_eventTable.ExecuteBatchAsync(batchOperation);
+
+            batchOperation.Clear();
+            domainEvents
+                .Select(e => EventTableEntity.FromDomainEvent<FakeUser>(e, serializer))
+                .ForEach(batchOperation.Insert);
+            await s_eventTable.ExecuteBatchAsync(batchOperation);
+
+            // Act
+            Func<Task> action = () => sut.CorrectEvents<FakeUser>(userId, CancellationToken.None);
+
+            // Assert
+            action.ShouldNotThrow();
+        }
+
+        [TestMethod]
+        public async Task CorrectAllEvents_sends_all_pending_events()
+        {
+            // Arrange
+            var domainEvents = new List<DomainEvent>();
+
+            List<Guid> users = fixture.CreateMany<Guid>().ToList();
+
+            foreach (Guid userId in users)
+            {
+                var userCreated = fixture.Create<FakeUserCreated>();
+                var usernameChanged = fixture.Create<FakeUsernameChanged>();
+                var events = new DomainEvent[] { userCreated, usernameChanged };
+                RaiseEvents(userId, events);
+
+                var serializer = new JsonMessageSerializer();
+
+                var batchOperation = new TableBatchOperation();
+                events
+                    .Select(e => PendingEventTableEntity.FromDomainEvent<FakeUser>(e, serializer))
+                    .ForEach(batchOperation.Insert);
+                await s_eventTable.ExecuteBatchAsync(batchOperation);
+
+                domainEvents.AddRange(events);
+            }
+
+            var messages = new List<object>();
+
+            Mock.Get(messageBus)
+                .Setup(
+                    x =>
+                    x.SendBatch(
+                        It.IsAny<IEnumerable<object>>(),
+                        It.IsAny<CancellationToken>()))
+                .Callback<IEnumerable<object>, CancellationToken>(
+                    (batch, cancellationToken) =>
+                    messages.AddRange(batch
+                        .OfType<IDomainEvent>()
+                        .Where(m => users.Contains(m.SourceId))))
+                .Returns(Task.FromResult(true));
+
+            // Act
+            await sut.CorrectAllEvents(CancellationToken.None);
+
+            // Assert
+            messages.Should().OnlyContain(e => e is IDomainEvent);
+            messages.ShouldAllBeEquivalentTo(domainEvents);
+        }
+
         private void RaiseEvents(Guid sourceId, params DomainEvent[] events)
         {
             RaiseEvents(sourceId, 0, events);

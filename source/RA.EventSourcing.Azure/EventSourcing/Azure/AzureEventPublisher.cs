@@ -118,11 +118,11 @@
 
         public async void EnqueueAll(CancellationToken cancellationToken)
         {
-            await AwaitEnqueueAll(cancellationToken);
+            await CorrectAllEvents(cancellationToken);
         }
 
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public async Task AwaitEnqueueAll(CancellationToken cancellationToken)
+        public async Task CorrectAllEvents(CancellationToken cancellationToken)
         {
             var partitions = CreateHashSet(() => new
             {
@@ -225,6 +225,11 @@
                 var entity = EventTableEntity.FromDomainEvent(
                     persistedPartition, @event, _serializer);
                 batch.Insert(entity);
+            }
+
+            if (batch.Any() == false)
+            {
+                return;
             }
 
             await _eventTable.ExecuteBatchAsync(batch, cancellationToken).ConfigureAwait(false);
