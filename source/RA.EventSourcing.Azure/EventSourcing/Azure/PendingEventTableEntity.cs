@@ -11,6 +11,8 @@
     {
         public const string PartitionPrefix = "PendingEvent";
 
+        public string PersistedPartition { get; set; }
+
         public string EventType { get; set; }
 
         public string PayloadJson { get; set; }
@@ -47,6 +49,7 @@
             {
                 PartitionKey = GetPartitionKey(typeof(T), domainEvent.SourceId),
                 RowKey = GetRowKey(domainEvent.Version),
+                PersistedPartition = EventTableEntity.GetPartitionKey(typeof(T), domainEvent.SourceId),
                 EventType = domainEvent.GetType().FullName,
                 PayloadJson = serializer.Serialize(domainEvent),
                 RaisedAt = domainEvent.RaisedAt

@@ -18,7 +18,8 @@
         public static string GetRowKey(int version) => $"{version:D10}";
 
         public static EventTableEntity FromDomainEvent<T>(
-            IDomainEvent domainEvent, JsonMessageSerializer serializer)
+            IDomainEvent domainEvent,
+            JsonMessageSerializer serializer)
             where T : class, IEventSourced
         {
             if (domainEvent == null)
@@ -26,9 +27,18 @@
                 throw new ArgumentNullException(nameof(domainEvent));
             }
 
+            string partition = GetPartitionKey(typeof(T), domainEvent.SourceId);
+            return FromDomainEvent(partition, domainEvent, serializer);
+        }
+
+        internal static EventTableEntity FromDomainEvent(
+            string partition,
+            IDomainEvent domainEvent,
+            JsonMessageSerializer serializer)
+        {
             return new EventTableEntity
             {
-                PartitionKey = GetPartitionKey(typeof(T), domainEvent.SourceId),
+                PartitionKey = partition,
                 RowKey = GetRowKey(domainEvent.Version),
                 EventType = domainEvent.GetType().FullName,
                 PayloadJson = serializer.Serialize(domainEvent),
