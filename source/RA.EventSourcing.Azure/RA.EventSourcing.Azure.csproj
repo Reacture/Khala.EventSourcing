@@ -70,7 +70,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="EventSourcing\Azure\AzureEventCorrector.cs" />
     <Compile Include="EventSourcing\Azure\AzureEventPublisher.cs" />
     <Compile Include="EventSourcing\Azure\AzureEventSourcedRepository.cs" />
     <Compile Include="EventSourcing\Azure\AzureEventStore.cs" />

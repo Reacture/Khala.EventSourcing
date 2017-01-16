@@ -156,7 +156,6 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
-    <Compile Include="EventSourcing\Azure\AzureEventCorrector_features.cs" />
     <Compile Include="EventSourcing\Azure\AzureEventPublisher_features.cs" />
     <Compile Include="EventSourcing\Azure\AzureEventSourcedRepository_features.cs" />
     <Compile Include="EventSourcing\Azure\AzureEventStore_features.cs" />
