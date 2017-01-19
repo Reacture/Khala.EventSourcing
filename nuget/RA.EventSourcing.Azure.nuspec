@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>ReactiveArchitecture.EventSourcing.Azure</id>
+    <version>0.1.0</version>
+    <title>ReactiveArchitecture.EventSourcing.Azure</title>
+    <authors>Gyuwon</authors>
+    <owners>Gyuwon</owners>
+    <licenseUrl>https://github.com/ReactiveEssentials/RA.EventSourcing/blob/master/LICENSE</licenseUrl>
+    <projectUrl>https://github.com/ReactiveEssentials/RA.EventSourcing</projectUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>Event sourcing azure</description>
+    <releaseNotes></releaseNotes>
+    <copyright>Copyright Gyuwon 2017</copyright>
+    <tags>CQRS EventSourcing Azure Table Storage</tags>
+    <dependencies>
+      <group targetFramework="net45">
+        <dependency id="ReactiveArchitecture.EventSourcing.Core" version="0.1.0" />
+        <dependency id="ReactiveArchitecture.Messaging.Core" version="0.1.2" />
+        <dependency id="NETStandard.Library" version="1.6.0" />
+        <dependency id="Newtonsoft.Json" version="9.0.1" />
+        <dependency id="WindowsAzure.Storage" version="8.0.1" />
+      </group>
+    </dependencies>
+  </metadata>
+  <files>
+    <file src="..\source\RA.EventSourcing.Azure\bin\Release\RA.EventSourcing.Azure.dll" target="lib\net45\RA.EventSourcing.Azure.dll" />
+  </files>
+</package>
