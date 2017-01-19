@@ -11,8 +11,8 @@ using Microsoft.WindowsAzure.Storage.RetryPolicies;
 using Ploeh.AutoFixture;
 using Ploeh.AutoFixture.AutoMoq;
 using Ploeh.AutoFixture.Idioms;
-using ReactiveArchitecture.EventSourcing.Messaging;
 using ReactiveArchitecture.FakeDomain;
+using ReactiveArchitecture.Messaging;
 
 namespace ReactiveArchitecture.EventSourcing.Azure
 {
@@ -23,7 +23,7 @@ namespace ReactiveArchitecture.EventSourcing.Azure
         private static CloudBlobContainer s_container;
         private static bool s_storageEmulatorConnected;
         private IFixture fixture;
-        private JsonMessageSerializer serializer;
+        private IMessageSerializer serializer;
         private AzureMementoStore sut;
 
         public TestContext TestContext { get; set; }

@@ -19,7 +19,7 @@
 
         public static EventTableEntity FromDomainEvent<T>(
             IDomainEvent domainEvent,
-            JsonMessageSerializer serializer)
+            IMessageSerializer serializer)
             where T : class, IEventSourced
         {
             if (domainEvent == null)
@@ -34,7 +34,7 @@
         internal static EventTableEntity FromDomainEvent(
             string partition,
             IDomainEvent domainEvent,
-            JsonMessageSerializer serializer)
+            IMessageSerializer serializer)
         {
             return new EventTableEntity
             {

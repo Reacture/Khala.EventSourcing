@@ -37,7 +37,7 @@
         public static string GetRowKey(int version) => $"{version:D10}";
 
         public static PendingEventTableEntity FromDomainEvent<T>(
-            IDomainEvent domainEvent, JsonMessageSerializer serializer)
+            IDomainEvent domainEvent, IMessageSerializer serializer)
             where T : class, IEventSourced
         {
             if (domainEvent == null)

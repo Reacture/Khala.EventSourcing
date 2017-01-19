@@ -12,12 +12,12 @@
     public class SqlEventPublisher : ISqlEventPublisher
     {
         private readonly Func<EventStoreDbContext> _dbContextFactory;
-        private readonly JsonMessageSerializer _serializer;
+        private readonly IMessageSerializer _serializer;
         private readonly IMessageBus _messageBus;
 
         public SqlEventPublisher(
             Func<EventStoreDbContext> dbContextFactory,
-            JsonMessageSerializer serializer,
+            IMessageSerializer serializer,
             IMessageBus messageBus)
         {
             if (dbContextFactory == null)

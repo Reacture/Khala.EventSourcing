@@ -29,7 +29,7 @@
         public DateTimeOffset RaisedAt { get; set; }
 
         public static Event FromDomainEvent(
-            IDomainEvent domainEvent, JsonMessageSerializer serializer)
+            IDomainEvent domainEvent, IMessageSerializer serializer)
         {
             if (domainEvent == null)
             {

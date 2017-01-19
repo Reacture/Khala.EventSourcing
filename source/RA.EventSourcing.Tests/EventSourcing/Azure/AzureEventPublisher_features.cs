@@ -13,9 +13,9 @@ using Moq;
 using Ploeh.AutoFixture;
 using Ploeh.AutoFixture.AutoMoq;
 using Ploeh.AutoFixture.Idioms;
-using ReactiveArchitecture.EventSourcing.Messaging;
 using ReactiveArchitecture.FakeDomain;
 using ReactiveArchitecture.FakeDomain.Events;
+using ReactiveArchitecture.Messaging;
 
 namespace ReactiveArchitecture.EventSourcing.Azure
 {
@@ -26,7 +26,7 @@ namespace ReactiveArchitecture.EventSourcing.Azure
         private static CloudTable s_eventTable;
         private static bool s_storageEmulatorConnected;
         private IFixture fixture;
-        private JsonMessageSerializer serializer;
+        private IMessageSerializer serializer;
         private IMessageBus messageBus;
         private AzureEventPublisher sut;
 

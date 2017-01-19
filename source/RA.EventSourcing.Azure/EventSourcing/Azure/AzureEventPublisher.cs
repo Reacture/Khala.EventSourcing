@@ -16,12 +16,12 @@
         IAzureEventPublisher, IAzureEventCorrector
     {
         private readonly CloudTable _eventTable;
-        private readonly JsonMessageSerializer _serializer;
+        private readonly IMessageSerializer _serializer;
         private readonly IMessageBus _messageBus;
 
         public AzureEventPublisher(
             CloudTable eventTable,
-            JsonMessageSerializer serializer,
+            IMessageSerializer serializer,
             IMessageBus messageBus)
         {
             if (eventTable == null)

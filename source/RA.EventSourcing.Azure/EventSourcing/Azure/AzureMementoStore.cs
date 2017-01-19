@@ -10,11 +10,11 @@
     public class AzureMementoStore : IMementoStore
     {
         private readonly CloudBlobContainer _container;
-        private readonly JsonMessageSerializer _serializer;
+        private readonly IMessageSerializer _serializer;
 
         public AzureMementoStore(
             CloudBlobContainer container,
-            JsonMessageSerializer serializer)
+            IMessageSerializer serializer)
         {
             if (container == null)
             {

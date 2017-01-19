@@ -10,9 +10,9 @@ using Ploeh.AutoFixture;
 using Ploeh.AutoFixture.AutoMoq;
 using Ploeh.AutoFixture.Idioms;
 using Ploeh.AutoFixture.Xunit2;
-using ReactiveArchitecture.EventSourcing.Messaging;
 using ReactiveArchitecture.FakeDomain;
 using ReactiveArchitecture.FakeDomain.Events;
+using ReactiveArchitecture.Messaging;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -36,6 +36,7 @@ namespace ReactiveArchitecture.EventSourcing.Sql
 
             fixture = new Fixture().Customize(new AutoMoqCustomization());
             fixture.Inject<Func<EventStoreDbContext>>(() => new DataContext());
+            fixture.Inject<IMessageSerializer>(new JsonMessageSerializer());
 
             userId = Guid.NewGuid();
 

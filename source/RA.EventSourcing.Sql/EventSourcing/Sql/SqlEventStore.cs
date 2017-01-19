@@ -11,11 +11,11 @@
     public class SqlEventStore : ISqlEventStore
     {
         private readonly Func<EventStoreDbContext> _dbContextFactory;
-        private readonly JsonMessageSerializer _serializer;
+        private readonly IMessageSerializer _serializer;
 
         public SqlEventStore(
             Func<EventStoreDbContext> dbContextFactory,
-            JsonMessageSerializer serializer)
+            IMessageSerializer serializer)
         {
             if (dbContextFactory == null)
             {

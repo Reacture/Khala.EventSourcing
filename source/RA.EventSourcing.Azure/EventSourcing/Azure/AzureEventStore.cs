@@ -14,10 +14,10 @@
     public class AzureEventStore : IAzureEventStore
     {
         private CloudTable _eventTable;
-        private JsonMessageSerializer _serializer;
+        private IMessageSerializer _serializer;
 
         public AzureEventStore(
-            CloudTable eventTable, JsonMessageSerializer serializer)
+            CloudTable eventTable, IMessageSerializer serializer)
         {
             if (eventTable == null)
             {
