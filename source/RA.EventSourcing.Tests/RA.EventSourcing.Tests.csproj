@@ -117,8 +117,8 @@
       <HintPath>..\packages\AutoFixture.Xunit2.3.50.2\lib\net45\Ploeh.AutoFixture.Xunit2.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="RA.Messaging.Core, Version=0.1.2.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\ReactiveArchitecture.Messaging.Core.0.1.2\lib\netstandard1.1\RA.Messaging.Core.dll</HintPath>
+    <Reference Include="RA.Messaging.Core, Version=0.1.4.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\ReactiveArchitecture.Messaging.Core.0.1.4\lib\netstandard1.1\RA.Messaging.Core.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />

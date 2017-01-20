@@ -11,6 +11,13 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RA.EventSourcing.Sql", "RA.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RA.EventSourcing.Azure", "RA.EventSourcing.Azure\RA.EventSourcing.Azure.csproj", "{047D8EF5-0E46-4C2C-8D6F-BD970B94FA43}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "nuget", "nuget", "{2044ECAC-2D3A-43B8-9841-31CDF7E24504}"
+	ProjectSection(SolutionItems) = preProject
+		..\nuget\RA.EventSourcing.Azure.nuspec = ..\nuget\RA.EventSourcing.Azure.nuspec
+		..\nuget\RA.EventSourcing.Core.nuspec = ..\nuget\RA.EventSourcing.Core.nuspec
+		..\nuget\RA.EventSourcing.Sql.nuspec = ..\nuget\RA.EventSourcing.Sql.nuspec
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
