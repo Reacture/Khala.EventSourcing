@@ -49,6 +49,14 @@
         }
 
         public AzureEventSourcedRepository(
+            AzureEventStore eventStore,
+            AzureEventPublisher eventPublisher,
+            Func<Guid, IEnumerable<IDomainEvent>, T> entityFactory)
+            : this(eventStore, eventPublisher, eventPublisher, entityFactory)
+        {
+        }
+
+        public AzureEventSourcedRepository(
             IAzureEventStore eventStore,
             IAzureEventPublisher eventPublisher,
             IMementoStore mementoStore,
@@ -69,6 +77,22 @@
 
             _mementoStore = mementoStore;
             _mementoEntityFactory = mementoEntityFactory;
+        }
+
+        public AzureEventSourcedRepository(
+            AzureEventStore eventStore,
+            AzureEventPublisher eventPublisher,
+            IMementoStore mementoStore,
+            Func<Guid, IEnumerable<IDomainEvent>, T> entityFactory,
+            Func<Guid, IMemento, IEnumerable<IDomainEvent>, T> mementoEntityFactory)
+            : this(
+                  eventStore,
+                  eventPublisher,
+                  mementoStore,
+                  eventPublisher,
+                  entityFactory,
+                  mementoEntityFactory)
+        {
         }
 
         public Task Save(T source, CancellationToken cancellationToken)
