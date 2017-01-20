@@ -56,6 +56,9 @@ namespace TodoList.Domain
                     nameof(description));
             }
 
+            if (description == Description)
+                return;
+
             RaiseEvent(new TodoItemUpdated { Description = description });
         }
 
