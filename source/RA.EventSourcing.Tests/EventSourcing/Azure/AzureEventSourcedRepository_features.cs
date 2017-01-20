@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
+using Microsoft.WindowsAzure.Storage;
 using Moq;
 using Ploeh.AutoFixture;
 using Ploeh.AutoFixture.AutoMoq;
@@ -49,6 +50,7 @@ namespace ReactiveArchitecture.EventSourcing.Azure
         public void class_has_guard_clauses()
         {
             var assertion = new GuardClauseAssertion(fixture);
+            fixture.Inject(CloudStorageAccount.DevelopmentStorageAccount.CreateCloudTableClient().GetTableReference("foo"));
             assertion.Verify(typeof(AzureEventSourcedRepository<>));
         }
 
