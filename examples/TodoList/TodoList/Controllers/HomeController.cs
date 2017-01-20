@@ -22,7 +22,7 @@ namespace TodoList.Controllers
 
         public async Task<ActionResult> Index()
         {
-            return View(await ReadModelFacade.GetAllItems());
+            return View(await ReadModelFacade.GetAllTodoItems());
         }
 
         public async Task<ActionResult> Details(Guid? id)
@@ -30,7 +30,7 @@ namespace TodoList.Controllers
             if (id == null)
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
 
-            TodoItem todoItem = await ReadModelFacade.Find(id.Value);
+            TodoItem todoItem = await ReadModelFacade.FindTodoItem(id.Value);
             if (todoItem == null)
                 return HttpNotFound();
 
@@ -64,7 +64,7 @@ namespace TodoList.Controllers
             if (id == null)
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
 
-            TodoItem todoItem = await ReadModelFacade.Find(id.Value);
+            TodoItem todoItem = await ReadModelFacade.FindTodoItem(id.Value);
             if (todoItem == null)
                 return HttpNotFound();
 
@@ -96,7 +96,7 @@ namespace TodoList.Controllers
             if (id == null)
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
 
-            TodoItem todoItem = await ReadModelFacade.Find(id.Value);
+            TodoItem todoItem = await ReadModelFacade.FindTodoItem(id.Value);
             if (todoItem == null)
                 return HttpNotFound();
 

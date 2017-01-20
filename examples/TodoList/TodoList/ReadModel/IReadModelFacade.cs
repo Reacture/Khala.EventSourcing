@@ -6,8 +6,8 @@ namespace TodoList.ReadModel
 {
     public interface IReadModelFacade
     {
-        Task<IEnumerable<TodoItem>> GetAllItems();
+        Task<IEnumerable<TodoItem>> GetAllTodoItems();
 
-        Task<TodoItem> Find(Guid id);
+        Task<TodoItem> FindTodoItem(Guid id);
     }
 }

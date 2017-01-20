@@ -18,7 +18,7 @@ namespace TodoList.ReadModel
             _dbContextFactory = dbContextFactory;
         }
 
-        public async Task<IEnumerable<TodoItem>> GetAllItems()
+        public async Task<IEnumerable<TodoItem>> GetAllTodoItems()
         {
             using (ReadModelDbContext db = _dbContextFactory.Invoke())
             {
@@ -30,7 +30,7 @@ namespace TodoList.ReadModel
             }
         }
 
-        public async Task<TodoItem> Find(Guid id)
+        public async Task<TodoItem> FindTodoItem(Guid id)
         {
             using (ReadModelDbContext db = _dbContextFactory.Invoke())
             {
