@@ -1,4 +1,4 @@
-﻿@model TodoList.ReadModel.TodoItem
+﻿@model TodoList.Controllers.TodoItemCommandModel
 
 @{
     ViewBag.Title = "Edit";
@@ -14,7 +14,7 @@
         <h4>Todo</h4>
         <hr />
         @Html.ValidationSummary(true, "", new { @class = "text-danger" })
-        @Html.HiddenFor(model => model.SequenceId)
+        @Html.HiddenFor(model => model.Id)
 
         <div class="form-group">
             @Html.LabelFor(model => model.Description, htmlAttributes: new { @class = "control-label col-md-2" })

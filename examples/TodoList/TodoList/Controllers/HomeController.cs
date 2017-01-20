@@ -68,7 +68,11 @@ namespace TodoList.Controllers
             if (todoItem == null)
                 return HttpNotFound();
 
-            return View(todoItem);
+            return View(new TodoItemCommandModel
+            {
+                Id = todoItem.Id,
+                Description = todoItem.Description
+            });
         }
 
         [HttpPost]
