@@ -1,5 +1,6 @@
 ﻿using System;
 using Microsoft.Owin;
+using Microsoft.Owin.BuilderProperties;
 using Owin;
 using ReactiveArchitecture.EventSourcing;
 using ReactiveArchitecture.EventSourcing.Sql;
@@ -10,28 +11,33 @@ using TodoList.Messaging;
 using TodoList.ReadModel;
 
 [assembly: OwinStartup(typeof(TodoList.Startup))]
+
 namespace TodoList
 {
     public partial class Startup
     {
         public void Configuration(IAppBuilder app)
         {
-            IMessageSerializer serializer = new JsonMessageSerializer();
-
             IMessageHandler messageHandler = null;
 
             IMessageBus messageBus = new ImmediateMessageBus(
                 new Lazy<IMessageHandler>(() => messageHandler));
 
+            var serializer = new JsonMessageSerializer();
+
+            var eventStore = new SqlEventStore(
+                () => new TodoListEventStoreDbContext(),
+                serializer);
+
+            var eventPublisher = new SqlEventPublisher(
+                () => new TodoListEventStoreDbContext(),
+                serializer,
+                messageBus);
+
             IEventSourcedRepository<Domain.TodoItem> repository =
                 new SqlEventSourcedRepository<Domain.TodoItem>(
-                    new SqlEventStore(
-                        () => new TodoListEventStoreDbContext(),
-                        serializer),
-                    new SqlEventPublisher(
-                        () => new TodoListEventStoreDbContext(),
-                        serializer,
-                        messageBus),
+                    eventStore,
+                    eventPublisher,
                     Domain.TodoItem.Factory);
 
             messageHandler = new CompositeMessageHandler(
@@ -48,6 +54,9 @@ namespace TodoList
 
                 await next.Invoke();
             });
+
+            var properties = new AppProperties(app.Properties);
+            eventPublisher.EnqueueAll(properties.OnAppDisposing);
         }
     }
 }
