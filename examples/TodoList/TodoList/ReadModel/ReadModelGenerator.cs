@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using ReactiveArchitecture.Messaging;
-using TodoList.Events;
+using TodoList.Domain.Events;
 
 namespace TodoList.ReadModel
 {

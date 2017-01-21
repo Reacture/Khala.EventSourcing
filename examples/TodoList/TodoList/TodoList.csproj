@@ -222,9 +222,9 @@
     <Compile Include="Domain\DataAccess\TodoListEventStoreDbContext.cs" />
     <Compile Include="Domain\TodoItem.cs" />
     <Compile Include="Domain\TodoItemCommandHandler.cs" />
-    <Compile Include="Events\TodoItemCreated.cs" />
-    <Compile Include="Events\TodoItemDeleted.cs" />
-    <Compile Include="Events\TodoItemUpdated.cs" />
+    <Compile Include="Domain\Events\TodoItemCreated.cs" />
+    <Compile Include="Domain\Events\TodoItemDeleted.cs" />
+    <Compile Include="Domain\Events\TodoItemUpdated.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>

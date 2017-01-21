@@ -1,6 +1,6 @@
 ﻿using ReactiveArchitecture.EventSourcing;
 
-namespace TodoList.Events
+namespace TodoList.Domain.Events
 {
     public class TodoItemDeleted : DomainEvent
     {

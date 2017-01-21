@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using ReactiveArchitecture.EventSourcing;
-using TodoList.Events;
+using TodoList.Domain.Events;
 
 namespace TodoList.Domain
 {
