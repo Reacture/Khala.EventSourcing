@@ -7,6 +7,8 @@
     public interface IEventSourcedRepository<T>
         where T : class, IEventSourced
     {
+        IEventPublisher EventPublisher { get; }
+
         Task Save(T source, CancellationToken cancellationToken);
 
         Task<T> Find(Guid sourceId, CancellationToken cancellationToken);

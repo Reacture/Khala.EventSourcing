@@ -80,7 +80,7 @@
         {
         }
 
-        public ISqlEventPublisher EventPublisher => _eventPublisher;
+        public IEventPublisher EventPublisher => _eventPublisher;
 
         public Task Save(T source, CancellationToken cancellationToken)
         {

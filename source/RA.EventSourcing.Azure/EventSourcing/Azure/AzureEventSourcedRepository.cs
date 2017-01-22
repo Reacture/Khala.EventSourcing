@@ -95,6 +95,8 @@
         {
         }
 
+        public IEventPublisher EventPublisher => _eventPublisher;
+
         public Task Save(T source, CancellationToken cancellationToken)
         {
             if (source == null)
