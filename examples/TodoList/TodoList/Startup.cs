@@ -2,7 +2,6 @@
 using Microsoft.Owin;
 using Microsoft.Owin.BuilderProperties;
 using Owin;
-using ReactiveArchitecture.EventSourcing;
 using ReactiveArchitecture.EventSourcing.Sql;
 using ReactiveArchitecture.Messaging;
 using TodoList.Domain;
@@ -23,22 +22,11 @@ namespace TodoList
             IMessageBus messageBus = new ImmediateMessageBus(
                 new Lazy<IMessageHandler>(() => messageHandler));
 
-            var serializer = new JsonMessageSerializer();
-
-            var eventStore = new SqlEventStore(
+            var repository = new SqlEventSourcedRepository<Domain.TodoItem>(
                 () => new TodoListEventStoreDbContext(),
-                serializer);
-
-            var eventPublisher = new SqlEventPublisher(
-                () => new TodoListEventStoreDbContext(),
-                serializer,
-                messageBus);
-
-            IEventSourcedRepository<Domain.TodoItem> repository =
-                new SqlEventSourcedRepository<Domain.TodoItem>(
-                    eventStore,
-                    eventPublisher,
-                    Domain.TodoItem.Factory);
+                new JsonMessageSerializer(),
+                messageBus,
+                Domain.TodoItem.Factory);
 
             messageHandler = new CompositeMessageHandler(
                 new TodoItemCommandHandler(repository),
@@ -51,12 +39,11 @@ namespace TodoList
             {
                 context.Set(nameof(IMessageBus), messageBus);
                 context.Set(nameof(IReadModelFacade), readModelFacade);
-
                 await next.Invoke();
             });
 
             var properties = new AppProperties(app.Properties);
-            eventPublisher.EnqueueAll(properties.OnAppDisposing);
+            repository.EventPublisher.EnqueueAll(properties.OnAppDisposing);
         }
     }
 }
