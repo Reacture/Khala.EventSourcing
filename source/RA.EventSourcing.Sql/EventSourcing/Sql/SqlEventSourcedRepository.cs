@@ -5,6 +5,7 @@
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
+    using Messaging;
 
     public class SqlEventSourcedRepository<T> : ISqlEventSourcedRepository<T>
         where T : class, IEventSourced
@@ -61,6 +62,25 @@
             _mementoStore = mementoStore;
             _mementoEntityFactory = mementoEntityFactory;
         }
+
+        public SqlEventSourcedRepository(
+            Func<EventStoreDbContext> dbContextFactory,
+            IMessageSerializer serializer,
+            IMessageBus messageBus,
+            Func<Guid, IEnumerable<IDomainEvent>, T> entityFactory)
+            : this(
+                  new SqlEventStore(
+                      dbContextFactory,
+                      serializer),
+                  new SqlEventPublisher(
+                      dbContextFactory,
+                      serializer,
+                      messageBus),
+                  entityFactory)
+        {
+        }
+
+        public ISqlEventPublisher EventPublisher => _eventPublisher;
 
         public Task Save(T source, CancellationToken cancellationToken)
         {

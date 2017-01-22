@@ -55,6 +55,7 @@ namespace ReactiveArchitecture.EventSourcing.Sql
         public void class_has_guard_clauses()
         {
             var assertion = new GuardClauseAssertion(fixture);
+            fixture.Inject<Func<EventStoreDbContext>>(() => new EventStoreDbContext());
             assertion.Verify(typeof(SqlEventSourcedRepository<>));
         }
 
