@@ -2,7 +2,7 @@
 <package >
   <metadata>
     <id>ReactiveArchitecture.EventSourcing.Sql</id>
-    <version>0.1.2</version>
+    <version>0.1.3</version>
     <title>ReactiveArchitecture.EventSourcing.Sql</title>
     <authors>Gyuwon</authors>
     <owners>Gyuwon</owners>
@@ -15,7 +15,7 @@
     <tags>CQRS EventSourcing SQL EntityFramework</tags>
     <dependencies>
       <group targetFramework="net45">
-        <dependency id="ReactiveArchitecture.EventSourcing.Core" version="0.1.2" />
+        <dependency id="ReactiveArchitecture.EventSourcing.Core" version="0.1.3" />
         <dependency id="ReactiveArchitecture.Messaging.Core" version="0.1.4" />
         <dependency id="NETStandard.Library" version="1.6.0" />
         <dependency id="Newtonsoft.Json" version="9.0.1" />
