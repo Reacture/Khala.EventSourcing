@@ -57,12 +57,12 @@
       <HintPath>..\packages\Newtonsoft.Json.9.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="RA.EventSourcing, Version=0.1.3.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\ReactiveArchitecture.EventSourcing.Core.0.1.3\lib\netstandard1.1\RA.EventSourcing.dll</HintPath>
+    <Reference Include="RA.EventSourcing, Version=0.1.4.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\ReactiveArchitecture.EventSourcing.Core.0.1.4\lib\netstandard1.1\RA.EventSourcing.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="RA.EventSourcing.Sql, Version=0.1.3.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\ReactiveArchitecture.EventSourcing.Sql.0.1.3\lib\net45\RA.EventSourcing.Sql.dll</HintPath>
+    <Reference Include="RA.EventSourcing.Sql, Version=0.1.4.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\ReactiveArchitecture.EventSourcing.Sql.0.1.4\lib\net45\RA.EventSourcing.Sql.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="RA.Messaging.Core, Version=0.2.1.0, Culture=neutral, processorArchitecture=MSIL">
