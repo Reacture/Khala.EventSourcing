@@ -27,6 +27,7 @@ namespace ReactiveArchitecture.EventSourcing.Sql
         private ITestOutputHelper output;
         private IFixture fixture;
         private Guid userId;
+        private IMessageSerializer serializer;
         private SqlEventStore sut;
         private EventStoreDbContext mockDbContext;
 
@@ -36,9 +37,11 @@ namespace ReactiveArchitecture.EventSourcing.Sql
 
             fixture = new Fixture().Customize(new AutoMoqCustomization());
             fixture.Inject<Func<EventStoreDbContext>>(() => new DataContext());
-            fixture.Inject<IMessageSerializer>(new JsonMessageSerializer());
 
             userId = Guid.NewGuid();
+
+            serializer = new JsonMessageSerializer();
+            fixture.Inject(serializer);
 
             sut = fixture.Create<SqlEventStore>();
 
@@ -256,6 +259,46 @@ namespace ReactiveArchitecture.EventSourcing.Sql
 
         [Theory]
         [AutoData]
+        public async Task SaveEvents_saves_pending_events_correctly(
+            FakeUserCreated created,
+            FakeUsernameChanged usernameChanged)
+        {
+            // Arrange
+            var events = new DomainEvent[] { created, usernameChanged };
+            RaiseEvents(userId, events);
+
+            // Act
+            await sut.SaveEvents<FakeUser>(events, CancellationToken.None);
+
+            // Asseert
+            using (var db = new DataContext())
+            {
+                List<PendingEvent> pendingEvents = db
+                    .PendingEvents
+                    .Where(e => e.AggregateId == userId)
+                    .OrderBy(e => e.Version)
+                    .ToList();
+
+                foreach (var t in pendingEvents.Zip(events, (pending, source) =>
+                                  new { Pending = pending, Source = source }))
+                {
+                    var actual = new
+                    {
+                        t.Pending.Version,
+                        Envelope = (Envelope)serializer.Deserialize(t.Pending.EnvelopeJson)
+                    };
+                    actual.ShouldBeEquivalentTo(new
+                    {
+                        t.Source.Version,
+                        Envelope = new Envelope(t.Source)
+                    },
+                    opts => opts.Excluding(x => x.Envelope.MessageId));
+                }
+            }
+        }
+
+        [Theory]
+        [AutoData]
         public async Task SaveEvents_saves_events_correctly(
             FakeUserCreated created,
             FakeUsernameChanged usernameChanged)
@@ -270,8 +313,6 @@ namespace ReactiveArchitecture.EventSourcing.Sql
             // Asseert
             using (var db = new DataContext())
             {
-                var serializer = new JsonMessageSerializer();
-
                 IEnumerable<object> actual = db
                     .Events
                     .Where(e => e.AggregateId == userId)
@@ -300,7 +341,7 @@ namespace ReactiveArchitecture.EventSourcing.Sql
 
         [Theory]
         [AutoData]
-        public async Task SaveEvents_saves_pending_events_correctly(
+        public async Task SaveEvents_sets_message_properties_correctly(
             FakeUserCreated created,
             FakeUsernameChanged usernameChanged)
         {
@@ -314,29 +355,33 @@ namespace ReactiveArchitecture.EventSourcing.Sql
             // Asseert
             using (var db = new DataContext())
             {
-                var serializer = new JsonMessageSerializer();
+                List<Envelope> envelopes = db
+                    .PendingEvents
+                    .Where(e => e.AggregateId == userId)
+                    .OrderBy(e => e.Version)
+                    .AsEnumerable()
+                    .Select(e => e.EnvelopeJson)
+                    .Select(serializer.Deserialize)
+                    .Cast<Envelope>()
+                    .ToList();
 
                 IEnumerable<object> actual = db
-                    .PendingEvents
+                    .Events
                     .Where(e => e.AggregateId == userId)
                     .OrderBy(e => e.Version)
                     .AsEnumerable()
                     .Select(e => new
                     {
-                        e.Version,
-                        Payload = serializer.Deserialize(e.PayloadJson)
+                        e.MessageId,
+                        e.CorrelationId
                     })
                     .ToList();
 
-                actual.Should().HaveCount(events.Length);
-
-                IEnumerable<object> expected = events.Select(e => new
+                actual.ShouldAllBeEquivalentTo(envelopes.Select(e => new
                 {
-                    Version = e.Version,
-                    Payload = e
-                });
-
-                actual.ShouldAllBeEquivalentTo(expected);
+                    e.MessageId,
+                    e.CorrelationId
+                }));
             }
         }
 

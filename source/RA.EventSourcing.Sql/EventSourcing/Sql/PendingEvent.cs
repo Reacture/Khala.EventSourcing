@@ -15,6 +15,6 @@
         public int Version { get; set; }
 
         [Required]
-        public string PayloadJson { get; set; }
+        public string EnvelopeJson { get; set; }
     }
 }

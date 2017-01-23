@@ -90,23 +90,23 @@ namespace ReactiveArchitecture.EventSourcing.Azure
             var domainEvents = new DomainEvent[] { userCreated, usernameChanged };
             RaiseEvents(userId, domainEvents);
 
-            var serializer = new JsonMessageSerializer();
-
+            var envelopes = new List<Envelope>(domainEvents.Select(e => new Envelope(e)));
             var batchOperation = new TableBatchOperation();
-            domainEvents
-                .Select(e => PendingEventTableEntity.FromDomainEvent<FakeUser>(e, serializer))
-                .ForEach(batchOperation.Insert);
+            List<PendingEventTableEntity> pendingEvents = envelopes
+                .Select(e => PendingEventTableEntity.FromEnvelope<FakeUser>(e, serializer))
+                .ToList();
+            pendingEvents.ForEach(batchOperation.Insert);
             await s_eventTable.ExecuteBatchAsync(batchOperation);
 
-            List<object> batch = null;
+            List<Envelope> batch = null;
 
             Mock.Get(messageBus)
                 .Setup(
                     x =>
                     x.SendBatch(
-                        It.IsAny<IEnumerable<object>>(),
+                        It.IsAny<IEnumerable<Envelope>>(),
                         It.IsAny<CancellationToken>()))
-                .Callback<IEnumerable<object>, CancellationToken>((b, t) => batch = b.ToList())
+                .Callback<IEnumerable<Envelope>, CancellationToken>((b, t) => batch = b.ToList())
                 .Returns(Task.FromResult(true));
 
             // Act
@@ -116,12 +116,10 @@ namespace ReactiveArchitecture.EventSourcing.Azure
             Mock.Get(messageBus).Verify(
                 x =>
                 x.SendBatch(
-                    It.IsAny<IEnumerable<object>>(),
+                    It.IsAny<IEnumerable<Envelope>>(),
                     CancellationToken.None),
                 Times.Once());
-            batch.Should().OnlyContain(e => e is IDomainEvent);
-            batch.Cast<IDomainEvent>().Should().BeInAscendingOrder(e => e.Version);
-            batch.ShouldAllBeEquivalentTo(domainEvents);
+            batch.ShouldAllBeEquivalentTo(envelopes, opts => opts.RespectingRuntimeTypes());
         }
 
         [TestMethod]
@@ -135,11 +133,10 @@ namespace ReactiveArchitecture.EventSourcing.Azure
             var domainEvents = new DomainEvent[] { userCreated, usernameChanged };
             RaiseEvents(userId, domainEvents);
 
-            var serializer = new JsonMessageSerializer();
-
             var batchOperation = new TableBatchOperation();
             domainEvents
-                .Select(e => PendingEventTableEntity.FromDomainEvent<FakeUser>(e, serializer))
+                .Select(e => new Envelope(e))
+                .Select(e => PendingEventTableEntity.FromEnvelope<FakeUser>(e, serializer))
                 .ForEach(batchOperation.Insert);
             await s_eventTable.ExecuteBatchAsync(batchOperation);
 
@@ -164,20 +161,16 @@ namespace ReactiveArchitecture.EventSourcing.Azure
             var domainEvents = new DomainEvent[] { userCreated, usernameChanged };
             RaiseEvents(userId, domainEvents);
 
-            var serializer = new JsonMessageSerializer();
-
             var batchOperation = new TableBatchOperation();
-            domainEvents
-                .Select(e => PendingEventTableEntity.FromDomainEvent<FakeUser>(e, serializer))
-                .ForEach(batchOperation.Insert);
+            List<PendingEventTableEntity> pendingEvents = domainEvents
+                .Select(e => new Envelope(e))
+                .Select(e => PendingEventTableEntity.FromEnvelope<FakeUser>(e, serializer))
+                .ToList();
+            pendingEvents.ForEach(batchOperation.Insert);
             await s_eventTable.ExecuteBatchAsync(batchOperation);
 
             Mock.Get(messageBus)
-                .Setup(
-                    x =>
-                    x.SendBatch(
-                        It.IsAny<IEnumerable<object>>(),
-                        It.IsAny<CancellationToken>()))
+                .Setup(x => x.SendBatch(It.IsAny<IEnumerable<Envelope>>(), It.IsAny<CancellationToken>()))
                 .Throws(new InvalidOperationException());
 
             // Act
@@ -191,26 +184,8 @@ namespace ReactiveArchitecture.EventSourcing.Azure
 
             string partitionKey = PendingEventTableEntity.GetPartitionKey(typeof(FakeUser), userId);
             var query = new TableQuery<PendingEventTableEntity>().Where($"PartitionKey eq '{partitionKey}'");
-            IEnumerable<object> actual = s_eventTable
-                .ExecuteQuery(query)
-                .Select(e => new
-                {
-                    e.RowKey,
-                    e.EventType,
-                    e.RaisedAt,
-                    Payload = serializer.Deserialize(e.PayloadJson)
-                });
-
-            IEnumerable<object> expected = domainEvents
-                .Select(e => new
-                {
-                    RowKey = EventTableEntity.GetRowKey(e.Version),
-                    EventType = e.GetType().FullName,
-                    e.RaisedAt,
-                    Payload = e
-                });
-
-            actual.ShouldAllBeEquivalentTo(expected);
+            IEnumerable<object> actual = s_eventTable.ExecuteQuery(query).Select(e => e.RowKey);
+            actual.ShouldAllBeEquivalentTo(pendingEvents.Select(e => e.RowKey));
         }
 
         [TestMethod]
@@ -227,7 +202,7 @@ namespace ReactiveArchitecture.EventSourcing.Azure
             Mock.Get(messageBus).Verify(
                 x =>
                 x.SendBatch(
-                    It.IsAny<IEnumerable<object>>(),
+                    It.IsAny<IEnumerable<Envelope>>(),
                     It.IsAny<CancellationToken>()),
                 Times.Never());
         }
@@ -249,18 +224,18 @@ namespace ReactiveArchitecture.EventSourcing.Azure
             var domainEvents = new DomainEvent[] { userCreated, usernameChanged };
             RaiseEvents(userId, domainEvents);
 
-            var serializer = new JsonMessageSerializer();
+            var envelopes = new List<Envelope>(domainEvents.Select(e => new Envelope(e)));
 
             var batchOperation = new TableBatchOperation();
-            domainEvents
-                .Select(e => PendingEventTableEntity.FromDomainEvent<FakeUser>(e, serializer))
+            envelopes
+                .Select(e => PendingEventTableEntity.FromEnvelope<FakeUser>(e, serializer))
                 .ForEach(batchOperation.Insert);
             await s_eventTable.ExecuteBatchAsync(batchOperation);
 
             batchOperation.Clear();
-            domainEvents
+            envelopes
                 .Take(1)
-                .Select(e => EventTableEntity.FromDomainEvent<FakeUser>(e, serializer))
+                .Select(e => EventTableEntity.FromEnvelope<FakeUser>(e, serializer))
                 .ForEach(batchOperation.Insert);
             await s_eventTable.ExecuteBatchAsync(batchOperation);
 
@@ -276,17 +251,21 @@ namespace ReactiveArchitecture.EventSourcing.Azure
                 {
                     e.RowKey,
                     e.EventType,
+                    e.MessageId,
+                    e.CorrelationId,
                     e.RaisedAt,
-                    Payload = serializer.Deserialize(e.PayloadJson)
+                    Payload = serializer.Deserialize(e.EventJson)
                 });
 
-            IEnumerable<object> expected = domainEvents
+            IEnumerable<object> expected = envelopes
                 .Select(e => new
                 {
-                    RowKey = EventTableEntity.GetRowKey(e.Version),
-                    EventType = e.GetType().FullName,
-                    e.RaisedAt,
-                    Payload = e
+                    RowKey = EventTableEntity.GetRowKey(((IDomainEvent)e.Message).Version),
+                    EventType = e.Message.GetType().FullName,
+                    e.MessageId,
+                    e.CorrelationId,
+                    ((IDomainEvent)e.Message).RaisedAt,
+                    Payload = e.Message
                 });
 
             actual.ShouldAllBeEquivalentTo(expected);
@@ -303,30 +282,30 @@ namespace ReactiveArchitecture.EventSourcing.Azure
             var domainEvents = new DomainEvent[] { userCreated, usernameChanged };
             RaiseEvents(userId, domainEvents);
 
-            var serializer = new JsonMessageSerializer();
+            var envelopes = new List<Envelope>(domainEvents.Select(e => new Envelope(e)));
 
             var batchOperation = new TableBatchOperation();
-            domainEvents
-                .Select(e => PendingEventTableEntity.FromDomainEvent<FakeUser>(e, serializer))
+            envelopes
+                .Select(e => PendingEventTableEntity.FromEnvelope<FakeUser>(e, serializer))
                 .ForEach(batchOperation.Insert);
             await s_eventTable.ExecuteBatchAsync(batchOperation);
 
             batchOperation.Clear();
-            domainEvents
+            envelopes
                 .Take(1)
-                .Select(e => EventTableEntity.FromDomainEvent<FakeUser>(e, serializer))
+                .Select(e => EventTableEntity.FromEnvelope<FakeUser>(e, serializer))
                 .ForEach(batchOperation.Insert);
             await s_eventTable.ExecuteBatchAsync(batchOperation);
 
-            List<object> batch = null;
+            List<Envelope> batch = null;
 
             Mock.Get(messageBus)
                 .Setup(
                     x =>
                     x.SendBatch(
-                        It.IsAny<IEnumerable<object>>(),
+                        It.IsAny<IEnumerable<Envelope>>(),
                         It.IsAny<CancellationToken>()))
-                .Callback<IEnumerable<object>, CancellationToken>((b, t) => batch = b.ToList())
+                .Callback<IEnumerable<Envelope>, CancellationToken>((b, t) => batch = b.ToList())
                 .Returns(Task.FromResult(true));
 
             // Act
@@ -336,12 +315,10 @@ namespace ReactiveArchitecture.EventSourcing.Azure
             Mock.Get(messageBus).Verify(
                 x =>
                 x.SendBatch(
-                    It.IsAny<IEnumerable<object>>(),
+                    It.IsAny<IEnumerable<Envelope>>(),
                     CancellationToken.None),
                 Times.Once());
-            batch.Should().OnlyContain(e => e is IDomainEvent);
-            batch.Cast<IDomainEvent>().Should().BeInAscendingOrder(e => e.Version);
-            batch.ShouldAllBeEquivalentTo(domainEvents);
+            batch.ShouldAllBeEquivalentTo(envelopes, opts => opts.RespectingRuntimeTypes());
         }
 
         [TestMethod]
@@ -355,11 +332,10 @@ namespace ReactiveArchitecture.EventSourcing.Azure
             var domainEvents = new DomainEvent[] { userCreated, usernameChanged };
             RaiseEvents(userId, domainEvents);
 
-            var serializer = new JsonMessageSerializer();
-
             var batchOperation = new TableBatchOperation();
             domainEvents
-                .Select(e => PendingEventTableEntity.FromDomainEvent<FakeUser>(e, serializer))
+                .Select(e => new Envelope(e))
+                .Select(e => PendingEventTableEntity.FromEnvelope<FakeUser>(e, serializer))
                 .ForEach(batchOperation.Insert);
             await s_eventTable.ExecuteBatchAsync(batchOperation);
 
@@ -369,8 +345,8 @@ namespace ReactiveArchitecture.EventSourcing.Azure
             {
                 CallBase = true
             };
-            var sut = new AzureEventPublisher(
-                eventTableMock.Object, serializer, messageBus);
+
+            var sut = new AzureEventPublisher(eventTableMock.Object, serializer, messageBus);
 
             eventTableMock
                 .Setup(
@@ -393,7 +369,7 @@ namespace ReactiveArchitecture.EventSourcing.Azure
             Mock.Get(messageBus).Verify(
                 x =>
                 x.SendBatch(
-                    It.IsAny<IEnumerable<object>>(),
+                    It.IsAny<IEnumerable<Envelope>>(),
                     It.IsAny<CancellationToken>()),
                 Times.Never());
         }
@@ -409,18 +385,18 @@ namespace ReactiveArchitecture.EventSourcing.Azure
             var domainEvents = new DomainEvent[] { userCreated, usernameChanged };
             RaiseEvents(userId, domainEvents);
 
-            var serializer = new JsonMessageSerializer();
+            var envelopes = new List<Envelope>(domainEvents.Select(e => new Envelope(e)));
 
             var batchOperation = new TableBatchOperation();
-            domainEvents
-                .Select(e => PendingEventTableEntity.FromDomainEvent<FakeUser>(e, serializer))
+            envelopes
+                .Select(e => PendingEventTableEntity.FromEnvelope<FakeUser>(e, serializer))
                 .ForEach(batchOperation.Insert);
             await s_eventTable.ExecuteBatchAsync(batchOperation);
 
             batchOperation.Clear();
-            domainEvents
+            envelopes
                 .Take(1)
-                .Select(e => EventTableEntity.FromDomainEvent<FakeUser>(e, serializer))
+                .Select(e => EventTableEntity.FromEnvelope<FakeUser>(e, serializer))
                 .ForEach(batchOperation.Insert);
             await s_eventTable.ExecuteBatchAsync(batchOperation);
 
@@ -445,18 +421,18 @@ namespace ReactiveArchitecture.EventSourcing.Azure
             var domainEvents = new DomainEvent[] { userCreated, usernameChanged };
             RaiseEvents(userId, domainEvents);
 
-            var serializer = new JsonMessageSerializer();
+            var envelopes = new List<Envelope>(domainEvents.Select(e => new Envelope(e)));
 
             var batchOperation = new TableBatchOperation();
-            domainEvents
-                .Select(e => PendingEventTableEntity.FromDomainEvent<FakeUser>(e, serializer))
-                .ForEach(batchOperation.Insert);
+            var pendingEvents = new List<PendingEventTableEntity>(
+                envelopes.Select(e => PendingEventTableEntity.FromEnvelope<FakeUser>(e, serializer)));
+            pendingEvents.ForEach(batchOperation.Insert);
             await s_eventTable.ExecuteBatchAsync(batchOperation);
 
             batchOperation.Clear();
-            domainEvents
+            envelopes
                 .Take(1)
-                .Select(e => EventTableEntity.FromDomainEvent<FakeUser>(e, serializer))
+                .Select(e => EventTableEntity.FromEnvelope<FakeUser>(e, serializer))
                 .ForEach(batchOperation.Insert);
             await s_eventTable.ExecuteBatchAsync(batchOperation);
 
@@ -464,7 +440,7 @@ namespace ReactiveArchitecture.EventSourcing.Azure
                 .Setup(
                     x =>
                     x.SendBatch(
-                        It.IsAny<IEnumerable<object>>(),
+                        It.IsAny<IEnumerable<Envelope>>(),
                         It.IsAny<CancellationToken>()))
                 .Throws(new InvalidOperationException());
 
@@ -480,26 +456,8 @@ namespace ReactiveArchitecture.EventSourcing.Azure
             // Assert
             string partitionKey = PendingEventTableEntity.GetPartitionKey(typeof(FakeUser), userId);
             var query = new TableQuery<PendingEventTableEntity>().Where($"PartitionKey eq '{partitionKey}'");
-            IEnumerable<object> actual = s_eventTable
-                .ExecuteQuery(query)
-                .Select(e => new
-                {
-                    e.RowKey,
-                    e.EventType,
-                    e.RaisedAt,
-                    Payload = serializer.Deserialize(e.PayloadJson)
-                });
-
-            IEnumerable<object> expected = domainEvents
-                .Select(e => new
-                {
-                    RowKey = EventTableEntity.GetRowKey(e.Version),
-                    EventType = e.GetType().FullName,
-                    e.RaisedAt,
-                    Payload = e
-                });
-
-            actual.ShouldAllBeEquivalentTo(expected);
+            IEnumerable<object> actual = s_eventTable.ExecuteQuery(query).Select(e => e.RowKey);
+            actual.ShouldAllBeEquivalentTo(pendingEvents.Select(e => e.RowKey));
         }
 
         [TestMethod]
@@ -516,7 +474,7 @@ namespace ReactiveArchitecture.EventSourcing.Azure
             Mock.Get(messageBus).Verify(
                 x =>
                 x.SendBatch(
-                    It.IsAny<IEnumerable<object>>(),
+                    It.IsAny<IEnumerable<Envelope>>(),
                     It.IsAny<CancellationToken>()),
                 Times.Never());
         }
@@ -532,17 +490,17 @@ namespace ReactiveArchitecture.EventSourcing.Azure
             var domainEvents = new DomainEvent[] { userCreated, usernameChanged };
             RaiseEvents(userId, domainEvents);
 
-            var serializer = new JsonMessageSerializer();
+            var envelopes = new List<Envelope>(domainEvents.Select(e => new Envelope(e)));
 
             var batchOperation = new TableBatchOperation();
-            domainEvents
-                .Select(e => PendingEventTableEntity.FromDomainEvent<FakeUser>(e, serializer))
+            envelopes
+                .Select(e => PendingEventTableEntity.FromEnvelope<FakeUser>(e, serializer))
                 .ForEach(batchOperation.Insert);
             await s_eventTable.ExecuteBatchAsync(batchOperation);
 
             batchOperation.Clear();
-            domainEvents
-                .Select(e => EventTableEntity.FromDomainEvent<FakeUser>(e, serializer))
+            envelopes
+                .Select(e => EventTableEntity.FromEnvelope<FakeUser>(e, serializer))
                 .ForEach(batchOperation.Insert);
             await s_eventTable.ExecuteBatchAsync(batchOperation);
 
@@ -572,24 +530,26 @@ namespace ReactiveArchitecture.EventSourcing.Azure
 
                 var batchOperation = new TableBatchOperation();
                 events
-                    .Select(e => PendingEventTableEntity.FromDomainEvent<FakeUser>(e, serializer))
+                    .Select(e => new Envelope(e))
+                    .Select(e => PendingEventTableEntity.FromEnvelope<FakeUser>(e, serializer))
                     .ForEach(batchOperation.Insert);
                 await s_eventTable.ExecuteBatchAsync(batchOperation);
 
                 domainEvents.AddRange(events);
             }
 
-            var messages = new List<object>();
+            var messages = new List<IDomainEvent>();
 
             Mock.Get(messageBus)
                 .Setup(
                     x =>
                     x.SendBatch(
-                        It.IsAny<IEnumerable<object>>(),
+                        It.IsAny<IEnumerable<Envelope>>(),
                         It.IsAny<CancellationToken>()))
-                .Callback<IEnumerable<object>, CancellationToken>(
+                .Callback<IEnumerable<Envelope>, CancellationToken>(
                     (batch, cancellationToken) =>
                     messages.AddRange(batch
+                        .Select(b => b.Message)
                         .OfType<IDomainEvent>()
                         .Where(m => users.Contains(m.SourceId))))
                 .Returns(Task.FromResult(true));

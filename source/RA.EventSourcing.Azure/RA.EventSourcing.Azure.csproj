@@ -56,8 +56,8 @@
       <HintPath>..\packages\Newtonsoft.Json.9.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="RA.Messaging.Core, Version=0.2.1.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\ReactiveArchitecture.Messaging.Core.0.2.1\lib\netstandard1.1\RA.Messaging.Core.dll</HintPath>
+    <Reference Include="RA.Messaging.Core, Version=0.3.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\ReactiveArchitecture.Messaging.Core.0.3.0\lib\netstandard1.1\RA.Messaging.Core.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />

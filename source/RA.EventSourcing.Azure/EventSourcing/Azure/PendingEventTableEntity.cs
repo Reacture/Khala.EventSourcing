@@ -13,11 +13,9 @@
 
         public string PersistedPartition { get; set; }
 
-        public string EventType { get; set; }
+        public int Version { get; set; }
 
-        public string PayloadJson { get; set; }
-
-        public DateTimeOffset RaisedAt { get; set; }
+        public string EnvelopeJson { get; set; }
 
         internal static string ScanFilter =>
             CombineFilters(
@@ -36,13 +34,23 @@
 
         public static string GetRowKey(int version) => $"{version:D10}";
 
-        public static PendingEventTableEntity FromDomainEvent<T>(
-            IDomainEvent domainEvent, IMessageSerializer serializer)
+        public static PendingEventTableEntity FromEnvelope<T>(
+            Envelope envelope,
+            IMessageSerializer serializer)
             where T : class, IEventSourced
         {
+            if (envelope == null)
+            {
+                throw new ArgumentNullException(nameof(envelope));
+            }
+
+            var domainEvent = envelope.Message as IDomainEvent;
+
             if (domainEvent == null)
             {
-                throw new ArgumentNullException(nameof(domainEvent));
+                throw new ArgumentException(
+                    $"{nameof(envelope)}.{nameof(envelope.Message)} must be an {nameof(IDomainEvent)}.",
+                    nameof(envelope));
             }
 
             return new PendingEventTableEntity
@@ -50,9 +58,8 @@
                 PartitionKey = GetPartitionKey(typeof(T), domainEvent.SourceId),
                 RowKey = GetRowKey(domainEvent.Version),
                 PersistedPartition = EventTableEntity.GetPartitionKey(typeof(T), domainEvent.SourceId),
-                EventType = domainEvent.GetType().FullName,
-                PayloadJson = serializer.Serialize(domainEvent),
-                RaisedAt = domainEvent.RaisedAt
+                Version = domainEvent.Version,
+                EnvelopeJson = serializer.Serialize(envelope),
             };
         }
     }

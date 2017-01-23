@@ -67,12 +67,13 @@
                     .ToListAsync(cancellationToken)
                     .ConfigureAwait(false);
 
-                List<object> messages = pendingEvents
-                    .Select(e => e.PayloadJson)
+                List<Envelope> envelopes = pendingEvents
+                    .Select(e => e.EnvelopeJson)
                     .Select(_serializer.Deserialize)
+                    .Cast<Envelope>()
                     .ToList();
 
-                await _messageBus.SendBatch(messages, cancellationToken).ConfigureAwait(false);
+                await _messageBus.SendBatch(envelopes, cancellationToken).ConfigureAwait(false);
 
                 context.PendingEvents.RemoveRange(pendingEvents);
 

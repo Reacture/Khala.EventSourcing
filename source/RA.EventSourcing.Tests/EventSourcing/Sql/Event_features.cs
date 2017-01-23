@@ -26,46 +26,79 @@ namespace ReactiveArchitecture.EventSourcing.Sql
             new Fixture().Customize(new AutoMoqCustomization());
 
         [TestMethod]
-        public void FromDomainEvent_has_guard_clauses()
+        public void FromEnvelope_has_guard_clauses()
         {
             var assertion = new GuardClauseAssertion(fixture);
-            assertion.Verify(typeof(Event).GetMethod("FromDomainEvent"));
+            assertion.Verify(typeof(Event).GetMethod("FromEnvelope"));
         }
 
         [TestMethod]
-        public void FromDomainEvent_sets_AggregatId_correctly()
+        public void FromEnvelope_has_guard_clause_for_invalid_message()
+        {
+            var envelope = new Envelope(new object());
+            Action action = () => Event.FromEnvelope(envelope, new JsonMessageSerializer());
+            action.ShouldThrow<ArgumentException>().Where(x => x.ParamName == "envelope");
+        }
+
+        [TestMethod]
+        public void FromEnvelope_sets_AggregatId_correctly()
         {
             var domainEvent = fixture.Create<FakeDomainEvent>();
-            var actual = Event.FromDomainEvent(
-                domainEvent, new JsonMessageSerializer());
+            var envelope = new Envelope(domainEvent);
+            var actual = Event.FromEnvelope(
+                envelope, new JsonMessageSerializer());
             actual.AggregateId.Should().Be(domainEvent.SourceId);
         }
 
         [TestMethod]
-        public void FromDomainEvent_sets_Version_correctly()
+        public void FromDomainEventFromEnvelope_sets_Version_correctly()
         {
             var domainEvent = fixture.Create<FakeDomainEvent>();
-            var actual = Event.FromDomainEvent(
-                domainEvent, new JsonMessageSerializer());
+            var envelope = new Envelope(domainEvent);
+            var actual = Event.FromEnvelope(
+                envelope, new JsonMessageSerializer());
             actual.Version.Should().Be(domainEvent.Version);
         }
 
         [TestMethod]
-        public void FromDomainEvent_sets_EventType_correctly()
+        public void FromEnvelope_sets_EventType_correctly()
         {
             var domainEvent = fixture.Create<FakeDomainEvent>();
-            var actual = Event.FromDomainEvent(
-                domainEvent, new JsonMessageSerializer());
+            var envelope = new Envelope(domainEvent);
+            var actual = Event.FromEnvelope(
+                envelope, new JsonMessageSerializer());
             actual.EventType.Should().Be(typeof(FakeDomainEvent).FullName);
         }
 
         [TestMethod]
-        public void FromDomainEvent_sets_PayloadJson_correctly()
+        public void FromEnvelope_sets_MessageId_correctly()
+        {
+            var domainEvent = fixture.Create<FakeDomainEvent>();
+            var envelope = new Envelope(domainEvent);
+            var actual = Event.FromEnvelope(
+                envelope, new JsonMessageSerializer());
+            actual.MessageId.Should().Be(envelope.MessageId);
+        }
+
+        [TestMethod]
+        public void FromEnvelope_sets_CorrelationId_correctly()
+        {
+            var domainEvent = fixture.Create<FakeDomainEvent>();
+            var correlationId = Guid.NewGuid();
+            var envelope = new Envelope(correlationId, domainEvent);
+            var actual = Event.FromEnvelope(
+                envelope, new JsonMessageSerializer());
+            actual.CorrelationId.Should().Be(correlationId);
+        }
+
+        [TestMethod]
+        public void FromEnvelope_sets_PayloadJson_correctly()
         {
             var serializer = new JsonMessageSerializer();
             var domainEvent = fixture.Create<FakeDomainEvent>();
+            var envelope = new Envelope(domainEvent);
 
-            var actual = Event.FromDomainEvent(domainEvent, serializer);
+            var actual = Event.FromEnvelope(envelope, serializer);
 
             object deserialized = serializer.Deserialize(actual.PayloadJson);
             deserialized.Should().BeOfType<FakeDomainEvent>();
@@ -73,11 +106,12 @@ namespace ReactiveArchitecture.EventSourcing.Sql
         }
 
         [TestMethod]
-        public void FromDomainEvent_sets_RaisedAt_correctly()
+        public void FromEnvelope_sets_RaisedAt_correctly()
         {
             var domainEvent = fixture.Create<FakeDomainEvent>();
-            var actual = Event.FromDomainEvent(
-                domainEvent, new JsonMessageSerializer());
+            var envelope = new Envelope(domainEvent);
+            var actual = Event.FromEnvelope(
+                envelope, new JsonMessageSerializer());
             actual.RaisedAt.Should().Be(domainEvent.RaisedAt);
         }
     }

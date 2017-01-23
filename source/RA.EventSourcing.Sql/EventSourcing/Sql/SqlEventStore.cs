@@ -130,15 +130,15 @@
             EventStoreDbContext context,
             List<IDomainEvent> events)
         {
-            foreach (IDomainEvent e in events)
+            foreach (IDomainEvent domainEvent in events)
             {
-                var @event = Event.FromDomainEvent(e, _serializer);
-                context.Events.Add(@event);
+                var envelope = new Envelope(domainEvent);
+                context.Events.Add(Event.FromEnvelope(envelope, _serializer));
                 context.PendingEvents.Add(new PendingEvent
                 {
-                    AggregateId = @event.AggregateId,
-                    Version = @event.Version,
-                    PayloadJson = @event.PayloadJson
+                    AggregateId = domainEvent.SourceId,
+                    Version = domainEvent.Version,
+                    EnvelopeJson = _serializer.Serialize(envelope)
                 });
             }
         }

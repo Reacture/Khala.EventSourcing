@@ -8,7 +8,11 @@
     {
         public string EventType { get; set; }
 
-        public string PayloadJson { get; set; }
+        public Guid MessageId { get; set; }
+
+        public Guid? CorrelationId { get; set; }
+
+        public string EventJson { get; set; }
 
         public DateTimeOffset RaisedAt { get; set; }
 
@@ -17,31 +21,59 @@
 
         public static string GetRowKey(int version) => $"{version:D10}";
 
-        public static EventTableEntity FromDomainEvent<T>(
-            IDomainEvent domainEvent,
+        public static EventTableEntity FromEnvelope<T>(
+            Envelope envelope,
             IMessageSerializer serializer)
             where T : class, IEventSourced
         {
-            if (domainEvent == null)
+            if (envelope == null)
             {
-                throw new ArgumentNullException(nameof(domainEvent));
+                throw new ArgumentNullException(nameof(envelope));
             }
 
-            string partition = GetPartitionKey(typeof(T), domainEvent.SourceId);
-            return FromDomainEvent(partition, domainEvent, serializer);
+            var domainEvent = envelope.Message as IDomainEvent;
+
+            if (domainEvent == null)
+            {
+                throw new ArgumentException(
+                    $"{nameof(envelope)}.{nameof(envelope.Message)} must be an {nameof(IDomainEvent)}.",
+                    nameof(envelope));
+            }
+
+            return new EventTableEntity
+            {
+                PartitionKey = GetPartitionKey(typeof(T), domainEvent.SourceId),
+                RowKey = GetRowKey(domainEvent.Version),
+                EventType = domainEvent.GetType().FullName,
+                MessageId = envelope.MessageId,
+                CorrelationId = envelope.CorrelationId,
+                EventJson = serializer.Serialize(domainEvent),
+                RaisedAt = domainEvent.RaisedAt
+            };
         }
 
-        internal static EventTableEntity FromDomainEvent(
+        internal static EventTableEntity FromEnvelope(
             string partition,
-            IDomainEvent domainEvent,
+            Envelope envelope,
             IMessageSerializer serializer)
         {
+            var domainEvent = envelope.Message as IDomainEvent;
+
+            if (domainEvent == null)
+            {
+                throw new ArgumentException(
+                    $"{nameof(envelope)}.{nameof(envelope.Message)} must be an {nameof(IDomainEvent)}.",
+                    nameof(envelope));
+            }
+
             return new EventTableEntity
             {
                 PartitionKey = partition,
                 RowKey = GetRowKey(domainEvent.Version),
                 EventType = domainEvent.GetType().FullName,
-                PayloadJson = serializer.Serialize(domainEvent),
+                MessageId = envelope.MessageId,
+                CorrelationId = envelope.CorrelationId,
+                EventJson = serializer.Serialize(domainEvent),
                 RaisedAt = domainEvent.RaisedAt
             };
         }

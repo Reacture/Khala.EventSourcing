@@ -67,29 +67,19 @@
 
             if (pendingEvents.Any())
             {
-                List<IDomainEvent> domainEvents =
-                    RestoreDomainEvents(pendingEvents);
-
-                await SendPendingEvents(domainEvents, cancellationToken).ConfigureAwait(false);
+                await SendPendingEvents(pendingEvents, cancellationToken).ConfigureAwait(false);
                 await DeletePendingEvents(pendingEvents, cancellationToken).ConfigureAwait(false);
             }
         }
 
-        private List<IDomainEvent> RestoreDomainEvents(
-            List<PendingEventTableEntity> pendingEvents)
-        {
-            return pendingEvents
-                .Select(e => e.PayloadJson)
-                .Select(_serializer.Deserialize)
-                .Cast<IDomainEvent>()
-                .ToList();
-        }
-
         private Task SendPendingEvents(
-            List<IDomainEvent> domainEvents,
+            List<PendingEventTableEntity> pendingEvents,
             CancellationToken cancellationToken)
         {
-            return _messageBus.SendBatch(domainEvents, cancellationToken);
+            var envelopes =
+                from e in pendingEvents
+                select (Envelope)_serializer.Deserialize(e.EnvelopeJson);
+            return _messageBus.SendBatch(envelopes, cancellationToken);
         }
 
         private Task DeletePendingEvents(
@@ -171,11 +161,8 @@
 
             if (pendingEvents.Any())
             {
-                List<IDomainEvent> domainEvents =
-                    RestoreDomainEvents(pendingEvents);
-
-                await InsertUnpersistedEvents(persistedPartition, domainEvents, cancellationToken).ConfigureAwait(false);
-                await SendPendingEvents(domainEvents, cancellationToken).ConfigureAwait(false);
+                await InsertUnpersistedEvents(persistedPartition, pendingEvents, cancellationToken).ConfigureAwait(false);
+                await SendPendingEvents(pendingEvents, cancellationToken).ConfigureAwait(false);
                 await DeletePendingEvents(pendingEvents, cancellationToken).ConfigureAwait(false);
             }
         }
@@ -207,23 +194,26 @@
 
         private async Task InsertUnpersistedEvents(
             string persistedPartition,
-            List<IDomainEvent> domainEvents,
+            List<PendingEventTableEntity> pendingEvents,
             CancellationToken cancellationToken)
         {
-            IDomainEvent firstEvent = domainEvents.First();
+            PendingEventTableEntity firstEvent = pendingEvents.First();
 
             List<EventTableEntity> persistedEvents = await
                 GetPersistedEvents(persistedPartition, firstEvent.Version, cancellationToken).ConfigureAwait(false);
 
-            IEnumerable<IDomainEvent> unpersistedEvents =
-                domainEvents.Skip(persistedEvents.Count);
-
             var batch = new TableBatchOperation();
 
-            foreach (IDomainEvent @event in unpersistedEvents)
+            IEnumerable<Envelope> unpersistedEnvelopes = pendingEvents
+                .Skip(persistedEvents.Count)
+                .Select(e => e.EnvelopeJson)
+                .Select(_serializer.Deserialize)
+                .Cast<Envelope>();
+
+            foreach (Envelope envelope in unpersistedEnvelopes)
             {
-                var entity = EventTableEntity.FromDomainEvent(
-                    persistedPartition, @event, _serializer);
+                var entity = EventTableEntity.FromEnvelope(
+                    persistedPartition, envelope, _serializer);
                 batch.Insert(entity);
             }
 

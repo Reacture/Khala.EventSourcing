@@ -98,29 +98,33 @@ namespace ReactiveArchitecture.EventSourcing.Sql
             var events = new DomainEvent[] { created, usernameChanged };
             RaiseEvents(sourceId, events);
 
+            var envelopes = new List<Envelope>();
+
             using (var db = new DataContext())
             {
                 foreach (DomainEvent e in events)
                 {
+                    var envelope = new Envelope(e);
+                    envelopes.Add(envelope);
                     db.PendingEvents.Add(new PendingEvent
                     {
                         AggregateId = sourceId,
                         Version = e.Version,
-                        PayloadJson = serializer.Serialize(e)
+                        EnvelopeJson = serializer.Serialize(envelope)
                     });
                 }
                 await db.SaveChangesAsync();
             }
 
-            List<object> batch = null;
+            List<Envelope> batch = null;
 
             Mock.Get(messageBus)
                 .Setup(
                     x =>
                     x.SendBatch(
-                        It.IsAny<IEnumerable<object>>(),
+                        It.IsAny<IEnumerable<Envelope>>(),
                         It.IsAny<CancellationToken>()))
-                .Callback<IEnumerable<object>, CancellationToken>((b, t) => batch = b.ToList())
+                .Callback<IEnumerable<Envelope>, CancellationToken>((b, t) => batch = b.ToList())
                 .Returns(Task.FromResult(true));
 
             // Act
@@ -130,12 +134,10 @@ namespace ReactiveArchitecture.EventSourcing.Sql
             Mock.Get(messageBus).Verify(
                 x =>
                 x.SendBatch(
-                    It.IsAny<IEnumerable<object>>(),
+                    It.IsAny<IEnumerable<Envelope>>(),
                     CancellationToken.None),
                 Times.Once());
-            batch.Should().OnlyContain(e => e is IDomainEvent);
-            batch.Cast<IDomainEvent>().Should().BeInAscendingOrder(e => e.Version);
-            batch.ShouldAllBeEquivalentTo(events);
+            batch.ShouldAllBeEquivalentTo(envelopes, opts => opts.RespectingRuntimeTypes());
         }
 
         [Theory]
@@ -158,7 +160,7 @@ namespace ReactiveArchitecture.EventSourcing.Sql
                     {
                         AggregateId = sourceId,
                         Version = e.Version,
-                        PayloadJson = serializer.Serialize(e)
+                        EnvelopeJson = serializer.Serialize(new Envelope(e))
                     });
                 }
                 await db.SaveChangesAsync();

@@ -68,35 +68,37 @@
                 return;
             }
 
-            await InsertPendingEvents<T>(domainEvents, cancellationToken).ConfigureAwait(false);
-            await InsertEvents<T>(domainEvents, cancellationToken).ConfigureAwait(false);
+            var envelopes = new List<Envelope>(domainEvents.Select(e => new Envelope(e)));
+
+            await InsertPendingEvents<T>(envelopes, cancellationToken).ConfigureAwait(false);
+            await InsertEvents<T>(envelopes, cancellationToken).ConfigureAwait(false);
         }
 
         private async Task InsertPendingEvents<T>(
-            List<IDomainEvent> domainEvents,
+            List<Envelope> envelopes,
             CancellationToken cancellationToken)
             where T : class, IEventSourced
         {
             var batch = new TableBatchOperation();
 
-            foreach (IDomainEvent e in domainEvents)
+            foreach (Envelope envelope in envelopes)
             {
-                batch.Insert(PendingEventTableEntity.FromDomainEvent<T>(e, _serializer));
+                batch.Insert(PendingEventTableEntity.FromEnvelope<T>(envelope, _serializer));
             }
 
             await _eventTable.ExecuteBatchAsync(batch, cancellationToken).ConfigureAwait(false);
         }
 
         private async Task InsertEvents<T>(
-            List<IDomainEvent> domainEvents,
+            List<Envelope> envelopes,
             CancellationToken cancellationToken)
             where T : class, IEventSourced
         {
             var batch = new TableBatchOperation();
 
-            foreach (IDomainEvent e in domainEvents)
+            foreach (Envelope envelope in envelopes)
             {
-                batch.Insert(EventTableEntity.FromDomainEvent<T>(e, _serializer));
+                batch.Insert(EventTableEntity.FromEnvelope<T>(envelope, _serializer));
             }
 
             await _eventTable.ExecuteBatchAsync(batch, cancellationToken).ConfigureAwait(false);
@@ -141,7 +143,7 @@
                 .ConfigureAwait(false);
 
             return new List<IDomainEvent>(events
-                .Select(e => e.PayloadJson)
+                .Select(e => e.EventJson)
                 .Select(_serializer.Deserialize)
                 .Cast<IDomainEvent>());
         }

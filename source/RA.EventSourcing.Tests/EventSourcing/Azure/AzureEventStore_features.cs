@@ -115,26 +115,26 @@ namespace ReactiveArchitecture.EventSourcing.Azure
             // Assert
             string partitionKey = PendingEventTableEntity.GetPartitionKey(typeof(FakeUser), userId);
             var query = new TableQuery<PendingEventTableEntity>().Where($"PartitionKey eq '{partitionKey}'");
-            IEnumerable<object> actual = s_eventTable
-                .ExecuteQuery(query)
-                .Select(e => new
+            IEnumerable<PendingEventTableEntity> pendingEvents = s_eventTable.ExecuteQuery(query);
+            foreach (var t in pendingEvents.Zip(events, (pending, source) =>
+                              new { Pending = pending, Source = source }))
+            {
+                var actual = new
                 {
-                    e.RowKey,
-                    e.EventType,
-                    e.RaisedAt,
-                    Payload = serializer.Deserialize(e.PayloadJson)
-                });
-
-            IEnumerable<object> expected = events
-                .Select(e => new
+                    t.Pending.RowKey,
+                    t.Pending.PersistedPartition,
+                    t.Pending.Version,
+                    Envelope = (Envelope)serializer.Deserialize(t.Pending.EnvelopeJson)
+                };
+                actual.ShouldBeEquivalentTo(new
                 {
-                    RowKey = PendingEventTableEntity.GetRowKey(e.Version),
-                    EventType = e.GetType().FullName,
-                    e.RaisedAt,
-                    Payload = e
-                });
-
-            actual.ShouldAllBeEquivalentTo(expected);
+                    RowKey = PendingEventTableEntity.GetRowKey(t.Source.Version),
+                    PersistedPartition = EventTableEntity.GetPartitionKey(typeof(FakeUser), userId),
+                    t.Source.Version,
+                    Envelope = new Envelope(t.Source)
+                },
+                opts => opts.Excluding(x => x.Envelope.MessageId));
+            }
         }
 
         [TestMethod]
@@ -152,26 +152,24 @@ namespace ReactiveArchitecture.EventSourcing.Azure
             // Assert
             string partitionKey = EventTableEntity.GetPartitionKey(typeof(FakeUser), userId);
             var query = new TableQuery<EventTableEntity>().Where($"PartitionKey eq '{partitionKey}'");
-            IEnumerable<object> actual = s_eventTable
-                .ExecuteQuery(query)
-                .Select(e => new
+            IEnumerable<EventTableEntity> persistedEvents = s_eventTable.ExecuteQuery(query);
+            foreach (var t in persistedEvents.Zip(events, (persisted, source) => new { Persisted = persisted, Source = source }))
+            {
+                var actual = new
                 {
-                    e.RowKey,
-                    e.EventType,
-                    e.RaisedAt,
-                    Payload = serializer.Deserialize(e.PayloadJson)
-                });
-
-            IEnumerable<object> expected = events
-                .Select(e => new
+                    t.Persisted.RowKey,
+                    t.Persisted.EventType,
+                    Event = (DomainEvent)serializer.Deserialize(t.Persisted.EventJson),
+                    t.Persisted.RaisedAt
+                };
+                actual.ShouldBeEquivalentTo(new
                 {
-                    RowKey = EventTableEntity.GetRowKey(e.Version),
-                    EventType = e.GetType().FullName,
-                    e.RaisedAt,
-                    Payload = e
+                    RowKey = EventTableEntity.GetRowKey(t.Source.Version),
+                    EventType = t.Source.GetType().FullName,
+                    Event = t.Source,
+                    t.Source.RaisedAt
                 });
-
-            actual.ShouldAllBeEquivalentTo(expected);
+            }
         }
 
         [TestMethod]
@@ -231,26 +229,6 @@ namespace ReactiveArchitecture.EventSourcing.Azure
                             ((TableEntity)entityProperty.GetValue(p[0])).PartitionKey.StartsWith("Event")),
                         It.IsAny<CancellationToken>()),
                     Times.Never());
-        }
-
-        [TestMethod]
-        public async Task SaveEvents_fails_if_event_version_duplicate()
-        {
-            // Arrange
-            var created = fixture.Create<FakeUserCreated>();
-            var events = new DomainEvent[] { created };
-            RaiseEvents(userId, events);
-            await sut.SaveEvents<FakeUser>(events, CancellationToken.None);
-
-            // Act
-            var usernameChanged = fixture.Create<FakeUsernameChanged>();
-            RaiseEvents(userId, usernameChanged);
-            Func<Task> action = () => sut.SaveEvents<FakeUser>(new[] { usernameChanged }, CancellationToken.None);
-
-            // Assert
-            action.ShouldThrow<StorageException>();
-            s_eventTable.ExecuteQuery(new TableQuery<PendingEventTableEntity>().Where($"PartitionKey eq '{PendingEventTableEntity.GetPartitionKey(typeof(FakeUser), userId)}'")).Should().HaveCount(1).And.OnlyContain(e => e.EventType == typeof(FakeUserCreated).FullName);
-            s_eventTable.ExecuteQuery(new TableQuery<EventTableEntity>().Where($"PartitionKey eq '{EventTableEntity.GetPartitionKey(typeof(FakeUser), userId)}'")).Should().HaveCount(1).And.OnlyContain(e => e.EventType == typeof(FakeUserCreated).FullName);
         }
 
         [TestMethod]

@@ -23,17 +23,22 @@
         [Required]
         public string EventType { get; set; }
 
+        public Guid MessageId { get; set; }
+
+        public Guid? CorrelationId { get; set; }
+
         [Required]
         public string PayloadJson { get; set; }
 
         public DateTimeOffset RaisedAt { get; set; }
 
-        public static Event FromDomainEvent(
-            IDomainEvent domainEvent, IMessageSerializer serializer)
+        public static Event FromEnvelope(
+            Envelope envelope,
+            IMessageSerializer serializer)
         {
-            if (domainEvent == null)
+            if (envelope == null)
             {
-                throw new ArgumentNullException(nameof(domainEvent));
+                throw new ArgumentNullException(nameof(envelope));
             }
 
             if (serializer == null)
@@ -41,11 +46,22 @@
                 throw new ArgumentNullException(nameof(serializer));
             }
 
+            var domainEvent = envelope.Message as IDomainEvent;
+
+            if (domainEvent == null)
+            {
+                throw new ArgumentException(
+                    $"{nameof(envelope)}.{nameof(envelope.Message)} must be an {nameof(IDomainEvent)}.",
+                    nameof(envelope));
+            }
+
             return new Event
             {
                 AggregateId = domainEvent.SourceId,
                 Version = domainEvent.Version,
                 EventType = domainEvent.GetType().FullName,
+                MessageId = envelope.MessageId,
+                CorrelationId = envelope.CorrelationId,
                 PayloadJson = serializer.Serialize(domainEvent),
                 RaisedAt = domainEvent.RaisedAt
             };
