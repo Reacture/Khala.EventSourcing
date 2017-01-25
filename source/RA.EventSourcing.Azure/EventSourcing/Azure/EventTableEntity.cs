@@ -47,29 +47,14 @@
                     nameof(envelope));
             }
 
-            return Create(
-                GetPartitionKey(typeof(T), domainEvent.SourceId),
-                envelope.MessageId,
-                envelope.CorrelationId,
-                domainEvent,
-                serializer);
-        }
-
-        private static EventTableEntity Create(
-            string partition,
-            Guid messageId,
-            Guid? correlationId,
-            IDomainEvent domainEvent,
-            IMessageSerializer serializer)
-        {
             return new EventTableEntity
             {
-                PartitionKey = partition,
+                PartitionKey = GetPartitionKey(typeof(T), domainEvent.SourceId),
                 RowKey = GetRowKey(domainEvent.Version),
                 Version = domainEvent.Version,
                 EventType = domainEvent.GetType().FullName,
-                MessageId = messageId,
-                CorrelationId = correlationId,
+                MessageId = envelope.MessageId,
+                CorrelationId = envelope.CorrelationId,
                 EventJson = serializer.Serialize(domainEvent),
                 RaisedAt = domainEvent.RaisedAt
             };
