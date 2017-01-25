@@ -44,6 +44,11 @@
                 throw new ArgumentNullException(nameof(envelope));
             }
 
+            if (serializer == null)
+            {
+                throw new ArgumentNullException(nameof(serializer));
+            }
+
             var domainEvent = envelope.Message as IDomainEvent;
 
             if (domainEvent == null)
@@ -53,11 +58,14 @@
                     nameof(envelope));
             }
 
+            string persistedPartition = EventTableEntity.GetPartitionKey(
+                typeof(T), domainEvent.SourceId);
+
             return new PendingEventTableEntity
             {
                 PartitionKey = GetPartitionKey(typeof(T), domainEvent.SourceId),
                 RowKey = GetRowKey(domainEvent.Version),
-                PersistedPartition = EventTableEntity.GetPartitionKey(typeof(T), domainEvent.SourceId),
+                PersistedPartition = persistedPartition,
                 Version = domainEvent.Version,
                 EnvelopeJson = serializer.Serialize(envelope),
             };
