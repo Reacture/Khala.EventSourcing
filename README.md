@@ -1,25 +1,111 @@
 # Reactive Essentials - Event Sourcing
 
-## 설치
+이벤트 소싱(Event Sourcing) 패턴 구현체를 제공합니다.
 
-관계형 데이터베이스를 이벤트 저장소로 사용하는 경우는 다음 패키지를 설치합니다.
+- **이벤트 기반 집합체(aggregate)**
+- **저장소(repository):** Azure Table storage, 관계형 데이터베이스
+- **이벤트 발행(at-least-once delivery)**
+- **스냅샷(memento pattern)**
+- **유일성 제약 문자열 속성:** SQL 이벤트 저장소
+
+## 패키지
+
+### Core
+
+이벤트 소싱 추상화 계층을 제공합니다.
 
 ```
-> Install-Package ReactiveArchitecture.EventSourcing.Sql
+> Install-Package ReactiveArchitecture.EventSourcing.Core
 ```
 
-Azure 테이블 저장소를 이벤트 저장소로 사용하는 경우는 다음 패키지를 설치합니다.
+### Azure
+
+NoSQL 키-값 저장소인 Azure Table storage를 사용하는 이벤트 저장소 구현체를 제공합니다.
 
 ```
 > Install-Package ReactiveArchitecture.EventSourcing.Azure
 ```
 
-Azure Event Hubs를 이벤트 발행을 위한 메시지 버스로 사용하는 경우는 다음 패키지를 설치합니다.
+### SQL
+
+관계형 데이터베이스 대상 이벤트 저장소 구현체를 제공합니다.
+
 
 ```
-> Install-Package ReactiveArchitecture.Messaging.Azure
+> Install-Package ReactiveArchitecture.EventSourcing.Sql
+```
+
+## 집합체(Aggregate)
+
+[`EventSourced`](source/RA.EventSourcing/EventSourcing/EventSourced.cs) 클래스를 상속받아 이벤트 기반 집합체를 구현합니다.
+
+```csharp
+public class User : EventSourced
+{
+    public User(Guid id, string username)
+        : base(id)
+    {
+        RaiseEvent(new UserCreated { Username = username });
+    }
+
+    private User(Guid id, IEnumerable<IDomainEvent> pastEvents)
+        : base(id)
+    {
+        base.HandlePastEvents(pastEvents);
+    }
+
+    public static User Factory(Guid id, IEnumerable<IDomainEvent> pastEvents)
+    {
+        return new User(id, pastEvents);
+    }
+
+    public string Username { get; private set; }
+
+    public void ChangeUsername(string username)
+    {
+        RaiseEvent(new UsernameChanged { Username = username });
+    }
+
+    // Auto-wired event-handlers
+
+    private void Handle(UserCreated domainEvent)
+    {
+        Username = domainEvent.Username;
+    }
+
+    private void Handle(UsernameChanged domainEvent)
+    {
+        Username = domainEvent.Username;
+    }
+}
 ```
 
 ## 예제 응용프로그램
 
 - [TodoList](examples/TodoList)
+
+## License
+
+```
+MIT License
+
+Copyright (c) 2017 Reactive Essentials
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```
