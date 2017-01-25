@@ -63,14 +63,16 @@ namespace ReactiveArchitecture.EventSourcing.Sql
         public async Task Save_saves_events()
         {
             var user = fixture.Create<FakeUser>();
+            var correlationId = Guid.NewGuid();
             user.ChangeUsername(fixture.Create("username"));
 
-            await sut.Save(user, CancellationToken.None);
+            await sut.Save(user, correlationId, CancellationToken.None);
 
             Mock.Get(eventStore).Verify(
                 x =>
                 x.SaveEvents<FakeUser>(
                     user.PendingEvents,
+                    correlationId,
                     CancellationToken.None),
                 Times.Once());
         }
@@ -79,9 +81,10 @@ namespace ReactiveArchitecture.EventSourcing.Sql
         public async Task Save_publishes_events()
         {
             var user = fixture.Create<FakeUser>();
+            var correlationId = Guid.NewGuid();
             user.ChangeUsername(fixture.Create("username"));
 
-            await sut.Save(user, CancellationToken.None);
+            await sut.Save(user, correlationId, CancellationToken.None);
 
             Mock.Get(eventPublisher).Verify(
                 x =>
@@ -95,16 +98,18 @@ namespace ReactiveArchitecture.EventSourcing.Sql
         public void Save_does_not_publish_events_if_fails_to_save_events()
         {
             var user = fixture.Create<FakeUser>();
+            var correlationId = Guid.NewGuid();
             user.ChangeUsername(fixture.Create("username"));
             Mock.Get(eventStore)
                 .Setup(
                     x =>
                     x.SaveEvents<FakeUser>(
                         user.PendingEvents,
+                        correlationId,
                         CancellationToken.None))
                 .Throws<InvalidOperationException>();
 
-            Func<Task> action = () => sut.Save(user, CancellationToken.None);
+            Func<Task> action = () => sut.Save(user, correlationId, CancellationToken.None);
 
             action.ShouldThrow<InvalidOperationException>();
             Mock.Get(eventPublisher).Verify(
@@ -119,8 +124,9 @@ namespace ReactiveArchitecture.EventSourcing.Sql
         public async Task Save_saves_memento()
         {
             var user = fixture.Create<FakeUser>();
+            var correlationId = Guid.NewGuid();
 
-            await sut.Save(user, CancellationToken.None);
+            await sut.Save(user, correlationId, CancellationToken.None);
 
             Mock.Get(mementoStore).Verify(
                 x =>
@@ -139,16 +145,18 @@ namespace ReactiveArchitecture.EventSourcing.Sql
         {
             // Arrange
             var user = fixture.Create<FakeUser>();
+            var correlationId = Guid.NewGuid();
             Mock.Get(eventStore)
                 .Setup(
                     x =>
                     x.SaveEvents<FakeUser>(
                         user.PendingEvents,
+                        correlationId,
                         CancellationToken.None))
                 .Throws<InvalidOperationException>();
 
             // Act
-            Func<Task> action = () => sut.Save(user, CancellationToken.None);
+            Func<Task> action = () => sut.Save(user, correlationId, CancellationToken.None);
 
             // Assert
             action.ShouldThrow<InvalidOperationException>();

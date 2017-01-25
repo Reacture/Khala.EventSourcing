@@ -98,7 +98,7 @@ namespace ReactiveArchitecture.EventSourcing.Sql
                 () => mockDbContext,
                 new JsonMessageSerializer());
 
-            await sut.SaveEvents<FakeUser>(events, CancellationToken.None);
+            await sut.SaveEvents<FakeUser>(events, null, CancellationToken.None);
 
             Mock.Get(mockDbContext).Verify(
                 x => x.SaveChangesAsync(CancellationToken.None), Times.Once());
@@ -112,7 +112,7 @@ namespace ReactiveArchitecture.EventSourcing.Sql
                 () => mockDbContext,
                 new JsonMessageSerializer());
 
-            await sut.SaveEvents<FakeUser>(Enumerable.Empty<IDomainEvent>(), CancellationToken.None);
+            await sut.SaveEvents<FakeUser>(Enumerable.Empty<IDomainEvent>(), null, CancellationToken.None);
 
             Mock.Get(mockDbContext)
                 .Verify(x => x.SaveChangesAsync(), Times.Never());
@@ -126,7 +126,7 @@ namespace ReactiveArchitecture.EventSourcing.Sql
             var events = new DomainEvent[] { created, null };
             RaiseEvents(userId, created);
 
-            Func<Task> action = () => sut.SaveEvents<FakeUser>(events, CancellationToken.None);
+            Func<Task> action = () => sut.SaveEvents<FakeUser>(events, null, CancellationToken.None);
 
             action.ShouldThrow<ArgumentException>()
                 .Where(x => x.ParamName == "events");
@@ -140,7 +140,7 @@ namespace ReactiveArchitecture.EventSourcing.Sql
             var events = new DomainEvent[] { created };
             RaiseEvents(userId, events);
 
-            await sut.SaveEvents<FakeUser>(events, CancellationToken.None);
+            await sut.SaveEvents<FakeUser>(events, null, CancellationToken.None);
 
             using (var db = new DataContext())
             {
@@ -175,7 +175,7 @@ namespace ReactiveArchitecture.EventSourcing.Sql
             RaiseEvents(userId, 1, usernameChanged);
 
             // Act
-            await sut.SaveEvents<FakeUser>(events, CancellationToken.None);
+            await sut.SaveEvents<FakeUser>(events, null, CancellationToken.None);
 
             // Assert
             using (var db = new DataContext())
@@ -198,7 +198,7 @@ namespace ReactiveArchitecture.EventSourcing.Sql
                 new FakeUsernameChanged { Version = 3 }
             };
 
-            Func<Task> action = () => sut.SaveEvents<FakeUser>(events, CancellationToken.None);
+            Func<Task> action = () => sut.SaveEvents<FakeUser>(events, null, CancellationToken.None);
 
             action.ShouldThrow<ArgumentException>()
                 .Where(x => x.ParamName == "events");
@@ -225,7 +225,7 @@ namespace ReactiveArchitecture.EventSourcing.Sql
             RaiseEvents(userId, 2, usernameChanged);
 
             // Act
-            Func<Task> action = () => sut.SaveEvents<FakeUser>(events, CancellationToken.None);
+            Func<Task> action = () => sut.SaveEvents<FakeUser>(events, null, CancellationToken.None);
 
             // Assert
             action.ShouldThrow<ArgumentException>()
@@ -250,7 +250,7 @@ namespace ReactiveArchitecture.EventSourcing.Sql
             var events = new DomainEvent[] { created, usernameChanged };
 
             // Act
-            Func<Task> action = () => sut.SaveEvents<FakeUser>(events, CancellationToken.None);
+            Func<Task> action = () => sut.SaveEvents<FakeUser>(events, null, CancellationToken.None);
 
             // Assert
             action.ShouldThrow<ArgumentException>()
@@ -261,14 +261,15 @@ namespace ReactiveArchitecture.EventSourcing.Sql
         [AutoData]
         public async Task SaveEvents_saves_pending_events_correctly(
             FakeUserCreated created,
-            FakeUsernameChanged usernameChanged)
+            FakeUsernameChanged usernameChanged,
+            Guid correlationId)
         {
             // Arrange
             var events = new DomainEvent[] { created, usernameChanged };
             RaiseEvents(userId, events);
 
             // Act
-            await sut.SaveEvents<FakeUser>(events, CancellationToken.None);
+            await sut.SaveEvents<FakeUser>(events, correlationId, CancellationToken.None);
 
             // Asseert
             using (var db = new DataContext())
@@ -290,7 +291,7 @@ namespace ReactiveArchitecture.EventSourcing.Sql
                     actual.ShouldBeEquivalentTo(new
                     {
                         t.Source.Version,
-                        Envelope = new Envelope(t.Source)
+                        Envelope = new Envelope(correlationId, t.Source)
                     },
                     opts => opts.Excluding(x => x.Envelope.MessageId));
                 }
@@ -308,7 +309,7 @@ namespace ReactiveArchitecture.EventSourcing.Sql
             RaiseEvents(userId, events);
 
             // Act
-            await sut.SaveEvents<FakeUser>(events, CancellationToken.None);
+            await sut.SaveEvents<FakeUser>(events, null, CancellationToken.None);
 
             // Asseert
             using (var db = new DataContext())
@@ -343,14 +344,15 @@ namespace ReactiveArchitecture.EventSourcing.Sql
         [AutoData]
         public async Task SaveEvents_sets_message_properties_correctly(
             FakeUserCreated created,
-            FakeUsernameChanged usernameChanged)
+            FakeUsernameChanged usernameChanged,
+            Guid correlationId)
         {
             // Arrange
             var events = new DomainEvent[] { created, usernameChanged };
             RaiseEvents(userId, events);
 
             // Act
-            await sut.SaveEvents<FakeUser>(events, CancellationToken.None);
+            await sut.SaveEvents<FakeUser>(events, correlationId, CancellationToken.None);
 
             // Asseert
             using (var db = new DataContext())
@@ -393,7 +395,7 @@ namespace ReactiveArchitecture.EventSourcing.Sql
             var events = new DomainEvent[] { created };
             RaiseEvents(userId, events);
 
-            await sut.SaveEvents<FakeUser>(events, CancellationToken.None);
+            await sut.SaveEvents<FakeUser>(events, null, CancellationToken.None);
 
             using (var db = new DataContext())
             {
@@ -420,7 +422,7 @@ namespace ReactiveArchitecture.EventSourcing.Sql
             var events = new DomainEvent[] { created, usernameChanged };
             RaiseEvents(userId, events);
 
-            await sut.SaveEvents<FakeUser>(events, CancellationToken.None);
+            await sut.SaveEvents<FakeUser>(events, null, CancellationToken.None);
 
             using (var db = new DataContext())
             {
@@ -443,7 +445,7 @@ namespace ReactiveArchitecture.EventSourcing.Sql
             var events = new DomainEvent[] { created };
             RaiseEvents(userId, events);
 
-            await sut.SaveEvents<FakeUser>(events, CancellationToken.None);
+            await sut.SaveEvents<FakeUser>(events, null, CancellationToken.None);
 
             using (var db = new DataContext())
             {
@@ -467,12 +469,12 @@ namespace ReactiveArchitecture.EventSourcing.Sql
         {
             // Arrange
             RaiseEvents(userId, created);
-            await sut.SaveEvents<FakeUser>(new[] { created }, CancellationToken.None);
+            await sut.SaveEvents<FakeUser>(new[] { created }, null, CancellationToken.None);
             usernameChanged.Username = null;
             RaiseEvents(userId, 1, usernameChanged);
 
             // Act
-            await sut.SaveEvents<FakeUser>(new[] { usernameChanged }, CancellationToken.None);
+            await sut.SaveEvents<FakeUser>(new[] { usernameChanged }, null, CancellationToken.None);
 
             // Assert
             using (var db = new DataContext())
@@ -497,11 +499,11 @@ namespace ReactiveArchitecture.EventSourcing.Sql
         {
             // Arrange
             RaiseEvents(userId, created);
-            await sut.SaveEvents<FakeUser>(new[] { created }, CancellationToken.None);
+            await sut.SaveEvents<FakeUser>(new[] { created }, null, CancellationToken.None);
             RaiseEvents(userId, 1, usernameChanged);
 
             // Act
-            await sut.SaveEvents<FakeUser>(new[] { usernameChanged }, CancellationToken.None);
+            await sut.SaveEvents<FakeUser>(new[] { usernameChanged }, null, CancellationToken.None);
 
             // Assert
             using (var db = new DataContext())
@@ -529,12 +531,12 @@ namespace ReactiveArchitecture.EventSourcing.Sql
             // Arrange
             var macCreated = new FakeUserCreated { Username = duplicateUserName };
             RaiseEvents(macId, macCreated);
-            await sut.SaveEvents<FakeUser>(new[] { macCreated }, CancellationToken.None);
+            await sut.SaveEvents<FakeUser>(new[] { macCreated }, null, CancellationToken.None);
 
             // Act
             var toshCreated = new FakeUserCreated { Username = duplicateUserName };
             RaiseEvents(toshId, toshCreated);
-            Func<Task> action = () => sut.SaveEvents<FakeUser>(new[] { toshCreated }, CancellationToken.None);
+            Func<Task> action = () => sut.SaveEvents<FakeUser>(new[] { toshCreated }, null, CancellationToken.None);
 
             // Assert
             action.ShouldThrow<Exception>();
@@ -556,7 +558,7 @@ namespace ReactiveArchitecture.EventSourcing.Sql
             // Arrange
             var events = new DomainEvent[] { created, usernameChanged };
             RaiseEvents(userId, events);
-            await sut.SaveEvents<FakeUser>(events, CancellationToken.None);
+            await sut.SaveEvents<FakeUser>(events, null, CancellationToken.None);
 
             // Act
             IEnumerable<IDomainEvent> actual =
@@ -575,7 +577,7 @@ namespace ReactiveArchitecture.EventSourcing.Sql
             // Arrange
             var events = new DomainEvent[] { created, usernameChanged };
             RaiseEvents(userId, events);
-            await sut.SaveEvents<FakeUser>(events, CancellationToken.None);
+            await sut.SaveEvents<FakeUser>(events, null, CancellationToken.None);
 
             // Act
             IEnumerable<IDomainEvent> actual =
@@ -601,7 +603,7 @@ namespace ReactiveArchitecture.EventSourcing.Sql
             FakeUserCreated created)
         {
             RaiseEvents(userId, created);
-            await sut.SaveEvents<FakeUser>(new[] { created }, CancellationToken.None);
+            await sut.SaveEvents<FakeUser>(new[] { created }, null, CancellationToken.None);
 
             Guid? actual = await
                 sut.FindIdByUniqueIndexedProperty<FakeUser>("Username", created.Username, CancellationToken.None);

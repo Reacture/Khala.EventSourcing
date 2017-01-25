@@ -9,6 +9,7 @@
     {
         Task SaveEvents<T>(
             IEnumerable<IDomainEvent> events,
+            Guid? correlationId,
             CancellationToken cancellationToken)
             where T : class, IEventSourced;
 

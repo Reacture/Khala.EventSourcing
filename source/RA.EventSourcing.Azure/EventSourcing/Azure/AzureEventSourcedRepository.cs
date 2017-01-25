@@ -64,20 +64,23 @@
 
         public IEventPublisher EventPublisher => _eventPublisher;
 
-        public Task Save(T source, CancellationToken cancellationToken)
+        public Task Save(
+            T source,
+            Guid? correlationId,
+            CancellationToken cancellationToken)
         {
             if (source == null)
             {
                 throw new ArgumentNullException(nameof(source));
             }
 
-            return SaveAndPublish(source, cancellationToken);
+            return SaveAndPublish(source, correlationId, cancellationToken);
         }
 
         private async Task SaveAndPublish(
-            T source, CancellationToken cancellationToken)
+            T source, Guid? correlationId, CancellationToken cancellationToken)
         {
-            await _eventStore.SaveEvents<T>(source.PendingEvents, cancellationToken).ConfigureAwait(false);
+            await _eventStore.SaveEvents<T>(source.PendingEvents, correlationId, cancellationToken).ConfigureAwait(false);
             await _eventPublisher.PublishPendingEvents<T>(source.Id, cancellationToken).ConfigureAwait(false);
 
             if (_mementoStore != null)

@@ -33,6 +33,7 @@
 
         public Task SaveEvents<T>(
             IEnumerable<IDomainEvent> events,
+            Guid? correlationId,
             CancellationToken cancellationToken)
             where T : class, IEventSourced
         {
@@ -74,19 +75,20 @@
                 }
             }
 
-            return Save<T>(firstEvent.SourceId, domainEvents, cancellationToken);
+            return Save<T>(firstEvent.SourceId, domainEvents, correlationId, cancellationToken);
         }
 
         private async Task Save<T>(
             Guid sourceId,
             List<IDomainEvent> events,
+            Guid? correlationId,
             CancellationToken cancellationToken)
             where T : class, IEventSourced
         {
             using (EventStoreDbContext context = _dbContextFactory.Invoke())
             {
                 await UpsertAggregate<T>(context, sourceId, events, cancellationToken).ConfigureAwait(false);
-                InsertEvents(context, events);
+                InsertEvents(context, events, correlationId);
                 await UpdateUniqueIndexedProperties<T>(context, sourceId, events, cancellationToken).ConfigureAwait(false);
                 await context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
             }
@@ -128,11 +130,15 @@
 
         private void InsertEvents(
             EventStoreDbContext context,
-            List<IDomainEvent> events)
+            List<IDomainEvent> events,
+            Guid? correlationId)
         {
             foreach (IDomainEvent domainEvent in events)
             {
-                var envelope = new Envelope(domainEvent);
+                var envelope =
+                    correlationId == null
+                    ? new Envelope(domainEvent)
+                    : new Envelope(correlationId.Value, domainEvent);
                 context.Events.Add(Event.FromEnvelope(envelope, _serializer));
                 context.PendingEvents.Add(new PendingEvent
                 {

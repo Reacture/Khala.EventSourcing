@@ -55,16 +55,18 @@ namespace ReactiveArchitecture.EventSourcing.Azure
         [AutoData]
         public async Task Save_saves_events(
             FakeUser user,
+            Guid correlationId,
             string username)
         {
             user.ChangeUsername(username);
 
-            await sut.Save(user, CancellationToken.None);
+            await sut.Save(user, correlationId, CancellationToken.None);
 
             Mock.Get(eventStore).Verify(
                 x =>
                 x.SaveEvents<FakeUser>(
                     user.PendingEvents,
+                    correlationId,
                     CancellationToken.None),
                 Times.Once());
         }
@@ -73,11 +75,12 @@ namespace ReactiveArchitecture.EventSourcing.Azure
         [AutoData]
         public async Task Save_publishes_events(
             FakeUser user,
+            Guid correlationId,
             string username)
         {
             user.ChangeUsername(username);
 
-            await sut.Save(user, CancellationToken.None);
+            await sut.Save(user, correlationId, CancellationToken.None);
 
             Mock.Get(eventPublisher).Verify(
                 x =>
@@ -91,6 +94,7 @@ namespace ReactiveArchitecture.EventSourcing.Azure
         [AutoData]
         public void Save_does_not_publish_events_if_fails_to_save(
             FakeUser user,
+            Guid correlationId,
             string username)
         {
             // Arrange
@@ -100,11 +104,12 @@ namespace ReactiveArchitecture.EventSourcing.Azure
                     x =>
                     x.SaveEvents<FakeUser>(
                         It.IsAny<IEnumerable<IDomainEvent>>(),
+                        It.IsAny<Guid?>(),
                         CancellationToken.None))
                 .Throws<InvalidOperationException>();
 
             // Act
-            Func<Task> action = () => sut.Save(user, CancellationToken.None);
+            Func<Task> action = () => sut.Save(user, correlationId, CancellationToken.None);
 
             // Assert
             action.ShouldThrow<InvalidOperationException>();
@@ -118,11 +123,14 @@ namespace ReactiveArchitecture.EventSourcing.Azure
 
         [Theory]
         [AutoData]
-        public async Task Save_saves_memento(FakeUser user, string username)
+        public async Task Save_saves_memento(
+            FakeUser user,
+            Guid correlationId,
+            string username)
         {
             user.ChangeUsername(username);
 
-            await sut.Save(user, CancellationToken.None);
+            await sut.Save(user, correlationId, CancellationToken.None);
 
             Mock.Get(mementoStore).Verify(
                 x =>
@@ -140,6 +148,7 @@ namespace ReactiveArchitecture.EventSourcing.Azure
         [AutoData]
         public void Save_does_not_save_memento_if_fails_to_save_events(
             FakeUser user,
+            Guid correlationId,
             string username)
         {
             // Arrange
@@ -149,11 +158,12 @@ namespace ReactiveArchitecture.EventSourcing.Azure
                     x =>
                     x.SaveEvents<FakeUser>(
                         It.IsAny<IEnumerable<IDomainEvent>>(),
+                        It.IsAny<Guid?>(),
                         CancellationToken.None))
                 .Throws<InvalidOperationException>();
 
             // Act
-            Func<Task> action = () => sut.Save(user, CancellationToken.None);
+            Func<Task> action = () => sut.Save(user, correlationId, CancellationToken.None);
 
             // Assert
             action.ShouldThrow<InvalidOperationException>();

@@ -35,6 +35,7 @@
 
         public Task SaveEvents<T>(
             IEnumerable<IDomainEvent> events,
+            Guid? correlationId,
             CancellationToken cancellationToken)
             where T : class, IEventSourced
         {
@@ -55,11 +56,12 @@
                 }
             }
 
-            return Save<T>(domainEvents, cancellationToken);
+            return Save<T>(domainEvents, correlationId, cancellationToken);
         }
 
         private async Task Save<T>(
             List<IDomainEvent> domainEvents,
+            Guid? correlationId,
             CancellationToken cancellationToken)
             where T : class, IEventSourced
         {
@@ -68,7 +70,10 @@
                 return;
             }
 
-            var envelopes = new List<Envelope>(domainEvents.Select(e => new Envelope(e)));
+            var envelopes = new List<Envelope>(
+                correlationId == null
+                ? domainEvents.Select(e => new Envelope(e))
+                : domainEvents.Select(e => new Envelope(correlationId.Value, e)));
 
             await InsertPendingEvents<T>(envelopes, cancellationToken).ConfigureAwait(false);
             await InsertEvents<T>(envelopes, cancellationToken).ConfigureAwait(false);

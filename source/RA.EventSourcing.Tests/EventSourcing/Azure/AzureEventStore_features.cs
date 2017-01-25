@@ -91,7 +91,7 @@ namespace ReactiveArchitecture.EventSourcing.Azure
                 null
             };
 
-            Func<Task> action = () => sut.SaveEvents<FakeUser>(events, CancellationToken.None);
+            Func<Task> action = () => sut.SaveEvents<FakeUser>(events, null, CancellationToken.None);
 
             action.ShouldThrow<ArgumentException>()
                 .Where(x => x.ParamName == "events");
@@ -107,10 +107,11 @@ namespace ReactiveArchitecture.EventSourcing.Azure
             var created = fixture.Create<FakeUserCreated>();
             var usernameChanged = fixture.Create<FakeUsernameChanged>();
             var events = new DomainEvent[] { created, usernameChanged };
+            var correlationId = Guid.NewGuid();
             RaiseEvents(userId, events);
 
             // Act
-            await sut.SaveEvents<FakeUser>(events, CancellationToken.None);
+            await sut.SaveEvents<FakeUser>(events, correlationId, CancellationToken.None);
 
             // Assert
             string partitionKey = PendingEventTableEntity.GetPartitionKey(typeof(FakeUser), userId);
@@ -131,7 +132,7 @@ namespace ReactiveArchitecture.EventSourcing.Azure
                     RowKey = PendingEventTableEntity.GetRowKey(t.Source.Version),
                     PersistedPartition = EventTableEntity.GetPartitionKey(typeof(FakeUser), userId),
                     t.Source.Version,
-                    Envelope = new Envelope(t.Source)
+                    Envelope = new Envelope(correlationId, t.Source)
                 },
                 opts => opts.Excluding(x => x.Envelope.MessageId));
             }
@@ -144,10 +145,11 @@ namespace ReactiveArchitecture.EventSourcing.Azure
             var created = fixture.Create<FakeUserCreated>();
             var usernameChanged = fixture.Create<FakeUsernameChanged>();
             var events = new DomainEvent[] { created, usernameChanged };
+            var correlationId = Guid.NewGuid();
             RaiseEvents(userId, events);
 
             // Act
-            await sut.SaveEvents<FakeUser>(events, CancellationToken.None);
+            await sut.SaveEvents<FakeUser>(events, correlationId, CancellationToken.None);
 
             // Assert
             string partitionKey = EventTableEntity.GetPartitionKey(typeof(FakeUser), userId);
@@ -160,6 +162,7 @@ namespace ReactiveArchitecture.EventSourcing.Azure
                     t.Persisted.RowKey,
                     t.Persisted.Version,
                     t.Persisted.EventType,
+                    t.Persisted.CorrelationId,
                     Event = (DomainEvent)serializer.Deserialize(t.Persisted.EventJson),
                     t.Persisted.RaisedAt
                 };
@@ -168,6 +171,7 @@ namespace ReactiveArchitecture.EventSourcing.Azure
                     RowKey = EventTableEntity.GetRowKey(t.Source.Version),
                     t.Source.Version,
                     EventType = t.Source.GetType().FullName,
+                    CorrelationId = correlationId,
                     Event = t.Source,
                     t.Source.RaisedAt
                 });
@@ -183,7 +187,7 @@ namespace ReactiveArchitecture.EventSourcing.Azure
             var events = new DomainEvent[] { created };
             RaiseEvents(userId, events);
 
-            await sut.SaveEvents<FakeUser>(events, CancellationToken.None);
+            await sut.SaveEvents<FakeUser>(events, null, CancellationToken.None);
 
             Mock.Get(eventTable).Verify(
                 x =>
@@ -218,7 +222,7 @@ namespace ReactiveArchitecture.EventSourcing.Azure
             RaiseEvents(userId, events);
 
             // Act
-            Func<Task> action = () => sut.SaveEvents<FakeUser>(events, CancellationToken.None);
+            Func<Task> action = () => sut.SaveEvents<FakeUser>(events, null, CancellationToken.None);
 
             // Assert
             action.ShouldThrow<StorageException>();
@@ -237,7 +241,7 @@ namespace ReactiveArchitecture.EventSourcing.Azure
         public void SaveEvents_does_not_fail_even_if_events_empty()
         {
             var events = new DomainEvent[] { };
-            Func<Task> action = () => sut.SaveEvents<FakeUser>(events, CancellationToken.None);
+            Func<Task> action = () => sut.SaveEvents<FakeUser>(events, null, CancellationToken.None);
             action.ShouldNotThrow();
         }
 
@@ -249,7 +253,7 @@ namespace ReactiveArchitecture.EventSourcing.Azure
             var usernameChanged = fixture.Create<FakeUsernameChanged>();
             var events = new DomainEvent[] { created, usernameChanged };
             RaiseEvents(userId, events);
-            await sut.SaveEvents<FakeUser>(events, CancellationToken.None);
+            await sut.SaveEvents<FakeUser>(events, null, CancellationToken.None);
 
             // Act
             IEnumerable<IDomainEvent> actual =
@@ -268,7 +272,7 @@ namespace ReactiveArchitecture.EventSourcing.Azure
             var usernameChanged = fixture.Create<FakeUsernameChanged>();
             var events = new DomainEvent[] { created, usernameChanged };
             RaiseEvents(userId, events);
-            await sut.SaveEvents<FakeUser>(events, CancellationToken.None);
+            await sut.SaveEvents<FakeUser>(events, null, CancellationToken.None);
 
             // Act
             IEnumerable<IDomainEvent> actual =
