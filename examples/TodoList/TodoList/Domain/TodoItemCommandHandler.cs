@@ -25,11 +25,12 @@ namespace TodoList.Domain
         }
 
         public Task Handle(
-            Guid messageId,
-            Guid? correlationId,
-            CreateTodoItem command,
+            ReceivedEnvelope<CreateTodoItem> envelope,
             CancellationToken cancellationToken)
         {
+            CreateTodoItem command = envelope.Message;
+            Guid messageId = envelope.MessageId;
+
             var todoItem = new TodoItem(
                 command.TodoItemId,
                 command.Description);
@@ -38,11 +39,12 @@ namespace TodoList.Domain
         }
 
         public async Task Handle(
-            Guid messageId,
-            Guid? correlationId,
-            UpdateTodoItem command,
+            ReceivedEnvelope<UpdateTodoItem> envelope,
             CancellationToken cancellationToken)
         {
+            UpdateTodoItem command = envelope.Message;
+            Guid messageId = envelope.MessageId;
+
             TodoItem todoItem = await
                 _repository.Find(command.TodoItemId, cancellationToken);
 
@@ -58,11 +60,12 @@ namespace TodoList.Domain
         }
 
         public async Task Handle(
-            Guid messageId,
-            Guid? correlationId,
-            DeleteTodoItem command,
+            ReceivedEnvelope<DeleteTodoItem> envelope,
             CancellationToken cancellationToken)
         {
+            DeleteTodoItem command = envelope.Message;
+            Guid messageId = envelope.MessageId;
+
             TodoItem todoItem = await
                 _repository.Find(command.TodoItemId, cancellationToken);
 

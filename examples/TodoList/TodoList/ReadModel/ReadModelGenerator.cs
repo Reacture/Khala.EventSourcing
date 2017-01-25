@@ -25,11 +25,11 @@ namespace TodoList.ReadModel
         }
 
         public async Task Handle(
-            Guid messageId,
-            Guid? correlationId,
-            TodoItemCreated domainEvent,
+            ReceivedEnvelope<TodoItemCreated> envelope,
             CancellationToken cancellationToken)
         {
+            TodoItemCreated domainEvent = envelope.Message;
+
             using (ReadModelDbContext db = _dbContextFactory.Invoke())
             {
                 var todoItem = new TodoItem
@@ -46,11 +46,11 @@ namespace TodoList.ReadModel
         }
 
         public async Task Handle(
-            Guid messageId,
-            Guid? correlationId,
-            TodoItemUpdated domainEvent,
+            ReceivedEnvelope<TodoItemUpdated> envelope,
             CancellationToken cancellationToken)
         {
+            TodoItemUpdated domainEvent = envelope.Message;
+
             using (ReadModelDbContext db = _dbContextFactory.Invoke())
             {
                 TodoItem todoItem = await db
@@ -65,11 +65,11 @@ namespace TodoList.ReadModel
         }
 
         public async Task Handle(
-            Guid messageId,
-            Guid? correlationId,
-            TodoItemDeleted domainEvent,
+            ReceivedEnvelope<TodoItemDeleted> envelope,
             CancellationToken cancellationToken)
         {
+            TodoItemDeleted domainEvent = envelope.Message;
+
             using (ReadModelDbContext db = _dbContextFactory.Invoke())
             {
                 TodoItem todoItem = await db
