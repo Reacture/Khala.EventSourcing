@@ -25,6 +25,8 @@ namespace TodoList.Domain
         }
 
         public Task Handle(
+            Guid messageId,
+            Guid? correlationId,
             CreateTodoItem command,
             CancellationToken cancellationToken)
         {
@@ -32,10 +34,12 @@ namespace TodoList.Domain
                 command.TodoItemId,
                 command.Description);
 
-            return _repository.Save(todoItem, cancellationToken);
+            return _repository.Save(todoItem, messageId, cancellationToken);
         }
 
         public async Task Handle(
+            Guid messageId,
+            Guid? correlationId,
             UpdateTodoItem command,
             CancellationToken cancellationToken)
         {
@@ -50,10 +54,12 @@ namespace TodoList.Domain
 
             todoItem.Update(command.Description);
 
-            await _repository.Save(todoItem, cancellationToken);
+            await _repository.Save(todoItem, messageId, cancellationToken);
         }
 
         public async Task Handle(
+            Guid messageId,
+            Guid? correlationId,
             DeleteTodoItem command,
             CancellationToken cancellationToken)
         {
@@ -68,7 +74,7 @@ namespace TodoList.Domain
 
             todoItem.Delete();
 
-            await _repository.Save(todoItem, cancellationToken);
+            await _repository.Save(todoItem, messageId, cancellationToken);
         }
     }
 }

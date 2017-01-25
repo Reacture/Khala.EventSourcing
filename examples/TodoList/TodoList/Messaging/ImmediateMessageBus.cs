@@ -20,13 +20,13 @@ namespace TodoList.Messaging
         }
 
         public async Task Send(
-            object message,
+            Envelope envelope,
             CancellationToken cancellationToken)
         {
             IMessageHandler handler = _messageHandler.Value;
             try
             {
-                await handler.Handle(message, cancellationToken);
+                await handler.Handle(envelope, cancellationToken);
             }
             catch (Exception exception)
             {
@@ -35,15 +35,15 @@ namespace TodoList.Messaging
         }
 
         public async Task SendBatch(
-            IEnumerable<object> messages,
+            IEnumerable<Envelope> envelopes,
             CancellationToken cancellationToken)
         {
             IMessageHandler handler = _messageHandler.Value;
-            foreach (object message in messages)
+            foreach (Envelope envelope in envelopes)
             {
                 try
                 {
-                    await handler.Handle(message, cancellationToken);
+                    await handler.Handle(envelope, cancellationToken);
                 }
                 catch (Exception exception)
                 {

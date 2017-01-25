@@ -25,6 +25,8 @@ namespace TodoList.ReadModel
         }
 
         public async Task Handle(
+            Guid messageId,
+            Guid? correlationId,
             TodoItemCreated domainEvent,
             CancellationToken cancellationToken)
         {
@@ -44,6 +46,8 @@ namespace TodoList.ReadModel
         }
 
         public async Task Handle(
+            Guid messageId,
+            Guid? correlationId,
             TodoItemUpdated domainEvent,
             CancellationToken cancellationToken)
         {
@@ -61,6 +65,8 @@ namespace TodoList.ReadModel
         }
 
         public async Task Handle(
+            Guid messageId,
+            Guid? correlationId,
             TodoItemDeleted domainEvent,
             CancellationToken cancellationToken)
         {

@@ -52,7 +52,8 @@ namespace TodoList.Controllers
             {
                 var command = new CreateTodoItem(
                     Guid.NewGuid(), model.Description);
-                await MessageBus.Send(command, cancellationToken);
+                var envelope = new Envelope(command);
+                await MessageBus.Send(envelope, cancellationToken);
                 return RedirectToAction("Index");
             }
 
@@ -84,7 +85,8 @@ namespace TodoList.Controllers
             if (ModelState.IsValid)
             {
                 var command = new UpdateTodoItem(model.Id, model.Description);
-                await MessageBus.Send(command, cancellationToken);
+                var envelope = new Envelope(command);
+                await MessageBus.Send(envelope, cancellationToken);
                 return RedirectToAction("Index");
             }
 
@@ -110,7 +112,8 @@ namespace TodoList.Controllers
             CancellationToken cancellationToken)
         {
             var command = new DeleteTodoItem(id);
-            await MessageBus.Send(command, cancellationToken);
+            var envelope = new Envelope(command);
+            await MessageBus.Send(envelope, cancellationToken);
             return RedirectToAction("Index");
         }
     }
