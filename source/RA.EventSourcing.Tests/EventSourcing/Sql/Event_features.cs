@@ -51,7 +51,7 @@ namespace ReactiveArchitecture.EventSourcing.Sql
         }
 
         [TestMethod]
-        public void FromDomainEventFromEnvelope_sets_Version_correctly()
+        public void FromEnvelope_sets_Version_correctly()
         {
             var domainEvent = fixture.Create<FakeDomainEvent>();
             var envelope = new Envelope(domainEvent);
