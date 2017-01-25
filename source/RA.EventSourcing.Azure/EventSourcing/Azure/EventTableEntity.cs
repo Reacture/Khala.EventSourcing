@@ -31,6 +31,11 @@
                 throw new ArgumentNullException(nameof(envelope));
             }
 
+            if (serializer == null)
+            {
+                throw new ArgumentNullException(nameof(serializer));
+            }
+
             var domainEvent = envelope.Message as IDomainEvent;
 
             if (domainEvent == null)
@@ -40,23 +45,34 @@
                     nameof(envelope));
             }
 
-            return new EventTableEntity
-            {
-                PartitionKey = GetPartitionKey(typeof(T), domainEvent.SourceId),
-                RowKey = GetRowKey(domainEvent.Version),
-                EventType = domainEvent.GetType().FullName,
-                MessageId = envelope.MessageId,
-                CorrelationId = envelope.CorrelationId,
-                EventJson = serializer.Serialize(domainEvent),
-                RaisedAt = domainEvent.RaisedAt
-            };
+            return Create(
+                GetPartitionKey(typeof(T), domainEvent.SourceId),
+                envelope.MessageId,
+                envelope.CorrelationId,
+                domainEvent,
+                serializer);
         }
 
-        internal static EventTableEntity FromEnvelope(
+        public static EventTableEntity FromEnvelope(
             string partition,
             Envelope envelope,
             IMessageSerializer serializer)
         {
+            if (partition == null)
+            {
+                throw new ArgumentNullException(nameof(partition));
+            }
+
+            if (envelope == null)
+            {
+                throw new ArgumentNullException(nameof(envelope));
+            }
+
+            if (serializer == null)
+            {
+                throw new ArgumentNullException(nameof(serializer));
+            }
+
             var domainEvent = envelope.Message as IDomainEvent;
 
             if (domainEvent == null)
@@ -66,13 +82,28 @@
                     nameof(envelope));
             }
 
+            return Create(
+                partition,
+                envelope.MessageId,
+                envelope.CorrelationId,
+                domainEvent,
+                serializer);
+        }
+
+        private static EventTableEntity Create(
+            string partition,
+            Guid messageId,
+            Guid? correlationId,
+            IDomainEvent domainEvent,
+            IMessageSerializer serializer)
+        {
             return new EventTableEntity
             {
                 PartitionKey = partition,
                 RowKey = GetRowKey(domainEvent.Version),
                 EventType = domainEvent.GetType().FullName,
-                MessageId = envelope.MessageId,
-                CorrelationId = envelope.CorrelationId,
+                MessageId = messageId,
+                CorrelationId = correlationId,
                 EventJson = serializer.Serialize(domainEvent),
                 RaisedAt = domainEvent.RaisedAt
             };
