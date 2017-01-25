@@ -69,7 +69,6 @@
 
             if (pendingEvents.Any())
             {
-                await InsertUnpersistedEvents(persistedPartition, pendingEvents, cancellationToken).ConfigureAwait(false);
                 await SendPendingEvents(pendingEvents, cancellationToken).ConfigureAwait(false);
                 await DeletePendingEvents(pendingEvents, cancellationToken).ConfigureAwait(false);
             }
@@ -91,37 +90,24 @@
                 .ConfigureAwait(false));
         }
 
-        private async Task InsertUnpersistedEvents(
-            string persistedPartition,
+        private async Task SendPendingEvents(
             List<PendingEventTableEntity> pendingEvents,
             CancellationToken cancellationToken)
         {
             PendingEventTableEntity firstEvent = pendingEvents.First();
 
+            string persistedPartition = firstEvent.PersistedPartition;
+
             List<EventTableEntity> persistedEvents = await
                 GetPersistedEvents(persistedPartition, firstEvent.Version, cancellationToken).ConfigureAwait(false);
 
-            var batch = new TableBatchOperation();
+            var persistedVersions = new HashSet<int>(persistedEvents.Select(e => e.Version));
 
-            IEnumerable<Envelope> unpersistedEnvelopes = pendingEvents
-                .Skip(persistedEvents.Count)
-                .Select(e => e.EnvelopeJson)
-                .Select(_serializer.Deserialize)
-                .Cast<Envelope>();
-
-            foreach (Envelope envelope in unpersistedEnvelopes)
-            {
-                var entity = EventTableEntity.FromEnvelope(
-                    persistedPartition, envelope, _serializer);
-                batch.Insert(entity);
-            }
-
-            if (batch.Any() == false)
-            {
-                return;
-            }
-
-            await _eventTable.ExecuteBatchAsync(batch, cancellationToken).ConfigureAwait(false);
+            var envelopes =
+                from e in pendingEvents
+                where persistedVersions.Contains(e.Version)
+                select (Envelope)_serializer.Deserialize(e.EnvelopeJson);
+            await _messageBus.SendBatch(envelopes, cancellationToken).ConfigureAwait(false);
         }
 
         private async Task<List<EventTableEntity>> GetPersistedEvents(
@@ -145,16 +131,6 @@
             return new List<EventTableEntity>(await _eventTable
                 .ExecuteQuery(query.Where(filter), cancellationToken)
                 .ConfigureAwait(false));
-        }
-
-        private Task SendPendingEvents(
-            List<PendingEventTableEntity> pendingEvents,
-            CancellationToken cancellationToken)
-        {
-            var envelopes =
-                from e in pendingEvents
-                select (Envelope)_serializer.Deserialize(e.EnvelopeJson);
-            return _messageBus.SendBatch(envelopes, cancellationToken);
         }
 
         private Task DeletePendingEvents(

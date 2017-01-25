@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Linq;
 using FluentAssertions;
 using Microsoft.WindowsAzure.Storage.Table;
 using Ploeh.AutoFixture;
@@ -31,17 +30,15 @@ namespace ReactiveArchitecture.EventSourcing.Azure
         }
 
         [Fact]
-        public void FromEnvelopeT_has_guard_clauses()
+        public void FromEnvelope_has_guard_clauses()
         {
             fixture.Customize(new AutoMoqCustomization());
             var assertion = new GuardClauseAssertion(fixture);
-            assertion.Verify(typeof(EventTableEntity)
-                .GetMethods()
-                .Where(m => m.Name == "FromEnvelope" && m.IsGenericMethod));
+            assertion.Verify(typeof(EventTableEntity).GetMethod("FromEnvelope"));
         }
 
         [Fact]
-        public void FromEnvelopeT_has_guard_clause_for_invalid_message()
+        public void FromEnvelope_has_guard_clause_for_invalid_message()
         {
             var envelope = new Envelope(new object());
             Action action = () => FromEnvelope<FakeUser>(envelope, serializer);
@@ -49,7 +46,7 @@ namespace ReactiveArchitecture.EventSourcing.Azure
         }
 
         [Fact]
-        public void FromEnvelopeT_sets_PartitionKey_correctly()
+        public void FromEnvelope_sets_PartitionKey_correctly()
         {
             var domainEvent = fixture.Create<FakeUserCreated>();
             var envelope = new Envelope(domainEvent);
@@ -62,123 +59,27 @@ namespace ReactiveArchitecture.EventSourcing.Azure
         }
 
         [Fact]
-        public void FromEnvelopeT_sets_RowKey_correctly()
-        {
-            var domainEvent = fixture.Create<FakeUserCreated>();
-            var envelope = new Envelope(domainEvent);
-
-            EventTableEntity entity =
-                FromEnvelope<FakeUser>(envelope, serializer);
-
-            entity.RowKey.Should().Be(GetRowKey(domainEvent.Version));
-        }
-
-        [Fact]
-        public void FromEnvelopeT_sets_EventType_correctly()
-        {
-            var domainEvent = fixture.Create<FakeUserCreated>();
-            var envelope = new Envelope(domainEvent);
-
-            EventTableEntity entity =
-                FromEnvelope<FakeUser>(envelope, serializer);
-
-            entity.EventType.Should().Be(typeof(FakeUserCreated).FullName);
-        }
-
-        [Fact]
-        public void FromEnvelopeT_sets_MessageId_correctly()
-        {
-            var domainEvent = fixture.Create<FakeUserCreated>();
-            var envelope = new Envelope(domainEvent);
-
-            EventTableEntity entity =
-                FromEnvelope<FakeUser>(envelope, serializer);
-
-            entity.MessageId.Should().Be(envelope.MessageId);
-        }
-
-        [Fact]
-        public void FromEnvelopeT_sets_CorrelationId_correctly()
-        {
-            var domainEvent = fixture.Create<FakeUserCreated>();
-            var correlationId = Guid.NewGuid();
-            var envelope = new Envelope(correlationId, domainEvent);
-
-            EventTableEntity entity =
-                FromEnvelope<FakeUser>(envelope, serializer);
-
-            entity.CorrelationId.Should().Be(correlationId);
-        }
-
-        [Fact]
-        public void FromEnvelopeT_sets_EventJson_correctly()
-        {
-            var domainEvent = fixture.Create<FakeUserCreated>();
-            var envelope = new Envelope(domainEvent);
-
-            EventTableEntity entity =
-                FromEnvelope<FakeUser>(envelope, serializer);
-
-            object actual = serializer.Deserialize(entity.EventJson);
-            actual.Should().BeOfType<FakeUserCreated>();
-            actual.ShouldBeEquivalentTo(domainEvent);
-        }
-
-        [Fact]
-        public void FromEnvelopeT_sets_RaisedAt_correctly()
-        {
-            var domainEvent = fixture.Create<FakeUserCreated>();
-            var envelope = new Envelope(domainEvent);
-
-            EventTableEntity entity =
-                FromEnvelope<FakeUser>(envelope, serializer);
-
-            entity.RaisedAt.Should().Be(domainEvent.RaisedAt);
-        }
-
-        [Fact]
-        public void FromEnvelope_has_guard_clauses()
-        {
-            fixture.Customize(new AutoMoqCustomization());
-            var assertion = new GuardClauseAssertion(fixture);
-            assertion.Verify(typeof(EventTableEntity)
-                .GetMethods()
-                .Where(m => m.Name == "FromEnvelope" && !m.IsGenericMethod));
-        }
-
-        [Fact]
-        public void FromEnvelope_has_guard_clause_for_invalid_message()
-        {
-            var envelope = new Envelope(new object());
-            var partition = fixture.Create("partition");
-            Action action = () => FromEnvelope(partition, envelope, serializer);
-            action.ShouldThrow<ArgumentException>().Where(x => x.ParamName == "envelope");
-        }
-
-        [Fact]
-        public void FromEnvelope_sets_PartitionKey_correctly()
-        {
-            var domainEvent = fixture.Create<FakeUserCreated>();
-            var envelope = new Envelope(domainEvent);
-            var partition = fixture.Create("partition");
-
-            EventTableEntity entity =
-                FromEnvelope(partition, envelope, serializer);
-
-            entity.PartitionKey.Should().Be(partition);
-        }
-
-        [Fact]
         public void FromEnvelope_sets_RowKey_correctly()
         {
             var domainEvent = fixture.Create<FakeUserCreated>();
             var envelope = new Envelope(domainEvent);
-            var partition = fixture.Create("partition");
 
             EventTableEntity entity =
-                FromEnvelope(partition, envelope, serializer);
+                FromEnvelope<FakeUser>(envelope, serializer);
 
             entity.RowKey.Should().Be(GetRowKey(domainEvent.Version));
+        }
+
+        [Fact]
+        public void FromEnvelope_sets_Version_correctly()
+        {
+            var domainEvent = fixture.Create<FakeUserCreated>();
+            var envelope = new Envelope(domainEvent);
+
+            EventTableEntity entity =
+                FromEnvelope<FakeUser>(envelope, serializer);
+
+            entity.Version.Should().Be(domainEvent.Version);
         }
 
         [Fact]
@@ -186,10 +87,9 @@ namespace ReactiveArchitecture.EventSourcing.Azure
         {
             var domainEvent = fixture.Create<FakeUserCreated>();
             var envelope = new Envelope(domainEvent);
-            var partition = fixture.Create("partition");
 
             EventTableEntity entity =
-                FromEnvelope(partition, envelope, serializer);
+                FromEnvelope<FakeUser>(envelope, serializer);
 
             entity.EventType.Should().Be(typeof(FakeUserCreated).FullName);
         }
@@ -199,10 +99,9 @@ namespace ReactiveArchitecture.EventSourcing.Azure
         {
             var domainEvent = fixture.Create<FakeUserCreated>();
             var envelope = new Envelope(domainEvent);
-            var partition = fixture.Create("partition");
 
             EventTableEntity entity =
-                FromEnvelope(partition, envelope, serializer);
+                FromEnvelope<FakeUser>(envelope, serializer);
 
             entity.MessageId.Should().Be(envelope.MessageId);
         }
@@ -213,10 +112,9 @@ namespace ReactiveArchitecture.EventSourcing.Azure
             var domainEvent = fixture.Create<FakeUserCreated>();
             var correlationId = Guid.NewGuid();
             var envelope = new Envelope(correlationId, domainEvent);
-            var partition = fixture.Create("partition");
 
             EventTableEntity entity =
-                FromEnvelope(partition, envelope, serializer);
+                FromEnvelope<FakeUser>(envelope, serializer);
 
             entity.CorrelationId.Should().Be(correlationId);
         }
@@ -226,10 +124,9 @@ namespace ReactiveArchitecture.EventSourcing.Azure
         {
             var domainEvent = fixture.Create<FakeUserCreated>();
             var envelope = new Envelope(domainEvent);
-            var partition = fixture.Create("partition");
 
             EventTableEntity entity =
-                FromEnvelope(partition, envelope, serializer);
+                FromEnvelope<FakeUser>(envelope, serializer);
 
             object actual = serializer.Deserialize(entity.EventJson);
             actual.Should().BeOfType<FakeUserCreated>();
@@ -241,10 +138,9 @@ namespace ReactiveArchitecture.EventSourcing.Azure
         {
             var domainEvent = fixture.Create<FakeUserCreated>();
             var envelope = new Envelope(domainEvent);
-            var partition = fixture.Create("partition");
 
             EventTableEntity entity =
-                FromEnvelope(partition, envelope, serializer);
+                FromEnvelope<FakeUser>(envelope, serializer);
 
             entity.RaisedAt.Should().Be(domainEvent.RaisedAt);
         }

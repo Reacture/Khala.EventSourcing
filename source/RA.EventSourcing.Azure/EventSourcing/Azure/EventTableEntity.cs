@@ -6,6 +6,8 @@
 
     public class EventTableEntity : TableEntity
     {
+        public int Version { get; set; }
+
         public string EventType { get; set; }
 
         public Guid MessageId { get; set; }
@@ -53,43 +55,6 @@
                 serializer);
         }
 
-        public static EventTableEntity FromEnvelope(
-            string partition,
-            Envelope envelope,
-            IMessageSerializer serializer)
-        {
-            if (partition == null)
-            {
-                throw new ArgumentNullException(nameof(partition));
-            }
-
-            if (envelope == null)
-            {
-                throw new ArgumentNullException(nameof(envelope));
-            }
-
-            if (serializer == null)
-            {
-                throw new ArgumentNullException(nameof(serializer));
-            }
-
-            var domainEvent = envelope.Message as IDomainEvent;
-
-            if (domainEvent == null)
-            {
-                throw new ArgumentException(
-                    $"{nameof(envelope)}.{nameof(envelope.Message)} must be an {nameof(IDomainEvent)}.",
-                    nameof(envelope));
-            }
-
-            return Create(
-                partition,
-                envelope.MessageId,
-                envelope.CorrelationId,
-                domainEvent,
-                serializer);
-        }
-
         private static EventTableEntity Create(
             string partition,
             Guid messageId,
@@ -101,6 +66,7 @@
             {
                 PartitionKey = partition,
                 RowKey = GetRowKey(domainEvent.Version),
+                Version = domainEvent.Version,
                 EventType = domainEvent.GetType().FullName,
                 MessageId = messageId,
                 CorrelationId = correlationId,

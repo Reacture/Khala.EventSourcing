@@ -158,6 +158,7 @@ namespace ReactiveArchitecture.EventSourcing.Azure
                 var actual = new
                 {
                     t.Persisted.RowKey,
+                    t.Persisted.Version,
                     t.Persisted.EventType,
                     Event = (DomainEvent)serializer.Deserialize(t.Persisted.EventJson),
                     t.Persisted.RaisedAt
@@ -165,6 +166,7 @@ namespace ReactiveArchitecture.EventSourcing.Azure
                 actual.ShouldBeEquivalentTo(new
                 {
                     RowKey = EventTableEntity.GetRowKey(t.Source.Version),
+                    t.Source.Version,
                     EventType = t.Source.GetType().FullName,
                     Event = t.Source,
                     t.Source.RaisedAt

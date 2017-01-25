@@ -80,7 +80,7 @@ namespace ReactiveArchitecture.EventSourcing.Azure
         }
 
         [TestMethod]
-        public async Task PublishPendingEvents_persists_unpersisted_pending_events()
+        public async Task PublishPendingEventss_sends_pending_events()
         {
             // Arrange
             var userId = Guid.NewGuid();
@@ -100,45 +100,36 @@ namespace ReactiveArchitecture.EventSourcing.Azure
 
             batchOperation.Clear();
             envelopes
-                .Take(1)
                 .Select(e => EventTableEntity.FromEnvelope<FakeUser>(e, serializer))
                 .ForEach(batchOperation.Insert);
             await s_eventTable.ExecuteBatchAsync(batchOperation);
+
+            List<Envelope> batch = null;
+
+            Mock.Get(messageBus)
+                .Setup(
+                    x =>
+                    x.SendBatch(
+                        It.IsAny<IEnumerable<Envelope>>(),
+                        It.IsAny<CancellationToken>()))
+                .Callback<IEnumerable<Envelope>, CancellationToken>((b, t) => batch = b.ToList())
+                .Returns(Task.FromResult(true));
 
             // Act
             await sut.PublishPendingEvents<FakeUser>(userId, CancellationToken.None);
 
             // Assert
-            string partitionKey = EventTableEntity.GetPartitionKey(typeof(FakeUser), userId);
-            var query = new TableQuery<EventTableEntity>().Where($"PartitionKey eq '{partitionKey}'");
-            IEnumerable<object> actual = s_eventTable
-                .ExecuteQuery(query)
-                .Select(e => new
-                {
-                    e.RowKey,
-                    e.EventType,
-                    e.MessageId,
-                    e.CorrelationId,
-                    e.RaisedAt,
-                    Payload = serializer.Deserialize(e.EventJson)
-                });
-
-            IEnumerable<object> expected = envelopes
-                .Select(e => new
-                {
-                    RowKey = EventTableEntity.GetRowKey(((IDomainEvent)e.Message).Version),
-                    EventType = e.Message.GetType().FullName,
-                    e.MessageId,
-                    e.CorrelationId,
-                    ((IDomainEvent)e.Message).RaisedAt,
-                    Payload = e.Message
-                });
-
-            actual.ShouldAllBeEquivalentTo(expected);
+            Mock.Get(messageBus).Verify(
+                x =>
+                x.SendBatch(
+                    It.IsAny<IEnumerable<Envelope>>(),
+                    CancellationToken.None),
+                Times.Once());
+            batch.ShouldAllBeEquivalentTo(envelopes, opts => opts.RespectingRuntimeTypes());
         }
 
         [TestMethod]
-        public async Task PublishPendingEventss_sends_all_pending_events()
+        public async Task PublishPendingEventss_sends_only_persisted_pending_events()
         {
             // Arrange
             var userId = Guid.NewGuid();
@@ -184,60 +175,7 @@ namespace ReactiveArchitecture.EventSourcing.Azure
                     It.IsAny<IEnumerable<Envelope>>(),
                     CancellationToken.None),
                 Times.Once());
-            batch.ShouldAllBeEquivalentTo(envelopes, opts => opts.RespectingRuntimeTypes());
-        }
-
-        [TestMethod]
-        public async Task PublishPendingEvents_does_not_send_pending_events_if_fails_to_persist()
-        {
-            // Arrange
-            var userId = Guid.NewGuid();
-
-            var userCreated = fixture.Create<FakeUserCreated>();
-            var usernameChanged = fixture.Create<FakeUsernameChanged>();
-            var domainEvents = new DomainEvent[] { userCreated, usernameChanged };
-            RaiseEvents(userId, domainEvents);
-
-            var batchOperation = new TableBatchOperation();
-            domainEvents
-                .Select(e => new Envelope(e))
-                .Select(e => PendingEventTableEntity.FromEnvelope<FakeUser>(e, serializer))
-                .ForEach(batchOperation.Insert);
-            await s_eventTable.ExecuteBatchAsync(batchOperation);
-
-            var eventTableMock = new Mock<CloudTable>(
-                s_eventTable.Uri,
-                s_storageAccount.Credentials)
-            {
-                CallBase = true
-            };
-
-            var sut = new AzureEventPublisher(eventTableMock.Object, serializer, messageBus);
-
-            eventTableMock
-                .Setup(
-                    x =>
-                    x.ExecuteBatchAsync(
-                        It.IsAny<TableBatchOperation>(),
-                        It.IsAny<CancellationToken>()))
-                .ThrowsAsync(new StorageException());
-
-            // Act
-            try
-            {
-                await sut.PublishPendingEvents<FakeUser>(userId, CancellationToken.None);
-            }
-            catch (StorageException)
-            {
-            }
-
-            // Assert
-            Mock.Get(messageBus).Verify(
-                x =>
-                x.SendBatch(
-                    It.IsAny<IEnumerable<Envelope>>(),
-                    It.IsAny<CancellationToken>()),
-                Times.Never());
+            batch.ShouldAllBeEquivalentTo(envelopes.Take(1), opts => opts.RespectingRuntimeTypes());
         }
 
         [TestMethod]
@@ -378,7 +316,7 @@ namespace ReactiveArchitecture.EventSourcing.Azure
         }
 
         [TestMethod]
-        public async Task PublishAllEvents_sends_all_pending_events()
+        public async Task PublishAllEvents_sends_pending_events()
         {
             // Arrange
             var domainEvents = new List<DomainEvent>();
@@ -392,12 +330,17 @@ namespace ReactiveArchitecture.EventSourcing.Azure
                 var events = new DomainEvent[] { userCreated, usernameChanged };
                 RaiseEvents(userId, events);
 
-                var serializer = new JsonMessageSerializer();
+                var envelopes = new List<Envelope>(events.Select(e => new Envelope(e)));
 
                 var batchOperation = new TableBatchOperation();
-                events
-                    .Select(e => new Envelope(e))
+                envelopes
                     .Select(e => PendingEventTableEntity.FromEnvelope<FakeUser>(e, serializer))
+                    .ForEach(batchOperation.Insert);
+                await s_eventTable.ExecuteBatchAsync(batchOperation);
+
+                batchOperation.Clear();
+                envelopes
+                    .Select(e => EventTableEntity.FromEnvelope<FakeUser>(e, serializer))
                     .ForEach(batchOperation.Insert);
                 await s_eventTable.ExecuteBatchAsync(batchOperation);
 
