@@ -12,14 +12,12 @@
         private readonly IAzureEventStore _eventStore;
         private readonly IAzureEventPublisher _eventPublisher;
         private readonly IMementoStore _mementoStore;
-        private readonly IAzureEventCorrector _eventCorrector;
         private readonly Func<Guid, IEnumerable<IDomainEvent>, T> _entityFactory;
         private readonly Func<Guid, IMemento, IEnumerable<IDomainEvent>, T> _mementoEntityFactory;
 
         public AzureEventSourcedRepository(
             IAzureEventStore eventStore,
             IAzureEventPublisher eventPublisher,
-            IAzureEventCorrector eventCorrector,
             Func<Guid, IEnumerable<IDomainEvent>, T> entityFactory)
         {
             if (eventStore == null)
@@ -32,11 +30,6 @@
                 throw new ArgumentNullException(nameof(eventPublisher));
             }
 
-            if (eventCorrector == null)
-            {
-                throw new ArgumentNullException(nameof(eventCorrector));
-            }
-
             if (entityFactory == null)
             {
                 throw new ArgumentNullException(nameof(entityFactory));
@@ -44,26 +37,16 @@
 
             _eventStore = eventStore;
             _eventPublisher = eventPublisher;
-            _eventCorrector = eventCorrector;
             _entityFactory = entityFactory;
-        }
-
-        public AzureEventSourcedRepository(
-            AzureEventStore eventStore,
-            AzureEventPublisher eventPublisher,
-            Func<Guid, IEnumerable<IDomainEvent>, T> entityFactory)
-            : this(eventStore, eventPublisher, eventPublisher, entityFactory)
-        {
         }
 
         public AzureEventSourcedRepository(
             IAzureEventStore eventStore,
             IAzureEventPublisher eventPublisher,
             IMementoStore mementoStore,
-            IAzureEventCorrector eventCorrector,
             Func<Guid, IEnumerable<IDomainEvent>, T> entityFactory,
             Func<Guid, IMemento, IEnumerable<IDomainEvent>, T> mementoEntityFactory)
-            : this(eventStore, eventPublisher, eventCorrector, entityFactory)
+            : this(eventStore, eventPublisher, entityFactory)
         {
             if (mementoStore == null)
             {
@@ -77,22 +60,6 @@
 
             _mementoStore = mementoStore;
             _mementoEntityFactory = mementoEntityFactory;
-        }
-
-        public AzureEventSourcedRepository(
-            AzureEventStore eventStore,
-            AzureEventPublisher eventPublisher,
-            IMementoStore mementoStore,
-            Func<Guid, IEnumerable<IDomainEvent>, T> entityFactory,
-            Func<Guid, IMemento, IEnumerable<IDomainEvent>, T> mementoEntityFactory)
-            : this(
-                  eventStore,
-                  eventPublisher,
-                  mementoStore,
-                  eventPublisher,
-                  entityFactory,
-                  mementoEntityFactory)
-        {
         }
 
         public IEventPublisher EventPublisher => _eventPublisher;
@@ -132,12 +99,16 @@
                     $"{nameof(sourceId)} cannot be empty.", nameof(sourceId));
             }
 
-            return CorrectAndRestore(sourceId, cancellationToken);
+            return PublishAndRestore(sourceId, cancellationToken);
         }
 
-        private async Task<T> CorrectAndRestore(
+        private async Task<T> PublishAndRestore(
             Guid sourceId, CancellationToken cancellationToken)
         {
+            await _eventPublisher
+                .PublishPendingEvents<T>(sourceId, cancellationToken)
+                .ConfigureAwait(false);
+
             IMemento memento = null;
             if (_mementoStore != null && _mementoEntityFactory != null)
             {
@@ -145,10 +116,6 @@
                     .Find<T>(sourceId, cancellationToken)
                     .ConfigureAwait(false);
             }
-
-            await _eventCorrector
-                .CorrectEvents<T>(sourceId, cancellationToken)
-                .ConfigureAwait(false);
 
             IEnumerable<IDomainEvent> domainEvents = await _eventStore
                 .LoadEvents<T>(sourceId, memento?.Version ?? 0, cancellationToken)

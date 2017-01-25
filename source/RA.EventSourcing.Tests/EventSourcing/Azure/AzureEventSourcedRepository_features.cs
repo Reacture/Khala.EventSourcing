@@ -21,7 +21,6 @@ namespace ReactiveArchitecture.EventSourcing.Azure
         private IAzureEventStore eventStore;
         private IAzureEventPublisher eventPublisher;
         private IMementoStore mementoStore;
-        private IAzureEventCorrector eventCorrector;
         private AzureEventSourcedRepository<FakeUser> sut;
 
         public AzureEventSourcedRepository_features()
@@ -30,12 +29,10 @@ namespace ReactiveArchitecture.EventSourcing.Azure
             eventStore = Mock.Of<IAzureEventStore>();
             eventPublisher = Mock.Of<IAzureEventPublisher>();
             mementoStore = Mock.Of<IMementoStore>();
-            eventCorrector = Mock.Of<IAzureEventCorrector>();
             sut = new AzureEventSourcedRepository<FakeUser>(
                 eventStore,
                 eventPublisher,
                 mementoStore,
-                eventCorrector,
                 FakeUser.Factory,
                 FakeUser.Factory);
         }
@@ -171,7 +168,7 @@ namespace ReactiveArchitecture.EventSourcing.Azure
 
         [Theory]
         [AutoData]
-        public async Task Find_corrects_damaged_events(
+        public async Task Find_publishes_pending_events(
             FakeUser user,
             string username)
         {
@@ -179,8 +176,11 @@ namespace ReactiveArchitecture.EventSourcing.Azure
 
             await sut.Find(user.Id, CancellationToken.None);
 
-            Mock.Get(eventCorrector).Verify(
-                x => x.CorrectEvents<FakeUser>(user.Id, CancellationToken.None),
+            Mock.Get(eventPublisher).Verify(
+                x =>
+                x.PublishPendingEvents<FakeUser>(
+                    user.Id,
+                    CancellationToken.None),
                 Times.Once());
         }
 
@@ -202,16 +202,18 @@ namespace ReactiveArchitecture.EventSourcing.Azure
 
         [Theory]
         [AutoData]
-        public void Find_does_not_load_events_if_fails_to_correct_events(
+        public void Find_does_not_load_events_if_fails_to_publish_events(
             FakeUser user,
             string username)
         {
             // Arrange
             user.ChangeUsername(username);
-            Mock.Get(eventCorrector)
+            Mock.Get(eventPublisher)
                 .Setup(
                     x =>
-                    x.CorrectEvents<FakeUser>(user.Id, CancellationToken.None))
+                    x.PublishPendingEvents<FakeUser>(
+                        user.Id,
+                        CancellationToken.None))
                 .Throws<InvalidOperationException>();
 
             // Act

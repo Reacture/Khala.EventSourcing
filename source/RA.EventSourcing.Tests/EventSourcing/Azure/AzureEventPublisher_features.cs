@@ -80,141 +80,7 @@ namespace ReactiveArchitecture.EventSourcing.Azure
         }
 
         [TestMethod]
-        public async Task PublishPendingEvents_sends_pending_events_correctly()
-        {
-            // Arrange
-            var userId = Guid.NewGuid();
-
-            var userCreated = fixture.Create<FakeUserCreated>();
-            var usernameChanged = fixture.Create<FakeUsernameChanged>();
-            var domainEvents = new DomainEvent[] { userCreated, usernameChanged };
-            RaiseEvents(userId, domainEvents);
-
-            var envelopes = new List<Envelope>(domainEvents.Select(e => new Envelope(e)));
-            var batchOperation = new TableBatchOperation();
-            List<PendingEventTableEntity> pendingEvents = envelopes
-                .Select(e => PendingEventTableEntity.FromEnvelope<FakeUser>(e, serializer))
-                .ToList();
-            pendingEvents.ForEach(batchOperation.Insert);
-            await s_eventTable.ExecuteBatchAsync(batchOperation);
-
-            List<Envelope> batch = null;
-
-            Mock.Get(messageBus)
-                .Setup(
-                    x =>
-                    x.SendBatch(
-                        It.IsAny<IEnumerable<Envelope>>(),
-                        It.IsAny<CancellationToken>()))
-                .Callback<IEnumerable<Envelope>, CancellationToken>((b, t) => batch = b.ToList())
-                .Returns(Task.FromResult(true));
-
-            // Act
-            await sut.PublishPendingEvents<FakeUser>(userId, CancellationToken.None);
-
-            // Assert
-            Mock.Get(messageBus).Verify(
-                x =>
-                x.SendBatch(
-                    It.IsAny<IEnumerable<Envelope>>(),
-                    CancellationToken.None),
-                Times.Once());
-            batch.ShouldAllBeEquivalentTo(envelopes, opts => opts.RespectingRuntimeTypes());
-        }
-
-        [TestMethod]
-        public async Task PublishPendingEvents_deletes_all_pending_events()
-        {
-            // Arrange
-            var userId = Guid.NewGuid();
-
-            var userCreated = fixture.Create<FakeUserCreated>();
-            var usernameChanged = fixture.Create<FakeUsernameChanged>();
-            var domainEvents = new DomainEvent[] { userCreated, usernameChanged };
-            RaiseEvents(userId, domainEvents);
-
-            var batchOperation = new TableBatchOperation();
-            domainEvents
-                .Select(e => new Envelope(e))
-                .Select(e => PendingEventTableEntity.FromEnvelope<FakeUser>(e, serializer))
-                .ForEach(batchOperation.Insert);
-            await s_eventTable.ExecuteBatchAsync(batchOperation);
-
-            // Act
-            await sut.PublishPendingEvents<FakeUser>(userId, CancellationToken.None);
-
-            // Assert
-            string partitionKey = PendingEventTableEntity.GetPartitionKey(typeof(FakeUser), userId);
-            var query = new TableQuery<PendingEventTableEntity>().Where($"PartitionKey eq '{partitionKey}'");
-            List<PendingEventTableEntity> actual = s_eventTable.ExecuteQuery(query).ToList();
-            actual.Should().BeEmpty();
-        }
-
-        [TestMethod]
-        public async Task PublishPendingEvents_does_not_deletes_pending_events_if_fails_to_send()
-        {
-            // Arrange
-            var userId = Guid.NewGuid();
-
-            var userCreated = fixture.Create<FakeUserCreated>();
-            var usernameChanged = fixture.Create<FakeUsernameChanged>();
-            var domainEvents = new DomainEvent[] { userCreated, usernameChanged };
-            RaiseEvents(userId, domainEvents);
-
-            var batchOperation = new TableBatchOperation();
-            List<PendingEventTableEntity> pendingEvents = domainEvents
-                .Select(e => new Envelope(e))
-                .Select(e => PendingEventTableEntity.FromEnvelope<FakeUser>(e, serializer))
-                .ToList();
-            pendingEvents.ForEach(batchOperation.Insert);
-            await s_eventTable.ExecuteBatchAsync(batchOperation);
-
-            Mock.Get(messageBus)
-                .Setup(x => x.SendBatch(It.IsAny<IEnumerable<Envelope>>(), It.IsAny<CancellationToken>()))
-                .Throws(new InvalidOperationException());
-
-            // Act
-            try
-            {
-                await sut.PublishPendingEvents<FakeUser>(userId, CancellationToken.None);
-            }
-            catch (InvalidOperationException)
-            {
-            }
-
-            string partitionKey = PendingEventTableEntity.GetPartitionKey(typeof(FakeUser), userId);
-            var query = new TableQuery<PendingEventTableEntity>().Where($"PartitionKey eq '{partitionKey}'");
-            IEnumerable<object> actual = s_eventTable.ExecuteQuery(query).Select(e => e.RowKey);
-            actual.ShouldAllBeEquivalentTo(pendingEvents.Select(e => e.RowKey));
-        }
-
-        [TestMethod]
-        public void PublishPendingEvents_does_not_invokes_SendBatch_if_pending_event_not_found()
-        {
-            // Arrange
-            var userId = Guid.NewGuid();
-
-            // Act
-            Func<Task> action = () => sut.PublishPendingEvents<FakeUser>(userId, CancellationToken.None);
-
-            // Assert
-            action.ShouldNotThrow();
-            Mock.Get(messageBus).Verify(
-                x =>
-                x.SendBatch(
-                    It.IsAny<IEnumerable<Envelope>>(),
-                    It.IsAny<CancellationToken>()),
-                Times.Never());
-        }
-
-        [TestMethod]
-        public void sut_implements_IAzureEventCorrector()
-        {
-            sut.Should().BeAssignableTo<IAzureEventCorrector>();
-        }
-
-        [TestMethod]
-        public async Task CorrectEvents_persists_unpersisted_pending_events()
+        public async Task PublishPendingEvents_persists_unpersisted_pending_events()
         {
             // Arrange
             var userId = Guid.NewGuid();
@@ -240,7 +106,7 @@ namespace ReactiveArchitecture.EventSourcing.Azure
             await s_eventTable.ExecuteBatchAsync(batchOperation);
 
             // Act
-            await sut.CorrectEvents<FakeUser>(userId, CancellationToken.None);
+            await sut.PublishPendingEvents<FakeUser>(userId, CancellationToken.None);
 
             // Assert
             string partitionKey = EventTableEntity.GetPartitionKey(typeof(FakeUser), userId);
@@ -272,7 +138,7 @@ namespace ReactiveArchitecture.EventSourcing.Azure
         }
 
         [TestMethod]
-        public async Task CorrectEvents_sends_all_pending_events()
+        public async Task PublishPendingEventss_sends_all_pending_events()
         {
             // Arrange
             var userId = Guid.NewGuid();
@@ -309,7 +175,7 @@ namespace ReactiveArchitecture.EventSourcing.Azure
                 .Returns(Task.FromResult(true));
 
             // Act
-            await sut.CorrectEvents<FakeUser>(userId, CancellationToken.None);
+            await sut.PublishPendingEvents<FakeUser>(userId, CancellationToken.None);
 
             // Assert
             Mock.Get(messageBus).Verify(
@@ -322,7 +188,7 @@ namespace ReactiveArchitecture.EventSourcing.Azure
         }
 
         [TestMethod]
-        public async Task CorrectEvents_does_not_send_pending_events_if_fails_to_persist()
+        public async Task PublishPendingEvents_does_not_send_pending_events_if_fails_to_persist()
         {
             // Arrange
             var userId = Guid.NewGuid();
@@ -359,7 +225,7 @@ namespace ReactiveArchitecture.EventSourcing.Azure
             // Act
             try
             {
-                await sut.CorrectEvents<FakeUser>(userId, CancellationToken.None);
+                await sut.PublishPendingEvents<FakeUser>(userId, CancellationToken.None);
             }
             catch (StorageException)
             {
@@ -375,7 +241,7 @@ namespace ReactiveArchitecture.EventSourcing.Azure
         }
 
         [TestMethod]
-        public async Task CorrectEvents_deletes_all_pending_events()
+        public async Task PublishPendingEvents_deletes_all_pending_events()
         {
             // Arrange
             var userId = Guid.NewGuid();
@@ -401,7 +267,7 @@ namespace ReactiveArchitecture.EventSourcing.Azure
             await s_eventTable.ExecuteBatchAsync(batchOperation);
 
             // Act
-            await sut.CorrectEvents<FakeUser>(userId, CancellationToken.None);
+            await sut.PublishPendingEvents<FakeUser>(userId, CancellationToken.None);
 
             // Assert
             string partitionKey = PendingEventTableEntity.GetPartitionKey(typeof(FakeUser), userId);
@@ -411,7 +277,7 @@ namespace ReactiveArchitecture.EventSourcing.Azure
         }
 
         [TestMethod]
-        public async Task CorrectEvents_does_not_delete_pending_events_if_fails_to_send()
+        public async Task PublishPendingEvents_does_not_delete_pending_events_if_fails_to_send()
         {
             // Arrange
             var userId = Guid.NewGuid();
@@ -447,7 +313,7 @@ namespace ReactiveArchitecture.EventSourcing.Azure
             // Act
             try
             {
-                await sut.CorrectEvents<FakeUser>(userId, CancellationToken.None);
+                await sut.PublishPendingEvents<FakeUser>(userId, CancellationToken.None);
             }
             catch (InvalidOperationException)
             {
@@ -461,13 +327,13 @@ namespace ReactiveArchitecture.EventSourcing.Azure
         }
 
         [TestMethod]
-        public void CorrectEvents_does_not_invoke_SendBatch_if_pending_event_not_found()
+        public void PublishPendingEvents_does_not_invoke_SendBatch_if_pending_event_not_found()
         {
             // Arrange
             var userId = Guid.NewGuid();
 
             // Act
-            Func<Task> action = () => sut.CorrectEvents<FakeUser>(userId, CancellationToken.None);
+            Func<Task> action = () => sut.PublishPendingEvents<FakeUser>(userId, CancellationToken.None);
 
             // Assert
             action.ShouldNotThrow();
@@ -480,7 +346,7 @@ namespace ReactiveArchitecture.EventSourcing.Azure
         }
 
         [TestMethod]
-        public async Task CorrectEvents_does_not_fails_even_if_all_events_persisted()
+        public async Task PublishPendingEvents_does_not_fails_even_if_all_events_persisted()
         {
             // Arrange
             var userId = Guid.NewGuid();
@@ -505,14 +371,14 @@ namespace ReactiveArchitecture.EventSourcing.Azure
             await s_eventTable.ExecuteBatchAsync(batchOperation);
 
             // Act
-            Func<Task> action = () => sut.CorrectEvents<FakeUser>(userId, CancellationToken.None);
+            Func<Task> action = () => sut.PublishPendingEvents<FakeUser>(userId, CancellationToken.None);
 
             // Assert
             action.ShouldNotThrow();
         }
 
         [TestMethod]
-        public async Task CorrectAllEvents_sends_all_pending_events()
+        public async Task PublishAllEvents_sends_all_pending_events()
         {
             // Arrange
             var domainEvents = new List<DomainEvent>();
@@ -555,7 +421,7 @@ namespace ReactiveArchitecture.EventSourcing.Azure
                 .Returns(Task.FromResult(true));
 
             // Act
-            await sut.CorrectAllEvents(CancellationToken.None);
+            await sut.PublishAllEvents(CancellationToken.None);
 
             // Assert
             messages.Should().OnlyContain(e => e is IDomainEvent);

@@ -12,8 +12,7 @@
     using static Microsoft.WindowsAzure.Storage.Table.TableOperators;
     using static Microsoft.WindowsAzure.Storage.Table.TableQuery;
 
-    public class AzureEventPublisher :
-        IAzureEventPublisher, IAzureEventCorrector
+    public class AzureEventPublisher : IAzureEventPublisher
     {
         private readonly CloudTable _eventTable;
         private readonly IMessageSerializer _serializer;
@@ -52,106 +51,15 @@
             if (sourceId == Guid.Empty)
             {
                 throw new ArgumentException(
-                    $"{nameof(sourceId)} cannot be empty.", nameof(sourceId));
-            }
-
-            return Publish<T>(sourceId, cancellationToken);
-        }
-
-        private async Task Publish<T>(
-            Guid sourceId, CancellationToken cancellationToken)
-            where T : class, IEventSourced
-        {
-            List<PendingEventTableEntity> pendingEvents = await
-                GetPendingEvents<T>(sourceId, cancellationToken).ConfigureAwait(false);
-
-            if (pendingEvents.Any())
-            {
-                await SendPendingEvents(pendingEvents, cancellationToken).ConfigureAwait(false);
-                await DeletePendingEvents(pendingEvents, cancellationToken).ConfigureAwait(false);
-            }
-        }
-
-        private Task SendPendingEvents(
-            List<PendingEventTableEntity> pendingEvents,
-            CancellationToken cancellationToken)
-        {
-            var envelopes =
-                from e in pendingEvents
-                select (Envelope)_serializer.Deserialize(e.EnvelopeJson);
-            return _messageBus.SendBatch(envelopes, cancellationToken);
-        }
-
-        private Task DeletePendingEvents(
-            List<PendingEventTableEntity> pendingEvents,
-            CancellationToken cancellationToken)
-        {
-            var batch = new TableBatchOperation();
-            pendingEvents.ForEach(batch.Delete);
-            return _eventTable.ExecuteBatchAsync(batch, cancellationToken);
-        }
-
-        public Task CorrectEvents<T>(
-            Guid sourceId, CancellationToken cancellationToken)
-            where T : class, IEventSourced
-        {
-            if (sourceId == Guid.Empty)
-            {
-                throw new ArgumentException(
                     $"{sourceId} cannot be empty.", nameof(sourceId));
             }
 
             string pendingPartition = PendingEventTableEntity.GetPartitionKey(typeof(T), sourceId);
             string persistedPartition = EventTableEntity.GetPartitionKey(typeof(T), sourceId);
-            return Correct(pendingPartition, persistedPartition, cancellationToken);
+            return Publish(pendingPartition, persistedPartition, cancellationToken);
         }
 
-        public async void EnqueueAll(CancellationToken cancellationToken)
-        {
-            await CorrectAllEvents(cancellationToken);
-        }
-
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public async Task CorrectAllEvents(CancellationToken cancellationToken)
-        {
-            var partitions = CreateHashSet(() => new
-            {
-                PendingPartition = default(string),
-                PersistedPartition = default(string)
-            });
-
-            var query = new TableQuery<PendingEventTableEntity>();
-            var filter = PendingEventTableEntity.ScanFilter;
-            TableContinuationToken continuation = null;
-
-            do
-            {
-                TableQuerySegment<PendingEventTableEntity> segment = await _eventTable
-                    .ExecuteQuerySegmentedAsync(query.Where(filter), continuation, cancellationToken)
-                    .ConfigureAwait(false);
-
-                foreach (PendingEventTableEntity entity in segment)
-                {
-                    partitions.Add(new
-                    {
-                        PendingPartition = entity.PartitionKey,
-                        PersistedPartition = entity.PersistedPartition
-                    });
-                }
-
-                continuation = segment.ContinuationToken;
-            }
-            while (continuation != null);
-
-            foreach (var partition in partitions)
-            {
-                await Correct(partition.PendingPartition, partition.PersistedPartition, cancellationToken).ConfigureAwait(false);
-            }
-        }
-
-        private HashSet<T> CreateHashSet<T>(Func<T> descriptor) => new HashSet<T>();
-
-        private async Task Correct(
+        private async Task Publish(
             string pendingPartition,
             string persistedPartition,
             CancellationToken cancellationToken)
@@ -165,15 +73,6 @@
                 await SendPendingEvents(pendingEvents, cancellationToken).ConfigureAwait(false);
                 await DeletePendingEvents(pendingEvents, cancellationToken).ConfigureAwait(false);
             }
-        }
-
-        private Task<List<PendingEventTableEntity>> GetPendingEvents<T>(
-            Guid sourceId,
-            CancellationToken cancellationToken)
-            where T : class, IEventSourced
-        {
-            string pendingPartition = PendingEventTableEntity.GetPartitionKey(typeof(T), sourceId);
-            return GetPendingEvents(pendingPartition, cancellationToken);
         }
 
         private async Task<List<PendingEventTableEntity>> GetPendingEvents(
@@ -247,5 +146,69 @@
                 .ExecuteQuery(query.Where(filter), cancellationToken)
                 .ConfigureAwait(false));
         }
+
+        private Task SendPendingEvents(
+            List<PendingEventTableEntity> pendingEvents,
+            CancellationToken cancellationToken)
+        {
+            var envelopes =
+                from e in pendingEvents
+                select (Envelope)_serializer.Deserialize(e.EnvelopeJson);
+            return _messageBus.SendBatch(envelopes, cancellationToken);
+        }
+
+        private Task DeletePendingEvents(
+            List<PendingEventTableEntity> pendingEvents,
+            CancellationToken cancellationToken)
+        {
+            var batch = new TableBatchOperation();
+            pendingEvents.ForEach(batch.Delete);
+            return _eventTable.ExecuteBatchAsync(batch, cancellationToken);
+        }
+
+        public async void EnqueueAll(CancellationToken cancellationToken)
+        {
+            await PublishAllEvents(cancellationToken);
+        }
+
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public async Task PublishAllEvents(CancellationToken cancellationToken)
+        {
+            var partitions = CreateHashSet(() => new
+            {
+                PendingPartition = default(string),
+                PersistedPartition = default(string)
+            });
+
+            var query = new TableQuery<PendingEventTableEntity>();
+            var filter = PendingEventTableEntity.ScanFilter;
+            TableContinuationToken continuation = null;
+
+            do
+            {
+                TableQuerySegment<PendingEventTableEntity> segment = await _eventTable
+                    .ExecuteQuerySegmentedAsync(query.Where(filter), continuation, cancellationToken)
+                    .ConfigureAwait(false);
+
+                foreach (PendingEventTableEntity entity in segment)
+                {
+                    partitions.Add(new
+                    {
+                        PendingPartition = entity.PartitionKey,
+                        PersistedPartition = entity.PersistedPartition
+                    });
+                }
+
+                continuation = segment.ContinuationToken;
+            }
+            while (continuation != null);
+
+            foreach (var partition in partitions)
+            {
+                await Publish(partition.PendingPartition, partition.PersistedPartition, cancellationToken).ConfigureAwait(false);
+            }
+        }
+
+        private HashSet<T> CreateHashSet<T>(Func<T> descriptor) => new HashSet<T>();
     }
 }
