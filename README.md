@@ -37,7 +37,7 @@ NoSQL 키-값 저장소인 Azure Table storage를 사용하는 이벤트 저장�
 
 ## 메시징
 
-이벤트 발행과 이벤트 직렬화를 위해 ReactiveArchitecture.Messaging.Core 패키지를 사용합니다. 저장소 구현체는 [`IMessageBus`](https://github.com/ReactiveEssentials/RA.Messaging/blob/master/source/RA.Messaging.Core/Messaging/IMessageBus.cs) 의존성을 요구합니다. `IMessageBus` 인터페이스 구현체는 개발 환경에 적합하게 직접 구현하거나 [ReactiveArchitecture.Messaging 프로젝트](https://github.com/ReactiveEssentials/RA.Messaging)가 제공하는 구현체를 설치해 사용할 수 있습니다. 예를 들어 Owin 응용프로그램이 Azure Event Hubs를 사용해 메시징을 처리한다면 ReactiveArchitecture.Messaging.Azure.Owin 패키지를 설치합니다.
+이벤트 발행과 이벤트 직렬화를 위해 ReactiveArchitecture.Messaging.Core 패키지를 사용합니다. 저장소 구현체는 [`IMessageBus`](https://github.com/ReactiveEssentials/ReactiveArchitecture.Messaging/blob/master/source/RA.Messaging.Core/Messaging/IMessageBus.cs) 의존성을 요구합니다. `IMessageBus` 인터페이스 구현체는 개발 환경에 적합하게 직접 구현하거나 [ReactiveArchitecture.Messaging 프로젝트](https://github.com/ReactiveEssentials/RA.Messaging)가 제공하는 구현체를 설치해 사용할 수 있습니다. 예를 들어 Owin 응용프로그램이 Azure Event Hubs를 사용해 메시징을 처리한다면 ReactiveArchitecture.Messaging.Azure.Owin 패키지를 설치합니다.
 
 ```
 > Install-Package ReactiveArchitecture.Messaging.Azure.Owin
