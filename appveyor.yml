@@ -1,0 +1,18 @@
+version: 0.6.{build}
+configuration: Release
+before_build:
+- cmd: nuget restore source\Arcane.EventSourcing.sln
+build:
+  verbosity: minimal
+  project: source\Arcane.EventSourcing.sln
+after_build:
+- cmd: >-
+    nuget pack nuget\Arcane.EventSourcing.Core.nuspec
+
+    nuget pack nuget\Arcane.EventSourcing.Azure.nuspec
+
+    nuget pack nuget\Arcane.EventSourcing.Sql.nuspec
+test:
+  assemblies: '**\*.tests.dll'
+artifacts:
+- path: Arcane.EventSourcing**.nupkg

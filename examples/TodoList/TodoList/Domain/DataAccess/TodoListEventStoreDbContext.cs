@@ -1,4 +1,4 @@
-﻿using ReactiveArchitecture.EventSourcing.Sql;
+﻿using Arcane.EventSourcing.Sql;
 
 namespace TodoList.Domain.DataAccess
 {

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using ReactiveArchitecture.EventSourcing;
+using Arcane.EventSourcing;
 using TodoList.Domain.Events;
 
 namespace TodoList.Domain

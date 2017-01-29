@@ -1,4 +1,4 @@
-﻿using ReactiveArchitecture.EventSourcing;
+﻿using Arcane.EventSourcing;
 
 namespace TodoList.Domain.Events
 {

@@ -44,6 +44,18 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Arcane.EventSourcing, Version=0.6.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Arcane.EventSourcing.Core.0.6.0\lib\netstandard1.1\Arcane.EventSourcing.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Arcane.EventSourcing.Sql, Version=0.6.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Arcane.EventSourcing.Sql.0.6.0\lib\net45\Arcane.EventSourcing.Sql.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Arcane.Messaging.Abstraction, Version=0.6.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Arcane.Messaging.Abstraction.0.6.0\lib\netstandard1.1\Arcane.Messaging.Abstraction.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="Microsoft.CodeDom.Providers.DotNetCompilerPlatform, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.1.0.0\lib\net45\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.dll</HintPath>
       <Private>True</Private>
@@ -55,18 +67,6 @@
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=9.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>..\packages\Newtonsoft.Json.9.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="RA.EventSourcing, Version=0.3.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\ReactiveArchitecture.EventSourcing.Core.0.3.0\lib\netstandard1.1\RA.EventSourcing.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="RA.EventSourcing.Sql, Version=0.3.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\ReactiveArchitecture.EventSourcing.Sql.0.3.0\lib\net45\RA.EventSourcing.Sql.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="RA.Messaging.Core, Version=0.4.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\ReactiveArchitecture.Messaging.Core.0.4.0\lib\netstandard1.1\RA.Messaging.Core.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />

@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>Arcane.EventSourcing.Core</id>
+    <version>0.6.0</version>
+    <title>Arcane.EventSourcing.Core</title>
+    <authors>Gyuwon</authors>
+    <owners>Gyuwon</owners>
+    <licenseUrl>https://github.com/Reacture/Arcane.EventSourcing/blob/master/LICENSE</licenseUrl>
+    <projectUrl>https://github.com/Reacture/Arcane.EventSourcing</projectUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>Core implementation of event sourcing pattern</description>
+    <releaseNotes></releaseNotes>
+    <copyright>Copyright Gyuwon 2017</copyright>
+    <tags>Arcane CQRS EventSourcing Reactive</tags>
+    <dependencies>
+      <group targetFramework="netstandard1.1">
+        <dependency id="Arcane.Messaging.Abstraction" version="0.6.0" />
+        <dependency id="NETStandard.Library" version="1.6.0" />
+        <dependency id="Newtonsoft.Json" version="9.0.1" />
+      </group>
+    </dependencies>
+  </metadata>
+  <files>
+    <file src="..\source\Arcane.EventSourcing\bin\Release\Arcane.EventSourcing.dll" target="lib\netstandard1.1\Arcane.EventSourcing.dll" />
+  </files>
+</package>
