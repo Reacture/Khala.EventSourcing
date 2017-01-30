@@ -1,4 +1,4 @@
-﻿using Arcane.EventSourcing.Sql;
+﻿using Khala.EventSourcing.Sql;
 
 namespace TodoList.Domain.DataAccess
 {

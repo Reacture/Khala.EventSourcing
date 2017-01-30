@@ -3,7 +3,7 @@ using System.Data.Entity;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Arcane.Messaging;
+using Khala.Messaging;
 using TodoList.Domain.Events;
 
 namespace TodoList.ReadModel

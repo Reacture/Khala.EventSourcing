@@ -1,4 +1,4 @@
-﻿using Arcane.EventSourcing;
+﻿using Khala.EventSourcing;
 
 namespace TodoList.Domain.Events
 {

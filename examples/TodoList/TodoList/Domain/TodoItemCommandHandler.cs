@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Arcane.EventSourcing;
-using Arcane.Messaging;
+using Khala.EventSourcing;
+using Khala.Messaging;
 using TodoList.Domain.Commands;
 
 namespace TodoList.Domain

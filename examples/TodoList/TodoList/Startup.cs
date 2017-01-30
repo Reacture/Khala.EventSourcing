@@ -1,7 +1,7 @@
 ﻿using System;
-using Arcane.EventSourcing;
-using Arcane.EventSourcing.Sql;
-using Arcane.Messaging;
+using Khala.EventSourcing;
+using Khala.EventSourcing.Sql;
+using Khala.Messaging;
 using Microsoft.Owin;
 using Microsoft.Owin.BuilderProperties;
 using Owin;

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using Arcane.EventSourcing;
+using Khala.EventSourcing;
 using TodoList.Domain.Events;
 
 namespace TodoList.Domain

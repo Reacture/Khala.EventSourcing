@@ -1,0 +1,47 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 14
+VisualStudioVersion = 14.0.25420.1
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Khala.EventSourcing", "Khala.EventSourcing\Khala.EventSourcing.csproj", "{6CD2103D-D560-4204-A770-FE6EC790291B}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Rules", "Rules", "{6C4406FD-86F3-4ADC-B5B6-5DF4A05734B2}"
+	ProjectSection(SolutionItems) = preProject
+		Rules\Khala.EventSourcing.Dictionary.xml = Rules\Khala.EventSourcing.Dictionary.xml
+		Rules\Khala.EventSourcing.ruleset = Rules\Khala.EventSourcing.ruleset
+		Rules\Khala.EventSourcing.Tests.ruleset = Rules\Khala.EventSourcing.Tests.ruleset
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Khala.EventSourcing.Azure", "Khala.EventSourcing.Azure\Khala.EventSourcing.Azure.csproj", "{1EE3DDF4-C2FB-44E9-AB13-63D18102BB9A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Khala.EventSourcing.Sql", "Khala.EventSourcing.Sql\Khala.EventSourcing.Sql.csproj", "{DACBBD4B-4064-4F04-A056-2479ED98114D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Khala.EventSourcing.Tests", "Khala.EventSourcing.Tests\Khala.EventSourcing.Tests.csproj", "{46947615-CE01-49AD-BC6B-185294226870}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{6CD2103D-D560-4204-A770-FE6EC790291B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6CD2103D-D560-4204-A770-FE6EC790291B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6CD2103D-D560-4204-A770-FE6EC790291B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6CD2103D-D560-4204-A770-FE6EC790291B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1EE3DDF4-C2FB-44E9-AB13-63D18102BB9A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1EE3DDF4-C2FB-44E9-AB13-63D18102BB9A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1EE3DDF4-C2FB-44E9-AB13-63D18102BB9A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1EE3DDF4-C2FB-44E9-AB13-63D18102BB9A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DACBBD4B-4064-4F04-A056-2479ED98114D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DACBBD4B-4064-4F04-A056-2479ED98114D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DACBBD4B-4064-4F04-A056-2479ED98114D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DACBBD4B-4064-4F04-A056-2479ED98114D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{46947615-CE01-49AD-BC6B-185294226870}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{46947615-CE01-49AD-BC6B-185294226870}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{46947615-CE01-49AD-BC6B-185294226870}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{46947615-CE01-49AD-BC6B-185294226870}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

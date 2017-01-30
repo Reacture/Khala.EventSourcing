@@ -2,10 +2,10 @@
 
 ## 이벤트 소싱 패키지
 
-응용프로그램은 관계형 데이터베이스 기반의 이벤트 소싱을 사용하기 위해 `ReactiveArchitecture.EventSourcing.Sql` 패키지에 의존합니다.
+응용프로그램은 관계형 데이터베이스 기반의 이벤트 소싱을 사용하기 위해 `Khala.EventSourcing.Sql` 패키지에 의존합니다.
 
 ```
-> Install-Package ReactiveArchitecture.EventSourcing.Sql
+> Install-Package Khala.EventSourcing.Sql
 ```
 
 ## 응용프로그램 구성요소

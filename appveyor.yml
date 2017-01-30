@@ -1,18 +1,18 @@
-version: 0.7.{build}
+version: 0.8.{build}
 configuration: Release
 before_build:
-- cmd: nuget restore source\Arcane.EventSourcing.sln
+- cmd: nuget restore source\Khala.EventSourcing.sln
 build:
   verbosity: minimal
-  project: source\Arcane.EventSourcing.sln
+  project: source\Khala.EventSourcing.sln
 after_build:
 - cmd: >-
-    nuget pack nuget\Arcane.EventSourcing.Core.nuspec
+    nuget pack nuget\Khala.EventSourcing.Core.nuspec
 
-    nuget pack nuget\Arcane.EventSourcing.Azure.nuspec
+    nuget pack nuget\Khala.EventSourcing.Azure.nuspec
 
-    nuget pack nuget\Arcane.EventSourcing.Sql.nuspec
+    nuget pack nuget\Khala.EventSourcing.Sql.nuspec
 test:
   assemblies: '**\*.tests.dll'
 artifacts:
-- path: Arcane.EventSourcing**.nupkg
+- path: Khala.EventSourcing**.nupkg

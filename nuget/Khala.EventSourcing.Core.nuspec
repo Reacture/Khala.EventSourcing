@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>Khala.EventSourcing.Core</id>
+    <version>0.8.0</version>
+    <title>Khala.EventSourcing.Core</title>
+    <authors>Gyuwon</authors>
+    <owners>Gyuwon</owners>
+    <licenseUrl>https://github.com/Reacture/Khala.EventSourcing/blob/master/LICENSE</licenseUrl>
+    <projectUrl>https://github.com/Reacture/Khala.EventSourcing</projectUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>Core implementation of event sourcing pattern</description>
+    <releaseNotes></releaseNotes>
+    <copyright>Copyright Gyuwon 2017</copyright>
+    <tags>Khala CQRS EventSourcing Reactive</tags>
+    <dependencies>
+      <group targetFramework="netstandard1.1">
+        <dependency id="Khala.Messaging.Abstraction" version="0.8.0" />
+        <dependency id="NETStandard.Library" version="1.6.0" />
+        <dependency id="Newtonsoft.Json" version="9.0.1" />
+      </group>
+    </dependencies>
+  </metadata>
+  <files>
+    <file src="..\source\Khala.EventSourcing\bin\Release\Khala.EventSourcing.Core.dll" target="lib\netstandard1.1\Khala.EventSourcing.Core.dll" />
+  </files>
+</package>

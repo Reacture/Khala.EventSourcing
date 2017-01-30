@@ -1,4 +1,4 @@
-# Arcane - Event Sourcing
+# Khala - Event Sourcing
 
 이벤트 소싱(Event Sourcing) 패턴 구현체를 제공합니다.
 
@@ -15,7 +15,7 @@
 이벤트 소싱 추상화 계층을 제공합니다.
 
 ```
-> Install-Package Arcane.EventSourcing.Core
+> Install-Package Khala.EventSourcing.Core
 ```
 
 ### Azure
@@ -23,7 +23,7 @@
 NoSQL 키-값 저장소인 Azure Table storage를 사용하는 이벤트 저장소 구현체를 제공합니다.
 
 ```
-> Install-Package Arcane.EventSourcing.Azure
+> Install-Package Khala.EventSourcing.Azure
 ```
 
 ### SQL
@@ -32,20 +32,20 @@ NoSQL 키-값 저장소인 Azure Table storage를 사용하는 이벤트 저장�
 
 
 ```
-> Install-Package Arcane.EventSourcing.Sql
+> Install-Package Khala.EventSourcing.Sql
 ```
 
 ## 메시징
 
-이벤트 발행과 이벤트 직렬화를 위해 [Arcane.Messaging 프로젝트](https://github.com/Reacture/Arcane.Messaging)를 사용합니다. 저장소 구현체는 `IMessageBus` 의존성을 요구합니다. `IMessageBus` 인터페이스 구현체는 개발 환경에 적합하게 직접 구현하거나 제공되는 구현체를 설치해 사용할 수 있습니다. 예를 들어 Owin 응용프로그램이 Azure Event Hubs를 사용해 이벤트 발행을 처리한다면 Arcane.Messaging.Azure.Owin 패키지를 설치합니다.
+이벤트 발행과 이벤트 직렬화를 위해 [Khala.Messaging 프로젝트](https://github.com/Reacture/Khala.Messaging)를 사용합니다. 저장소 구현체는 `IMessageBus` 의존성을 요구합니다. `IMessageBus` 인터페이스 구현체는 개발 환경에 적합하게 직접 구현하거나 제공되는 구현체를 설치해 사용할 수 있습니다. 예를 들어 Owin 응용프로그램이 Azure Event Hubs를 사용해 이벤트 발행을 처리한다면 Khala.Messaging.Azure.Owin 패키지를 설치합니다.
 
 ```
-> Install-Package Arcane.Messaging.Azure.Owin
+> Install-Package Khala.Messaging.Azure.Owin
 ```
 
 ## 집합체(Aggregate)
 
-[`EventSourced`](source/Arcane.EventSourcing/EventSourcing/EventSourced.cs) 클래스를 상속받아 이벤트 기반 집합체를 구현합니다.
+[`EventSourced`](source/Khala.EventSourcing/EventSourcing/EventSourced.cs) 클래스를 상속받아 이벤트 기반 집합체를 구현합니다.
 
 ```csharp
 public class User : EventSourced
@@ -107,7 +107,7 @@ public class UsernameChanged : DomainEvent
 ```
 MIT License
 
-Copyright (c) 2017 Reacture
+Copyright (c) 2017
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
