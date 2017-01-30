@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Arcane.EventSourcing.Sql;
 using Arcane.FakeDomain;
 using FluentAssertions;
 using Moq;
@@ -84,26 +83,6 @@ namespace Arcane.EventSourcing
 
             Mock.Get(repository).Verify(
                 x => x.Find(source.Id, CancellationToken.None), Times.Once());
-            result.Should().BeSameAs(task);
-        }
-
-        [Fact]
-        public void FindIdByUniqueIndexedProperty_relays_with_none_cancellation_token()
-        {
-            var fixture = new Fixture();
-            var task = fixture.Create<Task<Guid?>>();
-            string name = fixture.Create(nameof(name));
-            string value = fixture.Create(nameof(value));
-            var repository = Mock.Of<ISqlEventSourcedRepository<FakeUser>>(
-                x =>
-                x.FindIdByUniqueIndexedProperty(name, value, CancellationToken.None) == task);
-
-            Task<Guid?> result = repository.FindIdByUniqueIndexedProperty(name, value);
-
-            Mock.Get(repository).Verify(
-                x =>
-                x.FindIdByUniqueIndexedProperty(name, value, CancellationToken.None),
-                Times.Once());
             result.Should().BeSameAs(task);
         }
     }

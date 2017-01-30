@@ -85,6 +85,7 @@
   <ItemGroup>
     <Compile Include="EventSourcing\Azure\AzureEventPublisher.cs" />
     <Compile Include="EventSourcing\Azure\AzureEventSourcedRepository.cs" />
+    <Compile Include="EventSourcing\Azure\AzureEventSourcingExtensions.cs" />
     <Compile Include="EventSourcing\Azure\AzureEventStore.cs" />
     <Compile Include="EventSourcing\Azure\AzureMementoStore.cs" />
     <Compile Include="EventSourcing\Azure\EventTableEntity.cs" />

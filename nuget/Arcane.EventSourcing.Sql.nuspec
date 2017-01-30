@@ -2,7 +2,7 @@
 <package >
   <metadata>
     <id>Arcane.EventSourcing.Sql</id>
-    <version>0.6.0</version>
+    <version>0.6.2</version>
     <title>Arcane.EventSourcing.Sql</title>
     <authors>Gyuwon</authors>
     <owners>Gyuwon</owners>

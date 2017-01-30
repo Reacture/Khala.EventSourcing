@@ -2,7 +2,7 @@
 <package >
   <metadata>
     <id>Arcane.EventSourcing.Azure</id>
-    <version>0.6.0</version>
+    <version>0.6.2</version>
     <title>Arcane.EventSourcing.Azure</title>
     <authors>Gyuwon</authors>
     <owners>Gyuwon</owners>

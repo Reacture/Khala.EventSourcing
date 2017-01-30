@@ -77,6 +77,7 @@
     <Compile Include="EventSourcing\Sql\PendingEvent.cs" />
     <Compile Include="EventSourcing\Sql\SqlEventPublisher.cs" />
     <Compile Include="EventSourcing\Sql\SqlEventSourcedRepository.cs" />
+    <Compile Include="EventSourcing\Sql\SqlEventSourcingExtensions.cs" />
     <Compile Include="EventSourcing\Sql\SqlEventStore.cs" />
     <Compile Include="EventSourcing\Sql\UniqueIndexedProperty.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

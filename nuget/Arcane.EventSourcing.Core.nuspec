@@ -2,7 +2,7 @@
 <package >
   <metadata>
     <id>Arcane.EventSourcing.Core</id>
-    <version>0.6.1</version>
+    <version>0.6.2</version>
     <title>Arcane.EventSourcing.Core</title>
     <authors>Gyuwon</authors>
     <owners>Gyuwon</owners>
