@@ -21,7 +21,7 @@
 
         [Key]
         [Column(Order = 2)]
-        [StringLength(256)]
+        [StringLength(128)]
         public string PropertyValue { get; set; }
 
         [Index(IndexName, IsUnique = true, Order = 0)]

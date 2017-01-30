@@ -2,7 +2,7 @@
 <package >
   <metadata>
     <id>Arcane.EventSourcing.Sql</id>
-    <version>0.6.2</version>
+    <version>0.7.0</version>
     <title>Arcane.EventSourcing.Sql</title>
     <authors>Gyuwon</authors>
     <owners>Gyuwon</owners>
@@ -15,7 +15,7 @@
     <tags>CQRS EventSourcing SQL EntityFramework Reactive</tags>
     <dependencies>
       <group targetFramework="net45">
-        <dependency id="Arcane.EventSourcing.Core" version="0.6.0" />
+        <dependency id="Arcane.EventSourcing.Core" version="0.7.0" />
         <dependency id="Arcane.Messaging.Abstraction" version="0.6.0" />
         <dependency id="Newtonsoft.Json" version="9.0.1" />
         <dependency id="EntityFramework" version="6.1.0" />
