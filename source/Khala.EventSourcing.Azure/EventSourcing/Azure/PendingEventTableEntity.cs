@@ -15,7 +15,11 @@
 
         public int Version { get; set; }
 
-        public string EnvelopeJson { get; set; }
+        public Guid MessageId { get; set; }
+
+        public Guid? CorrelationId { get; set; }
+
+        public string EventJson { get; set; }
 
         internal static string ScanFilter =>
             CombineFilters(
@@ -75,7 +79,9 @@
                 RowKey = GetRowKey(domainEvent.Version),
                 PersistentPartition = persistentPartition,
                 Version = domainEvent.Version,
-                EnvelopeJson = serializer.Serialize(envelope),
+                MessageId = envelope.MessageId,
+                CorrelationId = envelope.CorrelationId,
+                EventJson = serializer.Serialize(domainEvent)
             };
         }
     }

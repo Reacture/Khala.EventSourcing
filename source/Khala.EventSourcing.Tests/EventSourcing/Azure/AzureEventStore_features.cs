@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
-using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Khala.FakeDomain;
@@ -95,7 +94,7 @@ namespace Khala.EventSourcing.Azure
             RaiseEvents(userId, events);
 
             // Act
-            await sut.SaveEvents<FakeUser>(events, correlationId, CancellationToken.None);
+            await sut.SaveEvents<FakeUser>(events, correlationId);
 
             // Assert
             string partitionKey = PendingEventTableEntity.GetPartitionKey(typeof(FakeUser), userId);
@@ -109,16 +108,18 @@ namespace Khala.EventSourcing.Azure
                     t.Pending.RowKey,
                     t.Pending.PersistentPartition,
                     t.Pending.Version,
-                    Envelope = (Envelope)serializer.Deserialize(t.Pending.EnvelopeJson)
+                    t.Pending.CorrelationId,
+                    Message = serializer.Deserialize(t.Pending.EventJson)
                 };
                 actual.ShouldBeEquivalentTo(new
                 {
                     RowKey = PendingEventTableEntity.GetRowKey(t.Source.Version),
                     PersistentPartition = EventTableEntity.GetPartitionKey(typeof(FakeUser), userId),
                     t.Source.Version,
-                    Envelope = new Envelope(correlationId, t.Source)
+                    CorrelationId = correlationId,
+                    Message = t.Source
                 },
-                opts => opts.Excluding(x => x.Envelope.MessageId));
+                opts => opts.RespectingRuntimeTypes());
             }
         }
 
@@ -133,13 +134,14 @@ namespace Khala.EventSourcing.Azure
             RaiseEvents(userId, events);
 
             // Act
-            await sut.SaveEvents<FakeUser>(events, correlationId, CancellationToken.None);
+            await sut.SaveEvents<FakeUser>(events, correlationId);
 
             // Assert
             string partitionKey = EventTableEntity.GetPartitionKey(typeof(FakeUser), userId);
             var query = new TableQuery<EventTableEntity>().Where($"PartitionKey eq '{partitionKey}'");
             IEnumerable<EventTableEntity> persistentEvents = s_eventTable.ExecuteQuery(query);
-            foreach (var t in persistentEvents.Zip(events, (persistent, source) => new { Persistent = persistent, Source = source }))
+            foreach (var t in persistentEvents.Zip(events, (persistent, source)
+                           => new { Persistent = persistent, Source = source }))
             {
                 var actual = new
                 {
@@ -178,7 +180,7 @@ namespace Khala.EventSourcing.Azure
         public void SaveEvents_does_not_fail_even_if_events_empty()
         {
             var events = new DomainEvent[] { };
-            Func<Task> action = () => sut.SaveEvents<FakeUser>(events, null, CancellationToken.None);
+            Func<Task> action = () => sut.SaveEvents<FakeUser>(events);
             action.ShouldNotThrow();
         }
 
@@ -190,11 +192,10 @@ namespace Khala.EventSourcing.Azure
             var usernameChanged = fixture.Create<FakeUsernameChanged>();
             var events = new DomainEvent[] { created, usernameChanged };
             RaiseEvents(userId, events);
-            await sut.SaveEvents<FakeUser>(events, null, CancellationToken.None);
+            await sut.SaveEvents<FakeUser>(events);
 
             // Act
-            IEnumerable<IDomainEvent> actual =
-                await sut.LoadEvents<FakeUser>(userId, 0, CancellationToken.None);
+            IEnumerable<IDomainEvent> actual = await sut.LoadEvents<FakeUser>(userId);
 
             // Assert
             actual.Should().BeInAscendingOrder(e => e.Version);
@@ -209,11 +210,10 @@ namespace Khala.EventSourcing.Azure
             var usernameChanged = fixture.Create<FakeUsernameChanged>();
             var events = new DomainEvent[] { created, usernameChanged };
             RaiseEvents(userId, events);
-            await sut.SaveEvents<FakeUser>(events, null, CancellationToken.None);
+            await sut.SaveEvents<FakeUser>(events);
 
             // Act
-            IEnumerable<IDomainEvent> actual =
-                await sut.LoadEvents<FakeUser>(userId, 1, CancellationToken.None);
+            IEnumerable<IDomainEvent> actual = await sut.LoadEvents<FakeUser>(userId, 1);
 
             // Assert
             actual.Should().BeInAscendingOrder(e => e.Version);

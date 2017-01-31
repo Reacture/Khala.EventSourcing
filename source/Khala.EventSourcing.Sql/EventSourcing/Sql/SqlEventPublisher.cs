@@ -86,9 +86,7 @@
                 _serializer.Deserialize(pendingEvent.EventJson));
 
         public async void EnqueueAll(CancellationToken cancellationToken)
-        {
-            await PublishAllPendingEvents(cancellationToken);
-        }
+            => await PublishAllPendingEvents(cancellationToken).ConfigureAwait(false);
 
         [EditorBrowsable(EditorBrowsableState.Never)]
         public async Task PublishAllPendingEvents(CancellationToken cancellationToken)

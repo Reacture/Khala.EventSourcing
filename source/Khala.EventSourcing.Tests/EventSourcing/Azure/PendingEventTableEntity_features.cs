@@ -88,7 +88,7 @@ namespace Khala.EventSourcing.Azure
         }
 
         [Fact]
-        public void FromEnvelope_sets_EnvelopeJson_correctly()
+        public void FromEnvelope_sets_MessageId_correctly()
         {
             var domainEvent = fixture.Create<FakeUserCreated>();
             var envelope = new Envelope(domainEvent);
@@ -96,9 +96,34 @@ namespace Khala.EventSourcing.Azure
             PendingEventTableEntity actual =
                 FromEnvelope<FakeUser>(envelope, serializer);
 
-            object restored = serializer.Deserialize(actual.EnvelopeJson);
-            restored.Should().BeOfType<Envelope>();
-            restored.ShouldBeEquivalentTo(envelope);
+            actual.MessageId.Should().Be(envelope.MessageId);
+        }
+
+        [Fact]
+        public void FromEnvelope_sets_CorrelationId_correctly()
+        {
+            var domainEvent = fixture.Create<FakeUserCreated>();
+            var correlationId = GuidGenerator.Create();
+            var envelope = new Envelope(correlationId, domainEvent);
+
+            PendingEventTableEntity actual =
+                FromEnvelope<FakeUser>(envelope, serializer);
+
+            actual.CorrelationId.Should().Be(correlationId);
+        }
+
+        [Fact]
+        public void FromEnvelope_sets_EventJson_correctly()
+        {
+            var domainEvent = fixture.Create<FakeUserCreated>();
+            var envelope = new Envelope(domainEvent);
+
+            PendingEventTableEntity actual =
+                FromEnvelope<FakeUser>(envelope, serializer);
+
+            object message = serializer.Deserialize(actual.EventJson);
+            message.Should().BeOfType<FakeUserCreated>();
+            message.ShouldBeEquivalentTo(domainEvent);
         }
     }
 }

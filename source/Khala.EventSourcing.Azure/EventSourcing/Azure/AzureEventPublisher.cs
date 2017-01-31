@@ -104,7 +104,8 @@
             var envelopes =
                 from e in pendingEvents
                 where persistentVersions.Contains(e.Version)
-                select (Envelope)_serializer.Deserialize(e.EnvelopeJson);
+                select new Envelope(e.MessageId, e.CorrelationId, _serializer.Deserialize(e.EventJson));
+
             await _messageBus.SendBatch(envelopes, cancellationToken).ConfigureAwait(false);
         }
 
@@ -141,9 +142,7 @@
         }
 
         public async void EnqueueAll(CancellationToken cancellationToken)
-        {
-            await PublishAllEvents(cancellationToken);
-        }
+            => await PublishAllEvents(cancellationToken).ConfigureAwait(false);
 
         [EditorBrowsable(EditorBrowsableState.Never)]
         public async Task PublishAllEvents(CancellationToken cancellationToken)
