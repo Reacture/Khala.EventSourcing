@@ -5,6 +5,9 @@
     using System.Linq;
     using System.Reflection;
 
+    /// <summary>
+    /// Provices the abstract base class for event sourcing applied aggregate.
+    /// </summary>
     public abstract class EventSourced : IEventSourced
     {
         private readonly Guid _id;
@@ -12,6 +15,10 @@
         private readonly List<IDomainEvent> _pendingEvents;
         private int _version;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="EventSourced"/> class with the identifier of the aggregate.
+        /// </summary>
+        /// <param name="id">The identifier of the aggregate.</param>
         protected EventSourced(Guid id)
         {
             if (id == Guid.Empty)
@@ -25,9 +32,15 @@
             _pendingEvents = new List<IDomainEvent>();
             _version = 0;
 
+            // Bind domain event handlers automatically.
             WireupEvents();
         }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="EventSourced"/> class with the identifier of the aggregate and the memento.
+        /// </summary>
+        /// <param name="id">The identifier of the aggregate.</param>
+        /// <param name="memento">The memento that contains snapshot data.</param>
         protected EventSourced(Guid id, IMemento memento)
             : this(id)
         {
@@ -39,13 +52,36 @@
             _version = memento.Version;
         }
 
+        /// <summary>
+        /// Encapsulates a strongly typed domain event handler method.
+        /// </summary>
+        /// <typeparam name="TEvent">The type of the domain event.</typeparam>
+        /// <param name="domainEvent">A domain event instance.</param>
         protected delegate void DomainEventHandler<TEvent>(TEvent domainEvent)
             where TEvent : IDomainEvent;
 
+        /// <summary>
+        /// Gets the identifier of the aggregate.
+        /// </summary>
+        /// <value>
+        /// The identifier of the aggregate.
+        /// </value>
         public Guid Id => _id;
 
+        /// <summary>
+        /// Gets the version of the aggregate.
+        /// </summary>
+        /// <value>
+        /// The version of the aggregate.
+        /// </value>
         public int Version => _version;
 
+        /// <summary>
+        /// Gets the sequence of domain events raised after the aggregate is created or restored.
+        /// </summary>
+        /// <value>
+        /// The sequence of domain events raised after the aggregate is created or restored.
+        /// </value>
         public IEnumerable<IDomainEvent> PendingEvents => _pendingEvents;
 
         private void WireupEvents()
@@ -87,6 +123,11 @@
             return (TDelegate)(object)method.CreateDelegate(typeof(TDelegate), this);
         }
 
+        /// <summary>
+        /// Registers a strongly typed domain event handler explicitly.
+        /// </summary>
+        /// <typeparam name="TEvent">The type of the domain event.</typeparam>
+        /// <param name="handler">A domain event handler function that handles events of the type <typeparamref name="TEvent"/>.</param>
         protected void SetEventHandler<TEvent>(
             DomainEventHandler<TEvent> handler)
             where TEvent : IDomainEvent
@@ -105,6 +146,10 @@
             _eventHandlers.Add(typeof(TEvent), e => handler.Invoke((TEvent)e));
         }
 
+        /// <summary>
+        /// Handles past domain events sequentially. This method is generally used by constructors or factory methods.
+        /// </summary>
+        /// <param name="pastEvents">A sequence that contains domain events already raised in the past.</param>
         protected void HandlePastEvents(IEnumerable<IDomainEvent> pastEvents)
         {
             if (pastEvents == null)
@@ -136,6 +181,11 @@
             }
         }
 
+        /// <summary>
+        /// Raises and handles a domain event.
+        /// </summary>
+        /// <typeparam name="TEvent">The type of the domain event.</typeparam>
+        /// <param name="domainEvent">A domain event instance that will be raised and handled by the aggregate.</param>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1030:UseEventsWhereAppropriate", Justification = "RaiseEvent<TEvent>() method does not follow .NET event pattern but follows event sourcing.")]
         protected void RaiseEvent<TEvent>(TEvent domainEvent)
             where TEvent : IDomainEvent
