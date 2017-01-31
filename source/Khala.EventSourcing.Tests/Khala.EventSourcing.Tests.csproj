@@ -68,8 +68,8 @@
       <HintPath>..\packages\FluentAssertions.4.18.0\lib\net45\FluentAssertions.Core.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Khala.Messaging.Abstraction, Version=0.8.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Khala.Messaging.Abstraction.0.8.0\lib\netstandard1.1\Khala.Messaging.Abstraction.dll</HintPath>
+    <Reference Include="Khala.Messaging.Abstraction, Version=0.9.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Khala.Messaging.Abstraction.0.9.0\lib\netstandard1.1\Khala.Messaging.Abstraction.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Microsoft.Data.Edm, Version=5.6.2.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
