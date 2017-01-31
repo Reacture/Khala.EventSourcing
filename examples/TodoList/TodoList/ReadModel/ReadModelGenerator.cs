@@ -9,7 +9,7 @@ using TodoList.Domain.Events;
 namespace TodoList.ReadModel
 {
     public class ReadModelGenerator :
-        ExplicitMessageHandler,
+        InterfaceAwareHandler,
         IHandles<TodoItemCreated>,
         IHandles<TodoItemUpdated>,
         IHandles<TodoItemDeleted>
@@ -25,7 +25,7 @@ namespace TodoList.ReadModel
         }
 
         public async Task Handle(
-            ReceivedEnvelope<TodoItemCreated> envelope,
+            Envelope<TodoItemCreated> envelope,
             CancellationToken cancellationToken)
         {
             TodoItemCreated domainEvent = envelope.Message;
@@ -46,7 +46,7 @@ namespace TodoList.ReadModel
         }
 
         public async Task Handle(
-            ReceivedEnvelope<TodoItemUpdated> envelope,
+            Envelope<TodoItemUpdated> envelope,
             CancellationToken cancellationToken)
         {
             TodoItemUpdated domainEvent = envelope.Message;
@@ -65,7 +65,7 @@ namespace TodoList.ReadModel
         }
 
         public async Task Handle(
-            ReceivedEnvelope<TodoItemDeleted> envelope,
+            Envelope<TodoItemDeleted> envelope,
             CancellationToken cancellationToken)
         {
             TodoItemDeleted domainEvent = envelope.Message;

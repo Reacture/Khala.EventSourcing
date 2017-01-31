@@ -8,7 +8,7 @@ using TodoList.Domain.Commands;
 namespace TodoList.Domain
 {
     public class TodoItemCommandHandler :
-        ExplicitMessageHandler,
+        InterfaceAwareHandler,
         IHandles<CreateTodoItem>,
         IHandles<UpdateTodoItem>,
         IHandles<DeleteTodoItem>
@@ -25,7 +25,7 @@ namespace TodoList.Domain
         }
 
         public Task Handle(
-            ReceivedEnvelope<CreateTodoItem> envelope,
+            Envelope<CreateTodoItem> envelope,
             CancellationToken cancellationToken)
         {
             CreateTodoItem command = envelope.Message;
@@ -39,7 +39,7 @@ namespace TodoList.Domain
         }
 
         public async Task Handle(
-            ReceivedEnvelope<UpdateTodoItem> envelope,
+            Envelope<UpdateTodoItem> envelope,
             CancellationToken cancellationToken)
         {
             UpdateTodoItem command = envelope.Message;
@@ -60,7 +60,7 @@ namespace TodoList.Domain
         }
 
         public async Task Handle(
-            ReceivedEnvelope<DeleteTodoItem> envelope,
+            Envelope<DeleteTodoItem> envelope,
             CancellationToken cancellationToken)
         {
             DeleteTodoItem command = envelope.Message;

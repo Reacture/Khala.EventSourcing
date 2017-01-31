@@ -44,16 +44,16 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Khala.EventSourcing.Core, Version=0.8.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Khala.EventSourcing.Core.0.8.0\lib\netstandard1.1\Khala.EventSourcing.Core.dll</HintPath>
+    <Reference Include="Khala.EventSourcing.Core, Version=0.9.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Khala.EventSourcing.Core.0.9.0\lib\netstandard1.1\Khala.EventSourcing.Core.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Khala.EventSourcing.Sql, Version=0.8.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Khala.EventSourcing.Sql.0.8.0\lib\net45\Khala.EventSourcing.Sql.dll</HintPath>
+    <Reference Include="Khala.EventSourcing.Sql, Version=0.9.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Khala.EventSourcing.Sql.0.9.0\lib\net45\Khala.EventSourcing.Sql.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Khala.Messaging.Abstraction, Version=0.8.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Khala.Messaging.Abstraction.0.8.0\lib\netstandard1.1\Khala.Messaging.Abstraction.dll</HintPath>
+    <Reference Include="Khala.Messaging.Abstraction, Version=0.9.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Khala.Messaging.Abstraction.0.9.0\lib\netstandard1.1\Khala.Messaging.Abstraction.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Microsoft.CodeDom.Providers.DotNetCompilerPlatform, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
