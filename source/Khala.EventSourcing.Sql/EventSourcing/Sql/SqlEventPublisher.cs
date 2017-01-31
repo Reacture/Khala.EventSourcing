@@ -68,9 +68,7 @@
                     .ConfigureAwait(false);
 
                 List<Envelope> envelopes = pendingEvents
-                    .Select(e => e.EnvelopeJson)
-                    .Select(_serializer.Deserialize)
-                    .Cast<Envelope>()
+                    .Select(e => RestoreEnvelope(e))
                     .ToList();
 
                 await _messageBus.SendBatch(envelopes, cancellationToken).ConfigureAwait(false);
@@ -80,6 +78,12 @@
                 await context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
             }
         }
+
+        private Envelope RestoreEnvelope(PendingEvent pendingEvent) =>
+            new Envelope(
+                pendingEvent.MessageId,
+                pendingEvent.CorrelationId,
+                _serializer.Deserialize(pendingEvent.EventJson));
 
         public async void EnqueueAll(CancellationToken cancellationToken)
         {

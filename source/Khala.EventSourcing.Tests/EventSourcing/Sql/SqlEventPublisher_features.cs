@@ -106,12 +106,7 @@ namespace Khala.EventSourcing.Sql
                 {
                     var envelope = new Envelope(e);
                     envelopes.Add(envelope);
-                    db.PendingEvents.Add(new PendingEvent
-                    {
-                        AggregateId = sourceId,
-                        Version = e.Version,
-                        EnvelopeJson = serializer.Serialize(envelope)
-                    });
+                    db.PendingEvents.Add(PendingEvent.FromEnvelope(envelope, serializer));
                 }
                 await db.SaveChangesAsync();
             }
@@ -156,12 +151,8 @@ namespace Khala.EventSourcing.Sql
             {
                 foreach (DomainEvent e in events)
                 {
-                    db.PendingEvents.Add(new PendingEvent
-                    {
-                        AggregateId = sourceId,
-                        Version = e.Version,
-                        EnvelopeJson = serializer.Serialize(new Envelope(e))
-                    });
+                    var envelope = new Envelope(e);
+                    db.PendingEvents.Add(PendingEvent.FromEnvelope(envelope, serializer));
                 }
                 await db.SaveChangesAsync();
             }

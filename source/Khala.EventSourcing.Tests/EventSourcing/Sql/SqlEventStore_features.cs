@@ -98,7 +98,7 @@ namespace Khala.EventSourcing.Sql
                 () => mockDbContext,
                 new JsonMessageSerializer());
 
-            await sut.SaveEvents<FakeUser>(events, null, CancellationToken.None);
+            await sut.SaveEvents<FakeUser>(events);
 
             Mock.Get(mockDbContext).Verify(
                 x => x.SaveChangesAsync(CancellationToken.None), Times.Once());
@@ -112,7 +112,7 @@ namespace Khala.EventSourcing.Sql
                 () => mockDbContext,
                 new JsonMessageSerializer());
 
-            await sut.SaveEvents<FakeUser>(Enumerable.Empty<IDomainEvent>(), null, CancellationToken.None);
+            await sut.SaveEvents<FakeUser>(Enumerable.Empty<IDomainEvent>());
 
             Mock.Get(mockDbContext)
                 .Verify(x => x.SaveChangesAsync(), Times.Never());
@@ -126,7 +126,7 @@ namespace Khala.EventSourcing.Sql
             var events = new DomainEvent[] { created, null };
             RaiseEvents(userId, created);
 
-            Func<Task> action = () => sut.SaveEvents<FakeUser>(events, null, CancellationToken.None);
+            Func<Task> action = () => sut.SaveEvents<FakeUser>(events);
 
             action.ShouldThrow<ArgumentException>()
                 .Where(x => x.ParamName == "events");
@@ -140,7 +140,7 @@ namespace Khala.EventSourcing.Sql
             var events = new DomainEvent[] { created };
             RaiseEvents(userId, events);
 
-            await sut.SaveEvents<FakeUser>(events, null, CancellationToken.None);
+            await sut.SaveEvents<FakeUser>(events);
 
             using (var db = new DataContext())
             {
@@ -175,7 +175,7 @@ namespace Khala.EventSourcing.Sql
             RaiseEvents(userId, 1, usernameChanged);
 
             // Act
-            await sut.SaveEvents<FakeUser>(events, null, CancellationToken.None);
+            await sut.SaveEvents<FakeUser>(events);
 
             // Assert
             using (var db = new DataContext())
@@ -198,7 +198,7 @@ namespace Khala.EventSourcing.Sql
                 new FakeUsernameChanged { Version = 3 }
             };
 
-            Func<Task> action = () => sut.SaveEvents<FakeUser>(events, null, CancellationToken.None);
+            Func<Task> action = () => sut.SaveEvents<FakeUser>(events);
 
             action.ShouldThrow<ArgumentException>()
                 .Where(x => x.ParamName == "events");
@@ -225,7 +225,7 @@ namespace Khala.EventSourcing.Sql
             RaiseEvents(userId, 2, usernameChanged);
 
             // Act
-            Func<Task> action = () => sut.SaveEvents<FakeUser>(events, null, CancellationToken.None);
+            Func<Task> action = () => sut.SaveEvents<FakeUser>(events);
 
             // Assert
             action.ShouldThrow<ArgumentException>()
@@ -250,7 +250,7 @@ namespace Khala.EventSourcing.Sql
             var events = new DomainEvent[] { created, usernameChanged };
 
             // Act
-            Func<Task> action = () => sut.SaveEvents<FakeUser>(events, null, CancellationToken.None);
+            Func<Task> action = () => sut.SaveEvents<FakeUser>(events);
 
             // Assert
             action.ShouldThrow<ArgumentException>()
@@ -269,7 +269,7 @@ namespace Khala.EventSourcing.Sql
             RaiseEvents(userId, events);
 
             // Act
-            await sut.SaveEvents<FakeUser>(events, correlationId, CancellationToken.None);
+            await sut.SaveEvents<FakeUser>(events, correlationId);
 
             // Asseert
             using (var db = new DataContext())
@@ -286,14 +286,16 @@ namespace Khala.EventSourcing.Sql
                     var actual = new
                     {
                         t.Pending.Version,
-                        Envelope = (Envelope)serializer.Deserialize(t.Pending.EnvelopeJson)
+                        t.Pending.CorrelationId,
+                        Message = serializer.Deserialize(t.Pending.EventJson)
                     };
                     actual.ShouldBeEquivalentTo(new
                     {
                         t.Source.Version,
-                        Envelope = new Envelope(correlationId, t.Source)
+                        CorrelationId = correlationId,
+                        Message = t.Source
                     },
-                    opts => opts.Excluding(x => x.Envelope.MessageId));
+                    opts => opts.RespectingRuntimeTypes());
                 }
             }
         }
@@ -309,7 +311,7 @@ namespace Khala.EventSourcing.Sql
             RaiseEvents(userId, events);
 
             // Act
-            await sut.SaveEvents<FakeUser>(events, null, CancellationToken.None);
+            await sut.SaveEvents<FakeUser>(events);
 
             // Asseert
             using (var db = new DataContext())
@@ -352,19 +354,17 @@ namespace Khala.EventSourcing.Sql
             RaiseEvents(userId, events);
 
             // Act
-            await sut.SaveEvents<FakeUser>(events, correlationId, CancellationToken.None);
+            await sut.SaveEvents<FakeUser>(events, correlationId);
 
             // Asseert
             using (var db = new DataContext())
             {
-                List<Envelope> envelopes = db
+                IEnumerable<object> expected = db
                     .PendingEvents
                     .Where(e => e.AggregateId == userId)
                     .OrderBy(e => e.Version)
                     .AsEnumerable()
-                    .Select(e => e.EnvelopeJson)
-                    .Select(serializer.Deserialize)
-                    .Cast<Envelope>()
+                    .Select(e => new { e.MessageId, e.CorrelationId })
                     .ToList();
 
                 IEnumerable<object> actual = db
@@ -372,18 +372,10 @@ namespace Khala.EventSourcing.Sql
                     .Where(e => e.AggregateId == userId)
                     .OrderBy(e => e.Version)
                     .AsEnumerable()
-                    .Select(e => new
-                    {
-                        e.MessageId,
-                        e.CorrelationId
-                    })
+                    .Select(e => new { e.MessageId, e.CorrelationId })
                     .ToList();
 
-                actual.ShouldAllBeEquivalentTo(envelopes.Select(e => new
-                {
-                    e.MessageId,
-                    e.CorrelationId
-                }));
+                actual.ShouldAllBeEquivalentTo(expected);
             }
         }
 
@@ -395,7 +387,7 @@ namespace Khala.EventSourcing.Sql
             var events = new DomainEvent[] { created };
             RaiseEvents(userId, events);
 
-            await sut.SaveEvents<FakeUser>(events, null, CancellationToken.None);
+            await sut.SaveEvents<FakeUser>(events);
 
             using (var db = new DataContext())
             {
@@ -422,7 +414,7 @@ namespace Khala.EventSourcing.Sql
             var events = new DomainEvent[] { created, usernameChanged };
             RaiseEvents(userId, events);
 
-            await sut.SaveEvents<FakeUser>(events, null, CancellationToken.None);
+            await sut.SaveEvents<FakeUser>(events);
 
             using (var db = new DataContext())
             {
@@ -445,7 +437,7 @@ namespace Khala.EventSourcing.Sql
             var events = new DomainEvent[] { created };
             RaiseEvents(userId, events);
 
-            await sut.SaveEvents<FakeUser>(events, null, CancellationToken.None);
+            await sut.SaveEvents<FakeUser>(events);
 
             using (var db = new DataContext())
             {
@@ -469,12 +461,12 @@ namespace Khala.EventSourcing.Sql
         {
             // Arrange
             RaiseEvents(userId, created);
-            await sut.SaveEvents<FakeUser>(new[] { created }, null, CancellationToken.None);
+            await sut.SaveEvents<FakeUser>(new[] { created });
             usernameChanged.Username = null;
             RaiseEvents(userId, 1, usernameChanged);
 
             // Act
-            await sut.SaveEvents<FakeUser>(new[] { usernameChanged }, null, CancellationToken.None);
+            await sut.SaveEvents<FakeUser>(new[] { usernameChanged });
 
             // Assert
             using (var db = new DataContext())
@@ -499,11 +491,11 @@ namespace Khala.EventSourcing.Sql
         {
             // Arrange
             RaiseEvents(userId, created);
-            await sut.SaveEvents<FakeUser>(new[] { created }, null, CancellationToken.None);
+            await sut.SaveEvents<FakeUser>(new[] { created });
             RaiseEvents(userId, 1, usernameChanged);
 
             // Act
-            await sut.SaveEvents<FakeUser>(new[] { usernameChanged }, null, CancellationToken.None);
+            await sut.SaveEvents<FakeUser>(new[] { usernameChanged });
 
             // Assert
             using (var db = new DataContext())
@@ -531,20 +523,21 @@ namespace Khala.EventSourcing.Sql
             // Arrange
             var macCreated = new FakeUserCreated { Username = duplicateUserName };
             RaiseEvents(macId, macCreated);
-            await sut.SaveEvents<FakeUser>(new[] { macCreated }, null, CancellationToken.None);
+            await sut.SaveEvents<FakeUser>(new[] { macCreated });
 
             // Act
             var toshCreated = new FakeUserCreated { Username = duplicateUserName };
             RaiseEvents(toshId, toshCreated);
-            Func<Task> action = () => sut.SaveEvents<FakeUser>(new[] { toshCreated }, null, CancellationToken.None);
+            Func<Task> action = () => sut.SaveEvents<FakeUser>(new[] { toshCreated });
 
             // Assert
             action.ShouldThrow<Exception>();
             using (var db = new DataContext())
             {
-                IQueryable<PersistentEvent> query = from e in db.PersistentEvents
-                                                    where e.AggregateId == toshId
-                                                    select e;
+                IQueryable<PersistentEvent> query =
+                    from e in db.PersistentEvents
+                    where e.AggregateId == toshId
+                    select e;
                 (await query.AnyAsync()).Should().BeFalse();
             }
         }
@@ -558,11 +551,10 @@ namespace Khala.EventSourcing.Sql
             // Arrange
             var events = new DomainEvent[] { created, usernameChanged };
             RaiseEvents(userId, events);
-            await sut.SaveEvents<FakeUser>(events, null, CancellationToken.None);
+            await sut.SaveEvents<FakeUser>(events);
 
             // Act
-            IEnumerable<IDomainEvent> actual =
-                await sut.LoadEvents<FakeUser>(userId, 0, CancellationToken.None);
+            IEnumerable<IDomainEvent> actual = await sut.LoadEvents<FakeUser>(userId);
 
             // Assert
             actual.ShouldAllBeEquivalentTo(events);
@@ -577,11 +569,11 @@ namespace Khala.EventSourcing.Sql
             // Arrange
             var events = new DomainEvent[] { created, usernameChanged };
             RaiseEvents(userId, events);
-            await sut.SaveEvents<FakeUser>(events, null, CancellationToken.None);
+            await sut.SaveEvents<FakeUser>(events);
 
             // Act
             IEnumerable<IDomainEvent> actual =
-                await sut.LoadEvents<FakeUser>(userId, 1, CancellationToken.None);
+                await sut.LoadEvents<FakeUser>(userId, 1);
 
             // Assert
             actual.ShouldAllBeEquivalentTo(events.Skip(1));
@@ -593,7 +585,7 @@ namespace Khala.EventSourcing.Sql
         {
             string value = fixture.Create("username");
             Guid? actual = await
-                sut.FindIdByUniqueIndexedProperty<FakeUser>("Username", value, CancellationToken.None);
+                sut.FindIdByUniqueIndexedProperty<FakeUser>("Username", value);
             actual.Should().NotHaveValue();
         }
 
@@ -603,10 +595,10 @@ namespace Khala.EventSourcing.Sql
             FakeUserCreated created)
         {
             RaiseEvents(userId, created);
-            await sut.SaveEvents<FakeUser>(new[] { created }, null, CancellationToken.None);
+            await sut.SaveEvents<FakeUser>(new[] { created });
 
             Guid? actual = await
-                sut.FindIdByUniqueIndexedProperty<FakeUser>("Username", created.Username, CancellationToken.None);
+                sut.FindIdByUniqueIndexedProperty<FakeUser>("Username", created.Username);
 
             actual.Should().Be(userId);
         }

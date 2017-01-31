@@ -143,12 +143,7 @@
                     ? new Envelope(domainEvent)
                     : new Envelope(correlationId.Value, domainEvent);
                 context.PersistentEvents.Add(PersistentEvent.FromEnvelope(envelope, _serializer));
-                context.PendingEvents.Add(new PendingEvent
-                {
-                    AggregateId = domainEvent.SourceId,
-                    Version = domainEvent.Version,
-                    EnvelopeJson = _serializer.Serialize(envelope)
-                });
+                context.PendingEvents.Add(PendingEvent.FromEnvelope(envelope, _serializer));
             }
         }
 
@@ -172,8 +167,7 @@
 
             var properties = new List<UniqueIndexedProperty>();
 
-            foreach (IUniqueIndexedDomainEvent indexedEvent in
-                events.OfType<IUniqueIndexedDomainEvent>())
+            foreach (var indexedEvent in events.OfType<IUniqueIndexedDomainEvent>())
             {
                 foreach (string name in
                     indexedEvent.UniqueIndexedProperties.Keys)
