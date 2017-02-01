@@ -32,7 +32,6 @@
             _pendingEvents = new List<IDomainEvent>();
             _version = 0;
 
-            // Bind domain event handlers automatically.
             WireupEvents();
         }
 
@@ -186,6 +185,7 @@
         /// </summary>
         /// <typeparam name="TEvent">The type of the domain event.</typeparam>
         /// <param name="domainEvent">A domain event instance that will be raised and handled by the aggregate.</param>
+        /// <remarks><paramref name="domainEvent"/> is added to <see cref="PendingEvents"/> after handled.</remarks>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1030:UseEventsWhereAppropriate", Justification = "RaiseEvent<TEvent>() method does not follow .NET event pattern but follows event sourcing.")]
         protected void RaiseEvent<TEvent>(TEvent domainEvent)
             where TEvent : IDomainEvent
