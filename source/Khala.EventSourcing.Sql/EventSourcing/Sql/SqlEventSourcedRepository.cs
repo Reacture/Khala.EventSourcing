@@ -99,7 +99,7 @@
             T source, Guid? correlationId, CancellationToken cancellationToken)
         {
             await _eventStore.SaveEvents<T>(source.PendingEvents, correlationId, cancellationToken).ConfigureAwait(false);
-            await _eventPublisher.PublishPendingEvents<T>(source.Id, cancellationToken).ConfigureAwait(false);
+            await _eventPublisher.PublishPendingEvents(source.Id, cancellationToken).ConfigureAwait(false);
 
             if (_mementoStore != null)
             {

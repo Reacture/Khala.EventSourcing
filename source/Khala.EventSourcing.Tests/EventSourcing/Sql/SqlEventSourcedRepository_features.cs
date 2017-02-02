@@ -88,9 +88,7 @@ namespace Khala.EventSourcing.Sql
 
             Mock.Get(eventPublisher).Verify(
                 x =>
-                x.PublishPendingEvents<FakeUser>(
-                    user.Id,
-                    CancellationToken.None),
+                x.PublishPendingEvents(user.Id, CancellationToken.None),
                 Times.Once());
         }
 
@@ -114,9 +112,7 @@ namespace Khala.EventSourcing.Sql
             action.ShouldThrow<InvalidOperationException>();
             Mock.Get(eventPublisher).Verify(
                 x =>
-                x.PublishPendingEvents<FakeUser>(
-                    user.Id,
-                    It.IsAny<CancellationToken>()),
+                x.PublishPendingEvents(user.Id, It.IsAny<CancellationToken>()),
                 Times.Never());
         }
 

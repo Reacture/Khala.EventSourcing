@@ -123,7 +123,7 @@ namespace Khala.EventSourcing.Sql
                 .Returns(Task.FromResult(true));
 
             // Act
-            await sut.PublishPendingEvents<FakeUser>(sourceId, CancellationToken.None);
+            await sut.PublishPendingEvents(sourceId, CancellationToken.None);
 
             // Assert
             Mock.Get(messageBus).Verify(
@@ -139,7 +139,7 @@ namespace Khala.EventSourcing.Sql
         public async Task PublishEvents_does_not_invoke_SendBatch_if_pending_event_not_found()
         {
             var sourceId = Guid.NewGuid();
-            await sut.PublishPendingEvents<FakeUser>(sourceId, CancellationToken.None);
+            await sut.PublishPendingEvents(sourceId, CancellationToken.None);
             Mock.Get(messageBus).Verify(
                 x =>
                 x.SendBatch(
@@ -171,7 +171,7 @@ namespace Khala.EventSourcing.Sql
             }
 
             // Act
-            await sut.PublishPendingEvents<FakeUser>(sourceId, CancellationToken.None);
+            await sut.PublishPendingEvents(sourceId, CancellationToken.None);
 
             // Assert
             using (var db = new DataContext())
@@ -206,7 +206,7 @@ namespace Khala.EventSourcing.Sql
                 () => mockDbContext, serializer, messageBus);
 
             // Act
-            await sut.PublishPendingEvents<FakeUser>(sourceId, CancellationToken.None);
+            await sut.PublishPendingEvents(sourceId, CancellationToken.None);
 
             // Assert
             Mock.Get(mockDbContext).Verify(

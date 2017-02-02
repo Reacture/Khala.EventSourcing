@@ -40,10 +40,9 @@
             _messageBus = messageBus;
         }
 
-        public Task PublishPendingEvents<T>(
+        public Task PublishPendingEvents(
             Guid sourceId,
             CancellationToken cancellationToken)
-            where T : class, IEventSourced
         {
             if (sourceId == Guid.Empty)
             {

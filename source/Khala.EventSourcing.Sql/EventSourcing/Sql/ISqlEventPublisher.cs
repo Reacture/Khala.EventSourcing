@@ -6,10 +6,8 @@
 
     public interface ISqlEventPublisher : IEventPublisher
     {
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1004:GenericMethodsShouldProvideTypeParameter", Justification = "As designed.")]
-        Task PublishPendingEvents<T>(
+        Task PublishPendingEvents(
             Guid sourceId,
-            CancellationToken cancellationToken)
-            where T : class, IEventSourced;
+            CancellationToken cancellationToken);
     }
 }
