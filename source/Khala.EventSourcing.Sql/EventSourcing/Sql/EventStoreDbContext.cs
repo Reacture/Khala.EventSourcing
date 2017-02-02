@@ -20,5 +20,7 @@
         public DbSet<PendingEvent> PendingEvents { get; set; }
 
         public DbSet<UniqueIndexedProperty> UniqueIndexedProperties { get; set; }
+
+        public DbSet<Correlation> Correlations { get; set; }
     }
 }

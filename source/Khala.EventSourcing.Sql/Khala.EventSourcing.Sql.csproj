@@ -68,6 +68,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="EventSourcing\Sql\Aggregate.cs" />
+    <Compile Include="EventSourcing\Sql\Correlation.cs" />
     <Compile Include="EventSourcing\Sql\EventStoreDbContext.cs" />
     <Compile Include="EventSourcing\Sql\ISqlEventPublisher.cs" />
     <Compile Include="EventSourcing\Sql\ISqlEventStore.cs" />
