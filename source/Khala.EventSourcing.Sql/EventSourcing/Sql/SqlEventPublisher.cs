@@ -71,6 +71,11 @@
                     .Select(e => RestoreEnvelope(e))
                     .ToList();
 
+                if (envelopes.Any() == false)
+                {
+                    return;
+                }
+
                 await _messageBus.SendBatch(envelopes, cancellationToken).ConfigureAwait(false);
 
                 context.PendingEvents.RemoveRange(pendingEvents);

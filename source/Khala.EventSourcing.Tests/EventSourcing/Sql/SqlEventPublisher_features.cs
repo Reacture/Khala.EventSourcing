@@ -135,6 +135,19 @@ namespace Khala.EventSourcing.Sql
             batch.ShouldAllBeEquivalentTo(envelopes, opts => opts.RespectingRuntimeTypes());
         }
 
+        [Fact]
+        public async Task PublishEvents_does_not_invoke_SendBatch_if_pending_event_not_found()
+        {
+            var sourceId = Guid.NewGuid();
+            await sut.PublishPendingEvents<FakeUser>(sourceId, CancellationToken.None);
+            Mock.Get(messageBus).Verify(
+                x =>
+                x.SendBatch(
+                    It.IsAny<IEnumerable<Envelope>>(),
+                    CancellationToken.None),
+                Times.Never());
+        }
+
         [Theory]
         [AutoData]
         public async Task PublishPendingEvents_deletes_pending_events(
@@ -182,6 +195,12 @@ namespace Khala.EventSourcing.Sql
 
             var events = new DomainEvent[] { created, usernameChanged };
             RaiseEvents(sourceId, events);
+
+            Mock.Get(mockDbContext.PendingEvents)
+                .SetupData(events
+                .Select(e => new Envelope(e))
+                .Select(e => PendingEvent.FromEnvelope(e, serializer))
+                .ToList());
 
             var sut = new SqlEventPublisher(
                 () => mockDbContext, serializer, messageBus);
