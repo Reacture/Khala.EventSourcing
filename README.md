@@ -12,27 +12,33 @@
 
 ### Core
 
-이벤트 소싱 추상화 계층을 제공합니다.
+특정 데이터베이스에 종속되지 않은 이벤트 소싱 추상화 계층을 제공합니다. 도메인 계층은 이 패키지를 이용합니다.
+
+[https://www.nuget.org/packages/Khala.EventSourcing.Core/](https://www.nuget.org/packages/Khala.EventSourcing.Core/)
 
 ```
 > Install-Package Khala.EventSourcing.Core
 ```
 
-### Azure
-
-NoSQL 키-값 저장소인 Azure Table storage를 사용하는 이벤트 저장소 구현체를 제공합니다.
-
-```
-> Install-Package Khala.EventSourcing.Azure
-```
-
 ### SQL
 
-관계형 데이터베이스 대상 이벤트 저장소 구현체를 제공합니다.
+관계형 데이터베이스 대상 이벤트 저장소 구현체를 제공합니다. 관계형 데이터베이스를 사용한 데이터 접근 계층이나 응용프로그램 호스트는 이 패키지를 이용합니다.
+
+[https://www.nuget.org/packages/Khala.EventSourcing.Sql/](https://www.nuget.org/packages/Khala.EventSourcing.Sql/)
 
 
 ```
 > Install-Package Khala.EventSourcing.Sql
+```
+
+### Azure
+
+NoSQL 키-값 저장소인 Azure Table storage 대상 이벤트 저장소 구현체를 제공합니다. Azure Table storage를 사용한 데이터 접근 계층이나 응용프로그램 호스트는 이 패키지를 이용합니다.
+
+[https://www.nuget.org/packages/Khala.EventSourcing.Azure/](https://www.nuget.org/packages/Khala.EventSourcing.Azure/)
+
+```
+> Install-Package Khala.EventSourcing.Azure
 ```
 
 ## 메시징
