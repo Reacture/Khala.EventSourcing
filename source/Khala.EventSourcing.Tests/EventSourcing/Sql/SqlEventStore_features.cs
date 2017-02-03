@@ -544,6 +544,30 @@ namespace Khala.EventSourcing.Sql
 
         [Theory]
         [AutoData]
+        public async Task SaveEvents_inserts_Correlation_entity_correctly(
+            FakeUserCreated created, Guid correlationId)
+        {
+            RaiseEvents(userId, created);
+            var now = DateTimeOffset.Now;
+
+            await sut.SaveEvents<FakeUser>(new[] { created }, correlationId);
+
+            using (var db = new DataContext())
+            {
+                Correlation correlation = await db
+                    .Correlations
+                    .Where(
+                        c =>
+                        c.AggregateId == userId &&
+                        c.CorrelationId == correlationId)
+                    .SingleOrDefaultAsync();
+                correlation.Should().NotBeNull();
+                correlation.HandledAt.Should().BeCloseTo(now);
+            }
+        }
+
+        [Theory]
+        [AutoData]
         public async Task LoadEvents_restores_all_events_correctly(
             FakeUserCreated created,
             FakeUsernameChanged usernameChanged)
