@@ -43,6 +43,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="EventSourcing\DomainEvent.cs" />
+    <Compile Include="EventSourcing\DuplicateCorrelationException.cs" />
     <Compile Include="EventSourcing\EventSourced.cs" />
     <Compile Include="EventSourcing\EventSourcingExtensions.cs" />
     <Compile Include="EventSourcing\IDomainEvent.cs" />
