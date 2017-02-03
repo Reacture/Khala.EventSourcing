@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data.Entity;
+using System.Data.Entity.Infrastructure;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -564,6 +565,26 @@ namespace Khala.EventSourcing.Sql
                 correlation.Should().NotBeNull();
                 correlation.HandledAt.Should().BeCloseTo(now);
             }
+        }
+
+        [Theory]
+        [AutoData]
+        public async Task SaveEvents_throws_DuplicateCorrelationException_if_correlation_duplicate(
+            FakeUserCreated created,
+            FakeUsernameChanged usernameChanged,
+            Guid correlationId)
+        {
+            RaiseEvents(userId, created, usernameChanged);
+            await sut.SaveEvents<FakeUser>(new[] { created }, correlationId);
+
+            Func<Task> action = () => sut.SaveEvents<FakeUser>(new[] { usernameChanged }, correlationId);
+
+            action.ShouldThrow<DuplicateCorrelationException>().Where(
+                x =>
+                x.SourceType == typeof(FakeUser) &&
+                x.SourceId == userId &&
+                x.CorrelationId == correlationId &&
+                x.InnerException is DbUpdateException);
         }
 
         [Theory]

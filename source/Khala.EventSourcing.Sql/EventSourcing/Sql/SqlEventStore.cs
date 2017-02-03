@@ -3,6 +3,8 @@
     using System;
     using System.Collections.Generic;
     using System.Data.Entity;
+    using System.Data.Entity.Core;
+    using System.Data.Entity.Infrastructure;
     using System.Linq;
     using System.Runtime.CompilerServices;
     using System.Threading;
@@ -92,7 +94,8 @@
                 InsertEvents(context, events, correlationId);
                 await UpdateUniqueIndexedProperties<T>(context, sourceId, events, cancellationToken).ConfigureAwait(false);
                 InsertCorrelation(sourceId, correlationId, context);
-                await context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+
+                await SaveChanges<T>(context, sourceId, cancellationToken);
             }
         }
 
@@ -223,6 +226,41 @@
                 CorrelationId = correlationId.Value,
                 HandledAt = DateTimeOffset.Now
             });
+        }
+
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1822:MarkMembersAsStatic", Justification = "This method is extracted.")]
+        private async Task SaveChanges<T>(
+            EventStoreDbContext context,
+            Guid sourceId,
+            CancellationToken cancellationToken)
+            where T : class, IEventSourced
+        {
+            try
+            {
+                await context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+            }
+            catch (DbUpdateException exception)
+            when (exception.InnerException is UpdateException)
+            {
+                var updateException = (UpdateException)exception.InnerException;
+
+                Correlation correlation = updateException
+                    .StateEntries
+                    .Select(s => s.Entity)
+                    .OfType<Correlation>()
+                    .FirstOrDefault();
+
+                if (correlation != null)
+                {
+                    throw new DuplicateCorrelationException(
+                        typeof(T),
+                        sourceId,
+                        correlation.CorrelationId,
+                        exception);
+                }
+
+                throw;
+            }
         }
 
         public Task<IEnumerable<IDomainEvent>> LoadEvents<T>(
