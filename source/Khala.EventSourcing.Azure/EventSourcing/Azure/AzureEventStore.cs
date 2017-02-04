@@ -79,7 +79,7 @@
             await InsertEvents<T>(envelopes, cancellationToken).ConfigureAwait(false);
         }
 
-        private async Task InsertPendingEvents<T>(
+        private Task InsertPendingEvents<T>(
             List<Envelope> envelopes,
             CancellationToken cancellationToken)
             where T : class, IEventSourced
@@ -91,10 +91,10 @@
                 batch.Insert(PendingEventTableEntity.FromEnvelope<T>(envelope, _serializer));
             }
 
-            await _eventTable.ExecuteBatchAsync(batch, cancellationToken).ConfigureAwait(false);
+            return _eventTable.ExecuteBatchAsync(batch, cancellationToken);
         }
 
-        private async Task InsertEvents<T>(
+        private Task InsertEvents<T>(
             List<Envelope> envelopes,
             CancellationToken cancellationToken)
             where T : class, IEventSourced
@@ -106,7 +106,7 @@
                 batch.Insert(EventTableEntity.FromEnvelope<T>(envelope, _serializer));
             }
 
-            await _eventTable.ExecuteBatchAsync(batch, cancellationToken).ConfigureAwait(false);
+            return _eventTable.ExecuteBatchAsync(batch, cancellationToken);
         }
 
         public Task<IEnumerable<IDomainEvent>> LoadEvents<T>(
