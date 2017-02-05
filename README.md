@@ -1,6 +1,6 @@
 # Khala - Event Sourcing
 
-이벤트 소싱(Event Sourcing) 패턴 구현체를 제공합니다.
+[이벤트 소싱(Event Sourcing) 패턴](https://justhackem.wordpress.com/2017/02/05/introducing-event-sourcing/) 구현체를 제공합니다.
 
 - **이벤트 기반 집합체(aggregate)**
 - **저장소(repository):** Azure Table storage, 관계형 데이터베이스
@@ -107,6 +107,10 @@ public class UsernameChanged : DomainEvent
 ## 예제 응용프로그램
 
 - [TodoList](examples/TodoList)
+
+## 참고
+
+- [이벤트 소싱(Event Sourcing) 소개](https://justhackem.wordpress.com/2017/02/05/introducing-event-sourcing/)
 
 ## License
 
