@@ -6,6 +6,7 @@
     using System.Threading;
     using System.Threading.Tasks;
     using Messaging;
+    using Microsoft.WindowsAzure.Storage;
     using Microsoft.WindowsAzure.Storage.Table;
     using static Microsoft.WindowsAzure.Storage.Table.QueryComparisons;
     using static Microsoft.WindowsAzure.Storage.Table.TableOperators;
@@ -76,7 +77,7 @@
                 : domainEvents.Select(e => new Envelope(correlationId.Value, e)));
 
             await InsertPendingEvents<T>(envelopes, cancellationToken).ConfigureAwait(false);
-            await InsertEvents<T>(envelopes, cancellationToken).ConfigureAwait(false);
+            await InsertEventsAndCorrelation<T>(envelopes, correlationId, cancellationToken).ConfigureAwait(false);
         }
 
         private Task InsertPendingEvents<T>(
@@ -94,19 +95,40 @@
             return _eventTable.ExecuteBatchAsync(batch, cancellationToken);
         }
 
-        private Task InsertEvents<T>(
+        private async Task InsertEventsAndCorrelation<T>(
             List<Envelope> envelopes,
+            Guid? correlationId,
             CancellationToken cancellationToken)
             where T : class, IEventSourced
         {
             var batch = new TableBatchOperation();
+
+            var firstEvent = (IDomainEvent)envelopes.First().Message;
+            Guid sourceId = firstEvent.SourceId;
+
+            if (correlationId.HasValue)
+            {
+                batch.Insert(CorrelationTableEntity.Create(typeof(T), sourceId, correlationId.Value));
+            }
 
             foreach (Envelope envelope in envelopes)
             {
                 batch.Insert(EventTableEntity.FromEnvelope<T>(envelope, _serializer));
             }
 
-            return _eventTable.ExecuteBatchAsync(batch, cancellationToken);
+            try
+            {
+                await _eventTable.ExecuteBatchAsync(batch, cancellationToken).ConfigureAwait(false);
+            }
+            catch (StorageException exception)
+            when (correlationId.HasValue && exception.Message.StartsWith("0:"))
+            {
+                throw new DuplicateCorrelationException(
+                    typeof(T),
+                    sourceId,
+                    correlationId.Value,
+                    exception);
+            }
         }
 
         public Task<IEnumerable<IDomainEvent>> LoadEvents<T>(

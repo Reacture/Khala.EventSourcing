@@ -185,6 +185,60 @@ namespace Khala.EventSourcing.Azure
         }
 
         [TestMethod]
+        public async Task SaveEvents_inserts_CorrelationTableEntity_correctly()
+        {
+            // Arrange
+            var created = fixture.Create<FakeUserCreated>();
+            var events = new DomainEvent[] { created };
+            var correlationId = Guid.NewGuid();
+            RaiseEvents(userId, events);
+
+            // Act
+            var now = DateTimeOffset.Now;
+            await sut.SaveEvents<FakeUser>(events, correlationId);
+
+            // Assert
+            string partitionKey = CorrelationTableEntity.GetPartitionKey(typeof(FakeUser), userId);
+            string rowKey = CorrelationTableEntity.GetRowKey(correlationId);
+            var query = new TableQuery<CorrelationTableEntity>().Where($"PartitionKey eq '{partitionKey}' and RowKey eq '{rowKey}'");
+            IEnumerable<CorrelationTableEntity> correlations = s_eventTable.ExecuteQuery(query);
+            correlations.Should()
+                .ContainSingle(e => e.CorrelationId == correlationId)
+                .Which.HandledAt.ToLocalTime().Should().BeCloseTo(now, 1000);
+        }
+
+        [TestMethod]
+        public void SaveEvents_does_not_fail_even_if_no_correlation()
+        {
+            var created = fixture.Create<FakeUserCreated>();
+            var events = new DomainEvent[] { created };
+            RaiseEvents(userId, events);
+
+            Func<Task> action = () => sut.SaveEvents<FakeUser>(events);
+
+            action.ShouldNotThrow();
+        }
+
+        [TestMethod]
+        public async Task SaveEvents_throws_DuplicateCorrelationException_if_correlation_duplicate()
+        {
+            var created = fixture.Create<FakeUserCreated>();
+            var usernameChanged = fixture.Create<FakeUsernameChanged>();
+            RaiseEvents(userId, created, usernameChanged);
+            var correlationId = Guid.NewGuid();
+            await sut.SaveEvents<FakeUser>(new[] { created }, correlationId);
+
+            Func<Task> action = () => sut.SaveEvents<FakeUser>(new[] { usernameChanged }, correlationId);
+
+            action.ShouldThrow<DuplicateCorrelationException>().Where(
+                x =>
+                x.SourceType == typeof(FakeUser) &&
+                x.SourceId == userId &&
+                x.CorrelationId == correlationId &&
+                x.InnerException is StorageException);
+        }
+
+        [TestMethod]
         public async Task LoadEvents_restores_domain_events_correctly()
         {
             // Arrange
