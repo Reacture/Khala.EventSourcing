@@ -1,6 +1,7 @@
 ﻿namespace Khala.EventSourcing.Azure
 {
     using System.Collections.Generic;
+    using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
     using Microsoft.WindowsAzure.Storage.Table;
@@ -27,6 +28,18 @@
             while (continuation != null);
 
             return entities;
+        }
+
+        public static async Task<bool> Any<TEntity>(
+            this CloudTable table,
+            TableQuery<TEntity> query,
+            CancellationToken cancellationToken)
+            where TEntity : ITableEntity, new()
+        {
+            IEnumerable<TEntity> entities = await
+                table.ExecuteQuery(query.Take(1), cancellationToken);
+
+            return entities.Any();
         }
     }
 }

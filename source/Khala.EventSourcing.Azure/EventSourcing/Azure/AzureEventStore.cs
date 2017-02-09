@@ -106,28 +106,34 @@
             var firstEvent = (IDomainEvent)envelopes.First().Message;
             Guid sourceId = firstEvent.SourceId;
 
-            if (correlationId.HasValue)
-            {
-                batch.Insert(CorrelationTableEntity.Create(typeof(T), sourceId, correlationId.Value));
-            }
-
             foreach (Envelope envelope in envelopes)
             {
                 batch.Insert(EventTableEntity.FromEnvelope<T>(envelope, _serializer));
+            }
+
+            if (correlationId.HasValue)
+            {
+                batch.Insert(CorrelationTableEntity.Create(typeof(T), sourceId, correlationId.Value));
             }
 
             try
             {
                 await _eventTable.ExecuteBatchAsync(batch, cancellationToken).ConfigureAwait(false);
             }
-            catch (StorageException exception)
-            when (correlationId.HasValue && exception.Message.StartsWith("0:"))
+            catch (StorageException exception) when (correlationId.HasValue)
             {
-                throw new DuplicateCorrelationException(
-                    typeof(T),
-                    sourceId,
-                    correlationId.Value,
-                    exception);
+                string filter = CorrelationTableEntity.GetFilter(typeof(T), sourceId, correlationId.Value);
+                var query = new TableQuery<CorrelationTableEntity>().Where(filter);
+                if (await _eventTable.Any(query, cancellationToken))
+                {
+                    throw new DuplicateCorrelationException(
+                        typeof(T),
+                        sourceId,
+                        correlationId.Value,
+                        exception);
+                }
+
+                throw;
             }
         }
 
@@ -152,8 +158,6 @@
             CancellationToken cancellationToken)
             where T : class, IEventSourced
         {
-            var query = new TableQuery<EventTableEntity>();
-
             string filter = CombineFilters(
                 GenerateFilterCondition(
                     nameof(ITableEntity.PartitionKey),
@@ -165,8 +169,10 @@
                     GreaterThan,
                     EventTableEntity.GetRowKey(afterVersion)));
 
+            var query = new TableQuery<EventTableEntity>().Where(filter);
+
             IEnumerable<EventTableEntity> events = await _eventTable
-                .ExecuteQuery(query.Where(filter), cancellationToken)
+                .ExecuteQuery(query, cancellationToken)
                 .ConfigureAwait(false);
 
             return new List<IDomainEvent>(events

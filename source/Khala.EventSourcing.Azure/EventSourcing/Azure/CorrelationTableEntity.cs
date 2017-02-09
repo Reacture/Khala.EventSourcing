@@ -2,6 +2,9 @@
 {
     using System;
     using Microsoft.WindowsAzure.Storage.Table;
+    using static Microsoft.WindowsAzure.Storage.Table.QueryComparisons;
+    using static Microsoft.WindowsAzure.Storage.Table.TableOperators;
+    using static Microsoft.WindowsAzure.Storage.Table.TableQuery;
 
     public class CorrelationTableEntity : TableEntity
     {
@@ -27,6 +30,21 @@
                 CorrelationId = correlationId,
                 HandledAt = DateTimeOffset.Now
             };
+        }
+
+        internal static string GetFilter(
+            Type sourceType, Guid sourceId, Guid correlationId)
+        {
+            return CombineFilters(
+                GenerateFilterCondition(
+                    nameof(ITableEntity.PartitionKey),
+                    Equal,
+                    GetPartitionKey(sourceType, sourceId)),
+                And,
+                GenerateFilterCondition(
+                    nameof(ITableEntity.RowKey),
+                    Equal,
+                    GetRowKey(correlationId)));
         }
     }
 }
