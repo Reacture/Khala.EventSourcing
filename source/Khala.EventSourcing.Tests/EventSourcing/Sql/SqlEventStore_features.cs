@@ -19,7 +19,7 @@ using Xunit.Abstractions;
 
 namespace Khala.EventSourcing.Sql
 {
-    public class SqlEventStore_features : IDisposable
+    public class SqlEventStore_features
     {
         public class DataContext : EventStoreDbContext
         {
@@ -60,10 +60,7 @@ namespace Khala.EventSourcing.Sql
 
             mockDbContext.UniqueIndexedProperties = Mock.Of<DbSet<UniqueIndexedProperty>>();
             Mock.Get(mockDbContext.UniqueIndexedProperties).SetupData();
-        }
 
-        public void Dispose()
-        {
             using (var db = new DataContext())
             {
                 db.Database.Log = output.WriteLine;
