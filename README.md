@@ -111,6 +111,7 @@ public class UsernameChanged : DomainEvent
 ## 참고
 
 - [이벤트 소싱(Event Sourcing) 소개](https://justhackem.wordpress.com/2017/02/05/introducing-event-sourcing/)
+- [CQRS란 무엇인가?](https://justhackem.wordpress.com/2016/09/17/what-is-cqrs/)
 
 ## License
 
