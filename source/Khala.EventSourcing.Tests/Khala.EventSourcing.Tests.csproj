@@ -184,6 +184,7 @@
     <Compile Include="EventSourcing\Sql\SqlEventSourcingAbstractionExtensions_features.cs" />
     <Compile Include="EventSourcing\Sql\SqlEventSourcingExtensions_features.cs" />
     <Compile Include="EventSourcing\Sql\SqlEventStore_features.cs" />
+    <Compile Include="EventSourcing\Sql\SqlMementoStore_features.cs" />
     <Compile Include="FakeDomain\Events\FakeUserCreated.cs" />
     <Compile Include="FakeDomain\Events\FakeUsernameChanged.cs" />
     <Compile Include="FakeDomain\FakeUser.cs" />
