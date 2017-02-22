@@ -60,7 +60,8 @@
                 Memento entity = await context
                     .Mementoes
                     .Where(m => m.AggregateId == sourceId)
-                    .SingleOrDefaultAsync();
+                    .SingleOrDefaultAsync(cancellationToken)
+                    .ConfigureAwait(false);
 
                 if (entity == null)
                 {
@@ -70,7 +71,7 @@
 
                 entity.MementoJson = _serializer.Serialize(memento);
 
-                await context.SaveChangesAsync(cancellationToken);
+                await context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -84,7 +85,30 @@
                     $"{nameof(sourceId)} cannot be empty.", nameof(sourceId));
             }
 
-            throw new NotImplementedException();
+            return FindMemento(sourceId, cancellationToken);
+        }
+
+        private async Task<IMemento> FindMemento(
+            Guid sourceId,
+            CancellationToken cancellationToken)
+        {
+            using (IMementoStoreDbContext context = _dbContextFactory.Invoke())
+            {
+                Memento entity = await context
+                    .Mementoes
+                    .Where(m => m.AggregateId == sourceId)
+                    .SingleOrDefaultAsync(cancellationToken)
+                    .ConfigureAwait(false);
+
+                if (entity == null)
+                {
+                    return null;
+                }
+
+                object memento = _serializer.Deserialize(entity.MementoJson);
+
+                return (IMemento)memento;
+            }
         }
 
         public Task Delete<T>(

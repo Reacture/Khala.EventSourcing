@@ -111,5 +111,30 @@ namespace Khala.EventSourcing.Sql
                 restored.ShouldBeEquivalentTo(newMemento);
             }
         }
+
+        [Theory]
+        [AutoData]
+        public async Task Find_returns_memento_correctly(
+            Guid sourceId,
+            FakeUserMemento memento)
+        {
+            await sut.Save<FakeUser>(sourceId, memento, CancellationToken.None);
+
+            IMemento actual = await
+                sut.Find<FakeUser>(sourceId, CancellationToken.None);
+
+            actual.Should().BeOfType<FakeUserMemento>();
+            actual.ShouldBeEquivalentTo(memento);
+        }
+
+        [Theory]
+        [AutoData]
+        public async Task Find_returns_null_if_not_exists(Guid sourceId)
+        {
+            IMemento actual = await
+                sut.Find<FakeUser>(sourceId, CancellationToken.None);
+
+            actual.Should().BeNull();
+        }
     }
 }
