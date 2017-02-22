@@ -136,5 +136,33 @@ namespace Khala.EventSourcing.Sql
 
             actual.Should().BeNull();
         }
+
+        [Theory]
+        [AutoData]
+        public async Task Delete_deletes_Memento_entity(
+            Guid sourceId,
+            FakeUserMemento memento)
+        {
+            await sut.Save<FakeUser>(sourceId, memento, CancellationToken.None);
+
+            await sut.Delete<FakeUser>(sourceId, CancellationToken.None);
+
+            using (var db = new DataContext())
+            {
+                bool actual = await db
+                    .Mementoes
+                    .Where(m => m.AggregateId == sourceId)
+                    .AnyAsync();
+                actual.Should().BeFalse();
+            }
+        }
+
+        [Theory]
+        [AutoData]
+        public void Delete_does_not_fail_even_if_Memento_entity_does_not_exist(Guid sourceId)
+        {
+            Func<Task> action = () => sut.Delete<FakeUser>(sourceId, CancellationToken.None);
+            action.ShouldNotThrow();
+        }
     }
 }

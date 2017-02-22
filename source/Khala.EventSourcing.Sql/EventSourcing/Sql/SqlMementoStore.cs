@@ -112,7 +112,8 @@
         }
 
         public Task Delete<T>(
-            Guid sourceId, CancellationToken cancellationToken)
+            Guid sourceId,
+            CancellationToken cancellationToken)
             where T : class, IEventSourced
         {
             if (sourceId == Guid.Empty)
@@ -121,7 +122,30 @@
                     $"{nameof(sourceId)} cannot be empty.", nameof(sourceId));
             }
 
-            throw new NotImplementedException();
+            return DeleteMemento(sourceId, cancellationToken);
+        }
+
+        private async Task DeleteMemento(
+            Guid sourceId,
+            CancellationToken cancellationToken)
+        {
+            using (IMementoStoreDbContext context = _dbContextFactory.Invoke())
+            {
+                Memento entity = await context
+                    .Mementoes
+                    .Where(m => m.AggregateId == sourceId)
+                    .SingleOrDefaultAsync()
+                    .ConfigureAwait(false);
+
+                if (entity == null)
+                {
+                    return;
+                }
+
+                context.Mementoes.Remove(entity);
+
+                await context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+            }
         }
     }
 }
