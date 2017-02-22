@@ -1,6 +1,8 @@
 ﻿namespace Khala.EventSourcing.Sql
 {
     using System;
+    using System.Data.Entity;
+    using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
     using Messaging;
@@ -45,7 +47,31 @@
                 throw new ArgumentNullException(nameof(memento));
             }
 
-            throw new NotImplementedException();
+            return SaveMemento(sourceId, memento, cancellationToken);
+        }
+
+        private async Task SaveMemento(
+            Guid sourceId,
+            IMemento memento,
+            CancellationToken cancellationToken)
+        {
+            using (IMementoStoreDbContext context = _dbContextFactory.Invoke())
+            {
+                Memento entity = await context
+                    .Mementoes
+                    .Where(m => m.AggregateId == sourceId)
+                    .SingleOrDefaultAsync();
+
+                if (entity == null)
+                {
+                    entity = new Memento { AggregateId = sourceId };
+                    context.Mementoes.Add(entity);
+                }
+
+                entity.MementoJson = _serializer.Serialize(memento);
+
+                await context.SaveChangesAsync(cancellationToken);
+            }
         }
 
         public Task<IMemento> Find<T>(
