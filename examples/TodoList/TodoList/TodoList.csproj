@@ -45,11 +45,11 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Khala.EventSourcing.Core, Version=0.9.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Khala.EventSourcing.Core.0.9.0\lib\netstandard1.1\Khala.EventSourcing.Core.dll</HintPath>
+      <HintPath>..\packages\Khala.EventSourcing.Core.0.9.3\lib\netstandard1.1\Khala.EventSourcing.Core.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Khala.EventSourcing.Sql, Version=0.9.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Khala.EventSourcing.Sql.0.9.0\lib\net45\Khala.EventSourcing.Sql.dll</HintPath>
+      <HintPath>..\packages\Khala.EventSourcing.Sql.0.9.3\lib\net45\Khala.EventSourcing.Sql.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Khala.Messaging.Abstraction, Version=0.9.0.0, Culture=neutral, processorArchitecture=MSIL">
@@ -225,6 +225,7 @@
     <Compile Include="Domain\Events\TodoItemCreated.cs" />
     <Compile Include="Domain\Events\TodoItemDeleted.cs" />
     <Compile Include="Domain\Events\TodoItemUpdated.cs" />
+    <Compile Include="Domain\TodoItemMemento.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>

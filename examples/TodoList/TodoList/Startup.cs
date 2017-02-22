@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using Khala.EventSourcing;
 using Khala.EventSourcing.Sql;
 using Khala.Messaging;
@@ -23,11 +24,28 @@ namespace TodoList
             IMessageBus messageBus = new ImmediateMessageBus(
                 new Lazy<IMessageHandler>(() => messageHandler));
 
+            var serializer = new JsonMessageSerializer();
+
+            Func<TodoListEventStoreDbContext> dbContextFactory = () =>
+            {
+                var context = new TodoListEventStoreDbContext();
+                context.Database.Log += m => Debug.WriteLine(m);
+                return context;
+            };
+
             IEventSourcedRepository<Domain.TodoItem> repository =
                 new SqlEventSourcedRepository<Domain.TodoItem>(
-                    () => new TodoListEventStoreDbContext(),
-                    new JsonMessageSerializer(),
-                    messageBus,
+                    new SqlEventStore(
+                        dbContextFactory,
+                        serializer),
+                    new SqlEventPublisher(
+                        dbContextFactory,
+                        serializer,
+                        messageBus),
+                    new SqlMementoStore(
+                        dbContextFactory,
+                        serializer),
+                    Domain.TodoItem.Factory,
                     Domain.TodoItem.Factory);
 
             messageHandler = new CompositeMessageHandler(

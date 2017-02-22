@@ -6,7 +6,7 @@ using TodoList.Domain.Events;
 
 namespace TodoList.Domain
 {
-    public class TodoItem : EventSourced
+    public class TodoItem : EventSourced, IMementoOriginator
     {
         public TodoItem(Guid id, string description)
             : base(id)
@@ -28,11 +28,27 @@ namespace TodoList.Domain
         {
         }
 
+        private TodoItem(Guid id, TodoItemMemento memento) : base(id, memento)
+        {
+            Description = memento.Description;
+            IsDeleted = memento.IsDeleted;
+        }
+
         public static TodoItem Factory(
             Guid id,
             IEnumerable<IDomainEvent> pastEvents)
         {
             var todoItem = new TodoItem(id);
+            todoItem.HandlePastEvents(pastEvents);
+            return todoItem;
+        }
+
+        public static TodoItem Factory(
+            Guid id,
+            IMemento memento,
+            IEnumerable<IDomainEvent> pastEvents)
+        {
+            var todoItem = new TodoItem(id, (TodoItemMemento)memento);
             todoItem.HandlePastEvents(pastEvents);
             return todoItem;
         }
@@ -88,5 +104,12 @@ namespace TodoList.Domain
         {
             IsDeleted = true;
         }
+
+        IMemento IMementoOriginator.SaveToMemento() => new TodoItemMemento
+        {
+            Version = Version,
+            Description = Description,
+            IsDeleted = IsDeleted
+        };
     }
 }
