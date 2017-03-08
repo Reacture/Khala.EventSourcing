@@ -102,12 +102,11 @@ namespace Khala.EventSourcing.Sql
 
             using (var db = new DataContext())
             {
-                var batchGroup = Guid.NewGuid();
                 foreach (DomainEvent e in events)
                 {
                     var envelope = new Envelope(e);
                     envelopes.Add(envelope);
-                    db.PendingEvents.Add(PendingEvent.FromEnvelope(envelope, batchGroup, serializer));
+                    db.PendingEvents.Add(PendingEvent.FromEnvelope(envelope, serializer));
                 }
                 await db.SaveChangesAsync();
             }
@@ -163,11 +162,10 @@ namespace Khala.EventSourcing.Sql
 
             using (var db = new DataContext())
             {
-                var batchGroup = Guid.NewGuid();
                 foreach (DomainEvent e in events)
                 {
                     var envelope = new Envelope(e);
-                    db.PendingEvents.Add(PendingEvent.FromEnvelope(envelope, batchGroup, serializer));
+                    db.PendingEvents.Add(PendingEvent.FromEnvelope(envelope, serializer));
                 }
                 await db.SaveChangesAsync();
             }
@@ -198,12 +196,10 @@ namespace Khala.EventSourcing.Sql
             var events = new DomainEvent[] { created, usernameChanged };
             RaiseEvents(sourceId, events);
 
-            var batchGroup = Guid.NewGuid();
-
             Mock.Get(mockDbContext.PendingEvents)
                 .SetupData(events
                 .Select(e => new Envelope(e))
-                .Select(e => PendingEvent.FromEnvelope(e, batchGroup, serializer))
+                .Select(e => PendingEvent.FromEnvelope(e, serializer))
                 .ToList());
 
             var sut = new SqlEventPublisher(

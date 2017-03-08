@@ -19,14 +19,11 @@
 
         public Guid? CorrelationId { get; set; }
 
-        public Guid BatchGroup { get; set; }
-
         [Required]
         public string EventJson { get; set; }
 
         public static PendingEvent FromEnvelope(
             Envelope envelope,
-            Guid batchGroup,
             IMessageSerializer serializer)
         {
             if (envelope == null)
@@ -54,7 +51,6 @@
                 Version = domainEvent.Version,
                 MessageId = envelope.MessageId,
                 CorrelationId = envelope.CorrelationId,
-                BatchGroup = batchGroup,
                 EventJson = serializer.Serialize(domainEvent)
             };
         }

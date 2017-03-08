@@ -300,34 +300,6 @@ namespace Khala.EventSourcing.Sql
 
         [Theory]
         [AutoData]
-        public async Task SaveEvents_sets_BatchGroup_properties_of_pending_events_correctly(
-            FakeUserCreated created,
-            FakeUsernameChanged usernameChanged,
-            Guid correlationId)
-        {
-            // Arrange
-            var events = new DomainEvent[] { created, usernameChanged };
-            RaiseEvents(userId, events);
-
-            // Act
-            await sut.SaveEvents<FakeUser>(events, correlationId);
-
-            // Asseert
-            using (var db = new DataContext())
-            {
-                List<Guid> batchGroups = db
-                    .PendingEvents
-                    .Where(e => e.AggregateId == userId)
-                    .Select(e => e.BatchGroup)
-                    .ToList();
-
-                batchGroups.Distinct().Should().ContainSingle();
-                batchGroups.Should().NotContain(Guid.Empty);
-            }
-        }
-
-        [Theory]
-        [AutoData]
         public async Task SaveEvents_saves_events_correctly(
             FakeUserCreated created,
             FakeUsernameChanged usernameChanged)

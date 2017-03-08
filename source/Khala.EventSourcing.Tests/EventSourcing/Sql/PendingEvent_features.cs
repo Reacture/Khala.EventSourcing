@@ -23,7 +23,7 @@ namespace Khala.EventSourcing.Sql
         {
             var domainEvent = fixture.Create<FakeUserCreated>();
             var envelope = new Envelope(domainEvent);
-            var actual = PendingEvent.FromEnvelope(envelope, Guid.NewGuid(), serializer);
+            var actual = PendingEvent.FromEnvelope(envelope, serializer);
             actual.AggregateId.Should().Be(domainEvent.SourceId);
         }
 
@@ -32,7 +32,7 @@ namespace Khala.EventSourcing.Sql
         {
             var domainEvent = fixture.Create<FakeUserCreated>();
             var envelope = new Envelope(domainEvent);
-            var actual = PendingEvent.FromEnvelope(envelope, Guid.NewGuid(), serializer);
+            var actual = PendingEvent.FromEnvelope(envelope, serializer);
             actual.Version.Should().Be(domainEvent.Version);
         }
 
@@ -41,7 +41,7 @@ namespace Khala.EventSourcing.Sql
         {
             var domainEvent = fixture.Create<FakeUserCreated>();
             var envelope = new Envelope(domainEvent);
-            var actual = PendingEvent.FromEnvelope(envelope, Guid.NewGuid(), serializer);
+            var actual = PendingEvent.FromEnvelope(envelope, serializer);
             actual.MessageId.Should().Be(envelope.MessageId);
         }
 
@@ -51,18 +51,8 @@ namespace Khala.EventSourcing.Sql
             var domainEvent = fixture.Create<FakeUserCreated>();
             var correlationId = Guid.NewGuid();
             var envelope = new Envelope(correlationId, domainEvent);
-            var actual = PendingEvent.FromEnvelope(envelope, Guid.NewGuid(), serializer);
+            var actual = PendingEvent.FromEnvelope(envelope, serializer);
             actual.CorrelationId.Should().Be(correlationId);
-        }
-
-        [Fact]
-        public void FromEnvelope_sets_BatchGroup_correctly()
-        {
-            var domainEvent = fixture.Create<FakeUserCreated>();
-            var envelope = new Envelope(domainEvent);
-            var batchGroup = Guid.NewGuid();
-            var actual = PendingEvent.FromEnvelope(envelope, batchGroup, serializer);
-            actual.BatchGroup.Should().Be(batchGroup);
         }
 
         [Fact]
@@ -71,7 +61,7 @@ namespace Khala.EventSourcing.Sql
             var domainEvent = fixture.Create<FakeUserCreated>();
             var envelope = new Envelope(domainEvent);
 
-            var actual = PendingEvent.FromEnvelope(envelope, Guid.NewGuid(), serializer);
+            var actual = PendingEvent.FromEnvelope(envelope, serializer);
 
             object message = serializer.Deserialize(actual.EventJson);
             message.Should().BeOfType<FakeUserCreated>();
@@ -82,7 +72,7 @@ namespace Khala.EventSourcing.Sql
         public void FromEnvelope_has_guard_clause_for_invalid_message()
         {
             var envelope = new Envelope(new object());
-            Action action = () => PendingEvent.FromEnvelope(envelope, Guid.NewGuid(), serializer);
+            Action action = () => PendingEvent.FromEnvelope(envelope, serializer);
             action.ShouldThrow<ArgumentException>().Where(x => x.ParamName == "envelope");
         }
     }

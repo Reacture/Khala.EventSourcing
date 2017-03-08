@@ -140,7 +140,6 @@
             List<IDomainEvent> events,
             Guid? correlationId)
         {
-            var batchGroup = Guid.NewGuid();
             foreach (IDomainEvent domainEvent in events)
             {
                 var envelope =
@@ -148,7 +147,7 @@
                     ? new Envelope(domainEvent)
                     : new Envelope(correlationId.Value, domainEvent);
                 context.PersistentEvents.Add(PersistentEvent.FromEnvelope(envelope, _serializer));
-                context.PendingEvents.Add(PendingEvent.FromEnvelope(envelope, batchGroup, _serializer));
+                context.PendingEvents.Add(PendingEvent.FromEnvelope(envelope, _serializer));
             }
         }
 
