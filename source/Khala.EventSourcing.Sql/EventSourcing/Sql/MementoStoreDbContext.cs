@@ -2,6 +2,7 @@
 {
     using System.Data.Entity;
 
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1063:ImplementIDisposableCorrectly", Justification = "As designed.")]
     public class MementoStoreDbContext : DbContext, IMementoStoreDbContext
     {
         public DbSet<Memento> Mementoes { get; set; }
