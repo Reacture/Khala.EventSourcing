@@ -16,18 +16,8 @@
             CloudBlobContainer container,
             IMessageSerializer serializer)
         {
-            if (container == null)
-            {
-                throw new ArgumentNullException(nameof(container));
-            }
-
-            if (serializer == null)
-            {
-                throw new ArgumentNullException(nameof(serializer));
-            }
-
-            _container = container;
-            _serializer = serializer;
+            _container = container ?? throw new ArgumentNullException(nameof(container));
+            _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1004:GenericMethodsShouldProvideTypeParameter", Justification = "As designed.")]

@@ -215,8 +215,7 @@
             }
 
             Type eventType = domainEvent.GetType();
-            Action<IDomainEvent> handler;
-            if (_eventHandlers.TryGetValue(eventType, out handler))
+            if (_eventHandlers.TryGetValue(eventType, out Action<IDomainEvent> handler))
             {
                 handler.Invoke(domainEvent);
                 _version = domainEvent.Version;

@@ -23,24 +23,9 @@
             IMessageSerializer serializer,
             IMessageBus messageBus)
         {
-            if (eventTable == null)
-            {
-                throw new ArgumentNullException(nameof(eventTable));
-            }
-
-            if (serializer == null)
-            {
-                throw new ArgumentNullException(nameof(serializer));
-            }
-
-            if (messageBus == null)
-            {
-                throw new ArgumentNullException(nameof(messageBus));
-            }
-
-            _eventTable = eventTable;
-            _serializer = serializer;
-            _messageBus = messageBus;
+            _eventTable = eventTable ?? throw new ArgumentNullException(nameof(eventTable));
+            _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
+            _messageBus = messageBus ?? throw new ArgumentNullException(nameof(messageBus));
         }
 
         public Task PublishPendingEvents<T>(

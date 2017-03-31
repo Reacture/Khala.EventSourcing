@@ -20,24 +20,9 @@
             IAzureEventPublisher eventPublisher,
             Func<Guid, IEnumerable<IDomainEvent>, T> entityFactory)
         {
-            if (eventStore == null)
-            {
-                throw new ArgumentNullException(nameof(eventStore));
-            }
-
-            if (eventPublisher == null)
-            {
-                throw new ArgumentNullException(nameof(eventPublisher));
-            }
-
-            if (entityFactory == null)
-            {
-                throw new ArgumentNullException(nameof(entityFactory));
-            }
-
-            _eventStore = eventStore;
-            _eventPublisher = eventPublisher;
-            _entityFactory = entityFactory;
+            _eventStore = eventStore ?? throw new ArgumentNullException(nameof(eventStore));
+            _eventPublisher = eventPublisher ?? throw new ArgumentNullException(nameof(eventPublisher));
+            _entityFactory = entityFactory ?? throw new ArgumentNullException(nameof(entityFactory));
         }
 
         public AzureEventSourcedRepository(
@@ -48,18 +33,8 @@
             Func<Guid, IMemento, IEnumerable<IDomainEvent>, T> mementoEntityFactory)
             : this(eventStore, eventPublisher, entityFactory)
         {
-            if (mementoStore == null)
-            {
-                throw new ArgumentNullException(nameof(mementoStore));
-            }
-
-            if (mementoEntityFactory == null)
-            {
-                throw new ArgumentNullException(nameof(mementoEntityFactory));
-            }
-
-            _mementoStore = mementoStore;
-            _mementoEntityFactory = mementoEntityFactory;
+            _mementoStore = mementoStore ?? throw new ArgumentNullException(nameof(mementoStore));
+            _mementoEntityFactory = mementoEntityFactory ?? throw new ArgumentNullException(nameof(mementoEntityFactory));
         }
 
         public IEventPublisher EventPublisher => _eventPublisher;
@@ -85,8 +60,7 @@
 
             if (_mementoStore != null)
             {
-                var mementoOriginator = source as IMementoOriginator;
-                if (mementoOriginator != null)
+                if (source is IMementoOriginator mementoOriginator)
                 {
                     IMemento memento = mementoOriginator.SaveToMemento();
                     await _mementoStore.Save<T>(source.Id, memento, cancellationToken).ConfigureAwait(false);

@@ -20,24 +20,9 @@
             IMessageSerializer serializer,
             IMessageBus messageBus)
         {
-            if (dbContextFactory == null)
-            {
-                throw new ArgumentNullException(nameof(dbContextFactory));
-            }
-
-            if (serializer == null)
-            {
-                throw new ArgumentNullException(nameof(serializer));
-            }
-
-            if (messageBus == null)
-            {
-                throw new ArgumentNullException(nameof(messageBus));
-            }
-
-            _dbContextFactory = dbContextFactory;
-            _serializer = serializer;
-            _messageBus = messageBus;
+            _dbContextFactory = dbContextFactory ?? throw new ArgumentNullException(nameof(dbContextFactory));
+            _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
+            _messageBus = messageBus ?? throw new ArgumentNullException(nameof(messageBus));
         }
 
         public Task PublishPendingEvents(

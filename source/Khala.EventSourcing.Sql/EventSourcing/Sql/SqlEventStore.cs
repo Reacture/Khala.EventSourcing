@@ -20,18 +20,8 @@
             Func<EventStoreDbContext> dbContextFactory,
             IMessageSerializer serializer)
         {
-            if (dbContextFactory == null)
-            {
-                throw new ArgumentNullException(nameof(dbContextFactory));
-            }
-
-            if (serializer == null)
-            {
-                throw new ArgumentNullException(nameof(serializer));
-            }
-
-            _dbContextFactory = dbContextFactory;
-            _serializer = serializer;
+            _dbContextFactory = dbContextFactory ?? throw new ArgumentNullException(nameof(dbContextFactory));
+            _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
         }
 
         public Task SaveEvents<T>(
@@ -176,8 +166,7 @@
                 foreach (string name in
                     indexedEvent.UniqueIndexedProperties.Keys)
                 {
-                    UniqueIndexedProperty property;
-                    if (restored.TryGetValue(name, out property))
+                    if (restored.TryGetValue(name, out UniqueIndexedProperty property))
                     {
                         context.UniqueIndexedProperties.Remove(property);
                     }

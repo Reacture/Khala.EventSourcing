@@ -20,18 +20,8 @@
         public AzureEventStore(
             CloudTable eventTable, IMessageSerializer serializer)
         {
-            if (eventTable == null)
-            {
-                throw new ArgumentNullException(nameof(eventTable));
-            }
-
-            if (serializer == null)
-            {
-                throw new ArgumentNullException(nameof(serializer));
-            }
-
-            _eventTable = eventTable;
-            _serializer = serializer;
+            _eventTable = eventTable ?? throw new ArgumentNullException(nameof(eventTable));
+            _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
         }
 
         public Task SaveEvents<T>(
