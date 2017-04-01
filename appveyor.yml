@@ -1,4 +1,5 @@
 version: 0.9.{build}
+image: Visual Studio 2017
 configuration: Release
 before_build:
 - cmd: nuget restore source\Khala.EventSourcing.sln
@@ -7,11 +8,11 @@ build:
   project: source\Khala.EventSourcing.sln
 after_build:
 - cmd: >-
-    nuget pack nuget\Khala.EventSourcing.Core.nuspec
+    nuget pack nuget\Khala.EventSourcing.Core.nuspec -Symbols
 
-    nuget pack nuget\Khala.EventSourcing.Azure.nuspec
+    nuget pack nuget\Khala.EventSourcing.Azure.nuspec -Symbols
 
-    nuget pack nuget\Khala.EventSourcing.Sql.nuspec
+    nuget pack nuget\Khala.EventSourcing.Sql.nuspec -Symbols
 test:
   assemblies: '**\*.tests.dll'
 artifacts:
