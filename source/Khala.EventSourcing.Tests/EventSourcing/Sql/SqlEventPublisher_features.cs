@@ -214,6 +214,35 @@ namespace Khala.EventSourcing.Sql
                 Times.Once());
         }
 
+        [Theory]
+        [AutoData]
+        public async Task PublishAllPendingEvents_deletes_all_pending_events(FakeUserCreated[] createdEvents)
+        {
+            // Arrange
+            var eventStore = new SqlEventStore(() => new DataContext(), serializer);
+            foreach (FakeUserCreated createdEvent in createdEvents)
+            {
+                createdEvent.Version = 1;
+                await eventStore.SaveEvents<FakeUser>(new[] { createdEvent });
+            }
+
+            // Act
+            await sut.PublishAllPendingEvents(CancellationToken.None);
+
+            // Assert
+            using (var db = new DataContext())
+            {
+                foreach (FakeUserCreated createdEvent in createdEvents)
+                {
+                    Guid userId = createdEvent.SourceId;
+                    IQueryable<PendingEvent> query = from e in db.PendingEvents
+                                                     where e.AggregateId == userId
+                                                     select e;
+                    (await query.AnyAsync()).Should().BeFalse();
+                }
+            }
+        }
+
         private void RaiseEvents(Guid sourceId, params DomainEvent[] events)
         {
             RaiseEvents(sourceId, 0, events);
