@@ -216,6 +216,46 @@ namespace Khala.EventSourcing.Sql
 
         [Theory]
         [AutoData]
+        public async Task PublishAllPendingEvents_sends_app_pending_events(FakeUserCreated[] createdEvents)
+        {
+            // Arrange
+            var eventStore = new SqlEventStore(() => new DataContext(), serializer);
+            foreach (FakeUserCreated createdEvent in createdEvents)
+            {
+                createdEvent.Version = 1;
+                await eventStore.SaveEvents<FakeUser>(new[] { createdEvent });
+            }
+
+            var sentEvents = new List<Envelope>();
+
+            Mock.Get(messageBus)
+                .Setup(
+                    x =>
+                    x.SendBatch(
+                        It.IsAny<IEnumerable<Envelope>>(),
+                        It.IsAny<CancellationToken>()))
+                .Callback<IEnumerable<Envelope>, CancellationToken>((batch, t) => sentEvents.AddRange(batch))
+                .Returns(Task.FromResult(true));
+
+            // Act
+            await sut.PublishAllPendingEvents(CancellationToken.None);
+
+            // Assert
+            foreach (FakeUserCreated createdEvent in createdEvents)
+            {
+                sentEvents
+                    .Select(e => e.Message)
+                    .OfType<FakeUserCreated>()
+                    .Where(e => e.SourceId == createdEvent.SourceId)
+                    .Should()
+                    .ContainSingle()
+                    .Which
+                    .ShouldBeEquivalentTo(createdEvent);
+            }
+        }
+
+        [Theory]
+        [AutoData]
         public async Task PublishAllPendingEvents_deletes_all_pending_events(FakeUserCreated[] createdEvents)
         {
             // Arrange
