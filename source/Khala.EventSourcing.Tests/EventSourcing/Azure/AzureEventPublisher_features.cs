@@ -80,7 +80,7 @@ namespace Khala.EventSourcing.Azure
         }
 
         [TestMethod]
-        public async Task PublishPendingEventss_sends_pending_events()
+        public async Task PublishPendingEvents_sends_pending_events()
         {
             // Arrange
             var userId = Guid.NewGuid();
@@ -129,7 +129,7 @@ namespace Khala.EventSourcing.Azure
         }
 
         [TestMethod]
-        public async Task PublishPendingEventss_sends_only_persisted_pending_events()
+        public async Task PublishPendingEvents_sends_only_persisted_pending_events()
         {
             // Arrange
             var userId = Guid.NewGuid();
