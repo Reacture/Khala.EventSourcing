@@ -82,14 +82,23 @@
         {
             using (EventStoreDbContext context = _dbContextFactory.Invoke())
             {
-                foreach (Guid sourceId in await context
+                Loop:
+
+                IEnumerable<Guid> source = await context
                     .PendingEvents
+                    .OrderBy(e => e.AggregateId)
                     .Select(e => e.AggregateId)
+                    .Take(1000)
                     .Distinct()
                     .ToListAsync(cancellationToken)
-                    .ConfigureAwait(false))
+                    .ConfigureAwait(false);
+
+                Task[] tasks = source.Select(sourceId => PublishEvents(sourceId, cancellationToken)).ToArray();
+                await Task.WhenAll(tasks).ConfigureAwait(false);
+
+                if (source.Any())
                 {
-                    await PublishEvents(sourceId, cancellationToken).ConfigureAwait(false);
+                    goto Loop;
                 }
             }
         }
