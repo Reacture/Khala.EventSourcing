@@ -36,14 +36,13 @@ namespace Khala.EventSourcing.Sql
             this.output = output;
 
             fixture = new Fixture().Customize(new AutoMoqCustomization());
-            fixture.Inject<Func<EventStoreDbContext>>(() => new DataContext());
+            fixture.Inject<Func<EventStoreDbContext>>(CreateDbContext);
 
             serializer = new JsonMessageSerializer();
 
             messageBus = Mock.Of<IMessageBus>();
 
-            sut = new SqlEventPublisher(
-                () => new DataContext(), serializer, messageBus);
+            sut = new SqlEventPublisher(CreateDbContext, serializer, messageBus);
 
             mockDbContext = Mock.Of<EventStoreDbContext>(
                 x => x.SaveChangesAsync() == Task.FromResult(default(int)));
@@ -59,6 +58,13 @@ namespace Khala.EventSourcing.Sql
 
             mockDbContext.UniqueIndexedProperties = Mock.Of<DbSet<UniqueIndexedProperty>>();
             Mock.Get(mockDbContext.UniqueIndexedProperties).SetupData();
+        }
+
+        public EventStoreDbContext CreateDbContext()
+        {
+            var context = new DataContext();
+            context.Database.Log = output.WriteLine;
+            return context;
         }
 
         public void Dispose()
