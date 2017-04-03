@@ -6,18 +6,16 @@ using System.Threading.Tasks;
 using FluentAssertions;
 using Khala.FakeDomain;
 using Khala.Messaging;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Ploeh.AutoFixture;
 using Ploeh.AutoFixture.AutoMoq;
 using Ploeh.AutoFixture.Idioms;
-using Ploeh.AutoFixture.Xunit2;
-using Xunit;
-using Xunit.Abstractions;
 
 namespace Khala.EventSourcing.Sql
 {
+    [TestClass]
     public class SqlMementoStore_features
     {
-        private ITestOutputHelper output;
         private IFixture fixture;
         private IMessageSerializer serializer;
         private SqlMementoStore sut;
@@ -26,10 +24,11 @@ namespace Khala.EventSourcing.Sql
         {
         }
 
-        public SqlMementoStore_features(ITestOutputHelper output)
-        {
-            this.output = output;
+        public TestContext TestContext { get; set; }
 
+        [TestInitialize]
+        public void TestInitialize()
+        {
             fixture = new Fixture().Customize(new AutoMoqCustomization());
             fixture.Inject<Func<IMementoStoreDbContext>>(() => new DataContext());
 
@@ -40,26 +39,29 @@ namespace Khala.EventSourcing.Sql
 
             using (var db = new DataContext())
             {
-                db.Database.Log = output.WriteLine;
+                db.Database.Log = m => TestContext?.WriteLine(m);
                 db.Database.ExecuteSqlCommand("DELETE FROM Mementoes");
             }
         }
 
-        [Fact]
+        [TestMethod]
         public void SqlMementoStore_has_guard_clauses()
         {
             var assertion = new GuardClauseAssertion(fixture);
             assertion.Verify(typeof(SqlMementoStore));
         }
 
-        [Theory]
-        [AutoData]
-        public async Task Save_inserts_Memento_entity_correctly(
-            Guid sourceId,
-            FakeUserMemento memento)
+        [TestMethod]
+        public async Task Save_inserts_Memento_entity_correctly()
         {
+            // Arrange
+            var sourceId = Guid.NewGuid();
+            var memento = fixture.Create<FakeUserMemento>();
+
+            // Act
             await sut.Save<FakeUser>(sourceId, memento, CancellationToken.None);
 
+            // Assert
             using (var db = new DataContext())
             {
                 Memento actual = await db
@@ -75,13 +77,14 @@ namespace Khala.EventSourcing.Sql
             }
         }
 
-        [Theory]
-        [AutoData]
-        public async Task Save_updates_Memento_entity_if_already_exists(
-            Guid sourceId,
-            FakeUserMemento oldMemento,
-            FakeUserMemento newMemento)
+        [TestMethod]
+        public async Task Save_updates_Memento_entity_if_already_exists()
         {
+            // Arrange
+            var sourceId = Guid.NewGuid();
+            var oldMemento = fixture.Create<FakeUserMemento>();
+            var newMemento = fixture.Create<FakeUserMemento>();
+
             long sequence = 0;
             using (var db = new DataContext())
             {
@@ -95,8 +98,10 @@ namespace Khala.EventSourcing.Sql
                 sequence = memento.SequenceId;
             }
 
+            // Act
             await sut.Save<FakeUser>(sourceId, newMemento, CancellationToken.None);
 
+            // Assert
             using (var db = new DataContext())
             {
                 Memento actual = await db
@@ -112,12 +117,11 @@ namespace Khala.EventSourcing.Sql
             }
         }
 
-        [Theory]
-        [AutoData]
-        public async Task Find_returns_memento_correctly(
-            Guid sourceId,
-            FakeUserMemento memento)
+        [TestMethod]
+        public async Task Find_returns_memento_correctly()
         {
+            var sourceId = Guid.NewGuid();
+            var memento = fixture.Create<FakeUserMemento>();
             await sut.Save<FakeUser>(sourceId, memento, CancellationToken.None);
 
             IMemento actual = await
@@ -127,22 +131,22 @@ namespace Khala.EventSourcing.Sql
             actual.ShouldBeEquivalentTo(memento);
         }
 
-        [Theory]
-        [AutoData]
-        public async Task Find_returns_null_if_not_exists(Guid sourceId)
+        [TestMethod]
+        public async Task Find_returns_null_if_not_exists()
         {
+            var sourceId = Guid.NewGuid();
+
             IMemento actual = await
                 sut.Find<FakeUser>(sourceId, CancellationToken.None);
 
             actual.Should().BeNull();
         }
 
-        [Theory]
-        [AutoData]
-        public async Task Delete_deletes_Memento_entity(
-            Guid sourceId,
-            FakeUserMemento memento)
+        [TestMethod]
+        public async Task Delete_deletes_Memento_entity()
         {
+            var sourceId = Guid.NewGuid();
+            var memento = fixture.Create<FakeUserMemento>();
             await sut.Save<FakeUser>(sourceId, memento, CancellationToken.None);
 
             await sut.Delete<FakeUser>(sourceId, CancellationToken.None);
@@ -157,10 +161,10 @@ namespace Khala.EventSourcing.Sql
             }
         }
 
-        [Theory]
-        [AutoData]
-        public void Delete_does_not_fail_even_if_Memento_entity_does_not_exist(Guid sourceId)
+        [TestMethod]
+        public void Delete_does_not_fail_even_if_Memento_entity_does_not_exist()
         {
+            var sourceId = Guid.NewGuid();
             Func<Task> action = () => sut.Delete<FakeUser>(sourceId, CancellationToken.None);
             action.ShouldNotThrow();
         }

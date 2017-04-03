@@ -4,16 +4,17 @@ using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Khala.FakeDomain;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using Ploeh.AutoFixture;
 using Ploeh.AutoFixture.AutoMoq;
-using Xunit;
 
 namespace Khala.EventSourcing.Azure
 {
+    [TestClass]
     public class AzureEventSourcingExtensions_features
     {
-        [Fact]
+        [TestMethod]
         public void SaveEvents_relays_with_null_correlaton()
         {
             var task = Task.FromResult(true);
@@ -32,7 +33,7 @@ namespace Khala.EventSourcing.Azure
             result.Should().BeSameAs(task);
         }
 
-        [Fact]
+        [TestMethod]
         public void SaveEvents_relays_with_none_cancellation_token()
         {
             var task = Task.FromResult(true);
@@ -50,7 +51,7 @@ namespace Khala.EventSourcing.Azure
             result.Should().BeSameAs(task);
         }
 
-        [Fact]
+        [TestMethod]
         public void SaveEvents_relays_with_null_correlation_and_none_cancellation_token()
         {
             var task = Task.FromResult(true);
@@ -67,7 +68,7 @@ namespace Khala.EventSourcing.Azure
             result.Should().BeSameAs(task);
         }
 
-        [Fact]
+        [TestMethod]
         public void LoadEvents_relays_with_default_version()
         {
             var fixture = new Fixture().Customize(new AutoMoqCustomization());
@@ -88,7 +89,7 @@ namespace Khala.EventSourcing.Azure
             result.Should().BeSameAs(task);
         }
 
-        [Fact]
+        [TestMethod]
         public void LoadEvents_relays_with_none_cancellation_token()
         {
             var fixture = new Fixture().Customize(new AutoMoqCustomization());
@@ -108,7 +109,7 @@ namespace Khala.EventSourcing.Azure
             result.Should().BeSameAs(task);
         }
 
-        [Fact]
+        [TestMethod]
         public void LoadEvents_relays_with_default_version_and_none_cancellation_token()
         {
             var fixture = new Fixture().Customize(new AutoMoqCustomization());

@@ -2,33 +2,35 @@
 using Khala.FakeDomain;
 using Khala.FakeDomain.Events;
 using Khala.Messaging;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.WindowsAzure.Storage.Table;
 using Ploeh.AutoFixture;
 using Ploeh.AutoFixture.AutoMoq;
 using Ploeh.AutoFixture.Idioms;
-using Xunit;
 using static Khala.EventSourcing.Azure.PendingEventTableEntity;
 
 namespace Khala.EventSourcing.Azure
 {
+    [TestClass]
     public class PendingEventTableEntity_features
     {
         private IFixture fixture;
         private IMessageSerializer serializer;
 
-        public PendingEventTableEntity_features()
+        [TestInitialize]
+        public void TestInitialize()
         {
             fixture = new Fixture();
             serializer = new JsonMessageSerializer();
         }
 
-        [Fact]
+        [TestMethod]
         public void PendingEventEntity_inherits_TableEntity()
         {
             typeof(PendingEventTableEntity).BaseType.Should().Be(typeof(TableEntity));
         }
 
-        [Fact]
+        [TestMethod]
         public void FromEnvelope_has_guard_clauses()
         {
             fixture.Customize(new AutoMoqCustomization());
@@ -36,7 +38,7 @@ namespace Khala.EventSourcing.Azure
             assertion.Verify(typeof(PendingEventTableEntity).GetMethod("FromEnvelope"));
         }
 
-        [Fact]
+        [TestMethod]
         public void FromEnvelope_sets_PartitionKey_correctly()
         {
             var domainEvent = fixture.Create<FakeUserCreated>();
@@ -49,7 +51,7 @@ namespace Khala.EventSourcing.Azure
                 GetPartitionKey(typeof(FakeUser), domainEvent.SourceId));
         }
 
-        [Fact]
+        [TestMethod]
         public void FromEnvelope_sets_RowKey_correctly()
         {
             var domainEvent = fixture.Create<FakeUserCreated>();
@@ -61,7 +63,7 @@ namespace Khala.EventSourcing.Azure
             actual.RowKey.Should().Be(GetRowKey(domainEvent.Version));
         }
 
-        [Fact]
+        [TestMethod]
         public void FromEnvelope_sets_PersistentPartition_correctly()
         {
             var domainEvent = fixture.Create<FakeUserCreated>();
@@ -75,7 +77,7 @@ namespace Khala.EventSourcing.Azure
                     typeof(FakeUser), domainEvent.SourceId));
         }
 
-        [Fact]
+        [TestMethod]
         public void FromEnvelope_sets_Version_correctly()
         {
             var domainEvent = fixture.Create<FakeUserCreated>();
@@ -87,7 +89,7 @@ namespace Khala.EventSourcing.Azure
             actual.Version.Should().Be(domainEvent.Version);
         }
 
-        [Fact]
+        [TestMethod]
         public void FromEnvelope_sets_MessageId_correctly()
         {
             var domainEvent = fixture.Create<FakeUserCreated>();
@@ -99,7 +101,7 @@ namespace Khala.EventSourcing.Azure
             actual.MessageId.Should().Be(envelope.MessageId);
         }
 
-        [Fact]
+        [TestMethod]
         public void FromEnvelope_sets_CorrelationId_correctly()
         {
             var domainEvent = fixture.Create<FakeUserCreated>();
@@ -112,7 +114,7 @@ namespace Khala.EventSourcing.Azure
             actual.CorrelationId.Should().Be(correlationId);
         }
 
-        [Fact]
+        [TestMethod]
         public void FromEnvelope_sets_EventJson_correctly()
         {
             var domainEvent = fixture.Create<FakeUserCreated>();

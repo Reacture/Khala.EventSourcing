@@ -3,15 +3,16 @@ using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Khala.FakeDomain;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using Ploeh.AutoFixture;
-using Xunit;
 
 namespace Khala.EventSourcing.Sql
 {
+    [TestClass]
     public class SqlEventSourcingAbstractionExtensions_features
     {
-        [Fact]
+        [TestMethod]
         public void FindIdByUniqueIndexedProperty_relays_with_none_cancellation_token()
         {
             var fixture = new Fixture();

@@ -2,23 +2,25 @@
 using FluentAssertions;
 using Khala.FakeDomain.Events;
 using Khala.Messaging;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Ploeh.AutoFixture;
-using Xunit;
 
 namespace Khala.EventSourcing.Sql
 {
+    [TestClass]
     public class PendingEvent_features
     {
         private IFixture fixture;
         private IMessageSerializer serializer;
 
-        public PendingEvent_features()
+        [TestInitialize]
+        public void TestInitialize()
         {
             fixture = new Fixture();
             serializer = new JsonMessageSerializer();
         }
 
-        [Fact]
+        [TestMethod]
         public void FromEnvelope_sets_AggregateId_correctly()
         {
             var domainEvent = fixture.Create<FakeUserCreated>();
@@ -27,7 +29,7 @@ namespace Khala.EventSourcing.Sql
             actual.AggregateId.Should().Be(domainEvent.SourceId);
         }
 
-        [Fact]
+        [TestMethod]
         public void FromEnvelope_sets_Version_correctly()
         {
             var domainEvent = fixture.Create<FakeUserCreated>();
@@ -36,7 +38,7 @@ namespace Khala.EventSourcing.Sql
             actual.Version.Should().Be(domainEvent.Version);
         }
 
-        [Fact]
+        [TestMethod]
         public void FromEnvelope_sets_MessageId_correctly()
         {
             var domainEvent = fixture.Create<FakeUserCreated>();
@@ -45,7 +47,7 @@ namespace Khala.EventSourcing.Sql
             actual.MessageId.Should().Be(envelope.MessageId);
         }
 
-        [Fact]
+        [TestMethod]
         public void FromEnvelope_sets_CorrelationId_correctly()
         {
             var domainEvent = fixture.Create<FakeUserCreated>();
@@ -55,7 +57,7 @@ namespace Khala.EventSourcing.Sql
             actual.CorrelationId.Should().Be(correlationId);
         }
 
-        [Fact]
+        [TestMethod]
         public void FromEnvelope_sets_EventJson_correctly()
         {
             var domainEvent = fixture.Create<FakeUserCreated>();
@@ -68,7 +70,7 @@ namespace Khala.EventSourcing.Sql
             message.ShouldBeEquivalentTo(domainEvent);
         }
 
-        [Fact]
+        [TestMethod]
         public void FromEnvelope_has_guard_clause_for_invalid_message()
         {
             var envelope = new Envelope(new object());

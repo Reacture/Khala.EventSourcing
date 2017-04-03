@@ -8,33 +8,39 @@ using FluentAssertions;
 using Khala.FakeDomain;
 using Khala.FakeDomain.Events;
 using Khala.Messaging;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using Ploeh.AutoFixture;
 using Ploeh.AutoFixture.AutoMoq;
 using Ploeh.AutoFixture.Idioms;
-using Ploeh.AutoFixture.Xunit2;
-using Xunit;
-using Xunit.Abstractions;
 
 namespace Khala.EventSourcing.Sql
 {
-    public class SqlEventPublisher_features : IDisposable
+    [TestClass]
+    public class SqlEventPublisher_features
     {
         public class DataContext : EventStoreDbContext
         {
         }
 
-        private ITestOutputHelper output;
         private IFixture fixture;
         private IMessageSerializer serializer;
         private IMessageBus messageBus;
         private SqlEventPublisher sut;
         private EventStoreDbContext mockDbContext;
 
-        public SqlEventPublisher_features(ITestOutputHelper output)
-        {
-            this.output = output;
+        public TestContext TestContext { get; set; }
 
+        public EventStoreDbContext CreateDbContext()
+        {
+            var context = new DataContext();
+            context.Database.Log = m => TestContext?.WriteLine(m);
+            return context;
+        }
+
+        [TestInitialize]
+        public void TestInitialize()
+        {
             fixture = new Fixture().Customize(new AutoMoqCustomization());
             fixture.Inject<Func<EventStoreDbContext>>(CreateDbContext);
 
@@ -60,18 +66,11 @@ namespace Khala.EventSourcing.Sql
             Mock.Get(mockDbContext.UniqueIndexedProperties).SetupData();
         }
 
-        public EventStoreDbContext CreateDbContext()
+        [TestCleanup]
+        public void TestCleanup()
         {
-            var context = new DataContext();
-            context.Database.Log = output.WriteLine;
-            return context;
-        }
-
-        public void Dispose()
-        {
-            using (var db = new DataContext())
+            using (EventStoreDbContext db = CreateDbContext())
             {
-                db.Database.Log = output.WriteLine;
                 db.Database.ExecuteSqlCommand("DELETE FROM Aggregates");
                 db.Database.ExecuteSqlCommand("DELETE FROM PersistentEvents");
                 db.Database.ExecuteSqlCommand("DELETE FROM PendingEvents");
@@ -79,26 +78,25 @@ namespace Khala.EventSourcing.Sql
             }
         }
 
-        [Fact]
+        [TestMethod]
         public void sut_implements_IEventPublisher()
         {
             sut.Should().BeAssignableTo<ISqlEventPublisher>();
         }
 
-        [Fact]
+        [TestMethod]
         public void class_has_guard_clauses()
         {
             var assertion = new GuardClauseAssertion(fixture);
             assertion.Verify(typeof(SqlEventPublisher));
         }
 
-        [Theory]
-        [AutoData]
-        public async Task PublishPendingEvents_sends_events(
-            FakeUserCreated created,
-            FakeUsernameChanged usernameChanged)
+        [TestMethod]
+        public async Task PublishPendingEvents_sends_events()
         {
             // Arrange
+            var created = fixture.Create<FakeUserCreated>();
+            var usernameChanged = fixture.Create<FakeUsernameChanged>();
             var sourceId = Guid.NewGuid();
 
             var events = new DomainEvent[] { created, usernameChanged };
@@ -141,7 +139,7 @@ namespace Khala.EventSourcing.Sql
             batch.ShouldAllBeEquivalentTo(envelopes, opts => opts.RespectingRuntimeTypes());
         }
 
-        [Fact]
+        [TestMethod]
         public async Task PublishEvents_does_not_invoke_SendBatch_if_pending_event_not_found()
         {
             var sourceId = Guid.NewGuid();
@@ -154,13 +152,12 @@ namespace Khala.EventSourcing.Sql
                 Times.Never());
         }
 
-        [Theory]
-        [AutoData]
-        public async Task PublishPendingEvents_deletes_pending_events(
-            FakeUserCreated created,
-            FakeUsernameChanged usernameChanged)
+        [TestMethod]
+        public async Task PublishPendingEvents_deletes_pending_events()
         {
             // Arrange
+            var created = fixture.Create<FakeUserCreated>();
+            var usernameChanged = fixture.Create<FakeUsernameChanged>();
             var sourceId = Guid.NewGuid();
 
             var events = new DomainEvent[] { created, usernameChanged };
@@ -190,13 +187,12 @@ namespace Khala.EventSourcing.Sql
             }
         }
 
-        [Theory]
-        [AutoData]
-        public async Task PublishPendingEvents_commits_once(
-            FakeUserCreated created,
-            FakeUsernameChanged usernameChanged)
+        [TestMethod]
+        public async Task PublishPendingEvents_commits_once()
         {
             // Arrange
+            var created = fixture.Create<FakeUserCreated>();
+            var usernameChanged = fixture.Create<FakeUsernameChanged>();
             var sourceId = Guid.NewGuid();
 
             var events = new DomainEvent[] { created, usernameChanged };
@@ -220,15 +216,17 @@ namespace Khala.EventSourcing.Sql
                 Times.Once());
         }
 
-        [Theory]
-        [AutoData]
-        public async Task PublishAllPendingEvents_sends_app_pending_events(FakeUserCreated[] createdEvents)
+        [TestMethod]
+        public async Task PublishAllPendingEvents_sends_app_pending_events()
         {
             // Arrange
+            IEnumerable<FakeUserCreated> createdEvents = fixture
+                .Build<FakeUserCreated>()
+                .With(e => e.Version, 1)
+                .CreateMany();
             var eventStore = new SqlEventStore(() => new DataContext(), serializer);
             foreach (FakeUserCreated createdEvent in createdEvents)
             {
-                createdEvent.Version = 1;
                 await eventStore.SaveEvents<FakeUser>(new[] { createdEvent });
             }
 
@@ -260,15 +258,17 @@ namespace Khala.EventSourcing.Sql
             }
         }
 
-        [Theory]
-        [AutoData]
-        public async Task PublishAllPendingEvents_deletes_all_pending_events(FakeUserCreated[] createdEvents)
+        [TestMethod]
+        public async Task PublishAllPendingEvents_deletes_all_pending_events()
         {
             // Arrange
+            IEnumerable<FakeUserCreated> createdEvents = fixture
+                .Build<FakeUserCreated>()
+                .With(e => e.Version, 1)
+                .CreateMany();
             var eventStore = new SqlEventStore(() => new DataContext(), serializer);
             foreach (FakeUserCreated createdEvent in createdEvents)
             {
-                createdEvent.Version = 1;
                 await eventStore.SaveEvents<FakeUser>(new[] { createdEvent });
             }
 

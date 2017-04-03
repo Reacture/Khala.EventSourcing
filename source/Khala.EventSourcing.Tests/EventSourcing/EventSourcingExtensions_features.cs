@@ -3,17 +3,18 @@ using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Khala.FakeDomain;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using Ploeh.AutoFixture;
 using Ploeh.AutoFixture.AutoMoq;
 using Ploeh.AutoFixture.Idioms;
-using Xunit;
 
 namespace Khala.EventSourcing
 {
+    [TestClass]
     public class EventSourcingExtensions_features
     {
-        [Fact]
+        [TestMethod]
         public void class_has_guard_clauses()
         {
             var fixture = new Fixture().Customize(new AutoMoqCustomization());
@@ -21,7 +22,7 @@ namespace Khala.EventSourcing
             assertion.Verify(typeof(EventSourcingExtensions));
         }
 
-        [Fact]
+        [TestMethod]
         public void Save_relays_with_null_correlation()
         {
             var fixture = new Fixture();
@@ -36,7 +37,7 @@ namespace Khala.EventSourcing
                 Times.Once());
         }
 
-        [Fact]
+        [TestMethod]
         public void Save_relays_with_none_cancellation_token()
         {
             var task = Task.FromResult(true);
@@ -54,7 +55,7 @@ namespace Khala.EventSourcing
             result.Should().BeSameAs(task);
         }
 
-        [Fact]
+        [TestMethod]
         public void Save_relays_with_null_correlation_and_none_cancellation_token()
         {
             var task = Task.FromResult(true);
@@ -71,7 +72,7 @@ namespace Khala.EventSourcing
             result.Should().BeSameAs(task);
         }
 
-        [Fact]
+        [TestMethod]
         public void Find_relays_with_none_cancellation_token()
         {
             var source = new FakeUser(Guid.NewGuid(), "foo");

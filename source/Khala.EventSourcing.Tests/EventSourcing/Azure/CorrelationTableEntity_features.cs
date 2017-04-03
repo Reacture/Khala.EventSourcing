@@ -1,20 +1,21 @@
 ﻿using System;
 using FluentAssertions;
 using Khala.FakeDomain;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.WindowsAzure.Storage.Table;
-using Xunit;
 
 namespace Khala.EventSourcing.Azure
 {
+    [TestClass]
     public class CorrelationTableEntity_features
     {
-        [Fact]
+        [TestMethod]
         public void class_inherits_TableEntity()
         {
             typeof(CorrelationTableEntity).BaseType.Should().Be(typeof(TableEntity));
         }
 
-        [Fact]
+        [TestMethod]
         public void GetPartitionKey_returns_the_same_as_EventTableEntity()
         {
             var sourceType = typeof(FakeUser);
@@ -23,13 +24,13 @@ namespace Khala.EventSourcing.Azure
             actual.Should().Be(EventTableEntity.GetPartitionKey(sourceType, sourceId));
         }
 
-        [Fact]
+        [TestMethod]
         public void RowKeyPrefix_is_Correlation()
         {
             CorrelationTableEntity.RowKeyPrefix.Should().Be("Correlation");
         }
 
-        [Fact]
+        [TestMethod]
         public void GetRowKey_returns_combination_of_prefix_and_correlation_id()
         {
             var correlationId = Guid.NewGuid();

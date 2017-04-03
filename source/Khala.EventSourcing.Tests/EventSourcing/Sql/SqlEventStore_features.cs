@@ -9,33 +9,32 @@ using FluentAssertions;
 using Khala.FakeDomain;
 using Khala.FakeDomain.Events;
 using Khala.Messaging;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using Ploeh.AutoFixture;
 using Ploeh.AutoFixture.AutoMoq;
 using Ploeh.AutoFixture.Idioms;
-using Ploeh.AutoFixture.Xunit2;
-using Xunit;
-using Xunit.Abstractions;
 
 namespace Khala.EventSourcing.Sql
 {
+    [TestClass]
     public class SqlEventStore_features
     {
         public class DataContext : EventStoreDbContext
         {
         }
 
-        private ITestOutputHelper output;
         private IFixture fixture;
         private Guid userId;
         private IMessageSerializer serializer;
         private SqlEventStore sut;
         private EventStoreDbContext mockDbContext;
 
-        public SqlEventStore_features(ITestOutputHelper output)
-        {
-            this.output = output;
+        public TestContext TestContext { get; set; }
 
+        [TestInitialize]
+        public void TestInitialize()
+        {
             fixture = new Fixture().Customize(new AutoMoqCustomization());
             fixture.Inject<Func<EventStoreDbContext>>(() => new DataContext());
 
@@ -63,7 +62,7 @@ namespace Khala.EventSourcing.Sql
 
             using (var db = new DataContext())
             {
-                db.Database.Log = output.WriteLine;
+                db.Database.Log = m => TestContext?.WriteLine(m);
                 db.Database.ExecuteSqlCommand("DELETE FROM Aggregates");
                 db.Database.ExecuteSqlCommand("DELETE FROM PersistentEvents");
                 db.Database.ExecuteSqlCommand("DELETE FROM PendingEvents");
@@ -71,26 +70,27 @@ namespace Khala.EventSourcing.Sql
             }
         }
 
-        [Fact]
+        [TestMethod]
         public void SqlEventStore_has_guard_clauses()
         {
             var assertion = new GuardClauseAssertion(fixture);
             assertion.Verify(typeof(SqlEventStore));
         }
 
-        [Fact]
+        [TestMethod]
         public void sut_implements_ISqlEventStore()
         {
             sut.Should().BeAssignableTo<ISqlEventStore>();
         }
 
-        [Theory]
-        [AutoData]
-        public async Task SaveEvents_commits_once(
-            FakeUserCreated created,
-            FakeUsernameChanged usernameChanged)
+        [TestMethod]
+        public async Task SaveEvents_commits_once()
         {
-            var events = new DomainEvent[] { created, usernameChanged };
+            var events = new DomainEvent[]
+            {
+                fixture.Create<FakeUserCreated>(),
+                fixture.Create<FakeUsernameChanged>()
+            };
             RaiseEvents(userId, events);
             var sut = new SqlEventStore(
                 () => mockDbContext,
@@ -102,8 +102,7 @@ namespace Khala.EventSourcing.Sql
                 x => x.SaveChangesAsync(CancellationToken.None), Times.Once());
         }
 
-        [Theory]
-        [AutoData]
+        [TestMethod]
         public async Task SaveEvents_does_not_commit_for_empty_events()
         {
             var sut = new SqlEventStore(
@@ -116,11 +115,10 @@ namespace Khala.EventSourcing.Sql
                 .Verify(x => x.SaveChangesAsync(), Times.Never());
         }
 
-        [Theory]
-        [AutoData]
-        public void SaveEvents_fails_if_events_contains_null(
-            FakeUserCreated created)
+        [TestMethod]
+        public void SaveEvents_fails_if_events_contains_null()
         {
+            FakeUserCreated created = fixture.Create<FakeUserCreated>();
             var events = new DomainEvent[] { created, null };
             RaiseEvents(userId, created);
 
@@ -130,11 +128,10 @@ namespace Khala.EventSourcing.Sql
                 .Where(x => x.ParamName == "events");
         }
 
-        [Theory]
-        [AutoData]
-        public async Task SaveEvents_inserts_Aggregate_correctly_for_new_aggregate_id(
-            FakeUserCreated created)
+        [TestMethod]
+        public async Task SaveEvents_inserts_Aggregate_correctly_for_new_aggregate_id()
         {
+            FakeUserCreated created = fixture.Create<FakeUserCreated>();
             var events = new DomainEvent[] { created };
             RaiseEvents(userId, events);
 
@@ -152,10 +149,8 @@ namespace Khala.EventSourcing.Sql
             }
         }
 
-        [Theory]
-        [AutoData]
-        public async Task SaveEvents_updates_Aggregate_correctly_for_existing_aggregate_id(
-            FakeUsernameChanged usernameChanged)
+        [TestMethod]
+        public async Task SaveEvents_updates_Aggregate_correctly_for_existing_aggregate_id()
         {
             // Arrange
             using (var db = new DataContext())
@@ -169,6 +164,7 @@ namespace Khala.EventSourcing.Sql
                 db.Aggregates.Add(aggregate);
                 await db.SaveChangesAsync();
             }
+            var usernameChanged = fixture.Create<FakeUsernameChanged>();
             var events = new DomainEvent[] { usernameChanged };
             RaiseEvents(userId, 1, usernameChanged);
 
@@ -186,7 +182,7 @@ namespace Khala.EventSourcing.Sql
             }
         }
 
-        [Fact]
+        [TestMethod]
         public void SaveEvents_fails_if_versions_not_sequential()
         {
             var events = new DomainEvent[]
@@ -202,10 +198,8 @@ namespace Khala.EventSourcing.Sql
                 .Where(x => x.ParamName == "events");
         }
 
-        [Theory]
-        [AutoData]
-        public async Task SaveEvents_fails_if_version_of_first_event_not_follows_aggregate(
-            FakeUsernameChanged usernameChanged)
+        [TestMethod]
+        public async Task SaveEvents_fails_if_version_of_first_event_not_follows_aggregate()
         {
             // Arrange
             using (var db = new DataContext())
@@ -219,6 +213,7 @@ namespace Khala.EventSourcing.Sql
                 db.Aggregates.Add(aggregate);
                 await db.SaveChangesAsync();
             }
+            var usernameChanged = fixture.Create<FakeUsernameChanged>();
             var events = new DomainEvent[] { usernameChanged };
             RaiseEvents(userId, 2, usernameChanged);
 
@@ -230,17 +225,16 @@ namespace Khala.EventSourcing.Sql
                 .Where(x => x.ParamName == "events");
         }
 
-        [Theory]
-        [AutoData]
-        public void SaveEvents_fails_if_events_not_have_same_source_id(
-            FakeUserCreated created,
-            FakeUsernameChanged usernameChanged)
+        [TestMethod]
+        public void SaveEvents_fails_if_events_not_have_same_source_id()
         {
             // Arrange
+            var created = fixture.Create<FakeUserCreated>();
             created.SourceId = userId;
             created.Version = 1;
             created.RaisedAt = DateTimeOffset.Now;
 
+            var usernameChanged = fixture.Create<FakeUsernameChanged>();
             usernameChanged.SourceId = Guid.NewGuid();
             usernameChanged.Version = 2;
             usernameChanged.RaisedAt = DateTimeOffset.Now;
@@ -255,16 +249,15 @@ namespace Khala.EventSourcing.Sql
                 .Where(x => x.ParamName == "events");
         }
 
-        [Theory]
-        [AutoData]
-        public async Task SaveEvents_saves_pending_events_correctly(
-            FakeUserCreated created,
-            FakeUsernameChanged usernameChanged,
-            Guid correlationId)
+        [TestMethod]
+        public async Task SaveEvents_saves_pending_events_correctly()
         {
             // Arrange
+            var created = fixture.Create<FakeUserCreated>();
+            var usernameChanged = fixture.Create<FakeUsernameChanged>();
             var events = new DomainEvent[] { created, usernameChanged };
             RaiseEvents(userId, events);
+            var correlationId = Guid.NewGuid();
 
             // Act
             await sut.SaveEvents<FakeUser>(events, correlationId);
@@ -298,13 +291,12 @@ namespace Khala.EventSourcing.Sql
             }
         }
 
-        [Theory]
-        [AutoData]
-        public async Task SaveEvents_saves_events_correctly(
-            FakeUserCreated created,
-            FakeUsernameChanged usernameChanged)
+        [TestMethod]
+        public async Task SaveEvents_saves_events_correctly()
         {
             // Arrange
+            var created = fixture.Create<FakeUserCreated>();
+            var usernameChanged = fixture.Create<FakeUsernameChanged>();
             var events = new DomainEvent[] { created, usernameChanged };
             RaiseEvents(userId, events);
 
@@ -340,19 +332,17 @@ namespace Khala.EventSourcing.Sql
             }
         }
 
-        [Theory]
-        [AutoData]
-        public async Task SaveEvents_sets_message_properties_correctly(
-            FakeUserCreated created,
-            FakeUsernameChanged usernameChanged,
-            Guid correlationId)
+        [TestMethod]
+        public async Task SaveEvents_sets_message_properties_correctly()
         {
             // Arrange
+            var created = fixture.Create<FakeUserCreated>();
+            var usernameChanged = fixture.Create<FakeUsernameChanged>();
             var events = new DomainEvent[] { created, usernameChanged };
             RaiseEvents(userId, events);
 
             // Act
-            await sut.SaveEvents<FakeUser>(events, correlationId);
+            await sut.SaveEvents<FakeUser>(events, Guid.NewGuid());
 
             // Asseert
             using (var db = new DataContext())
@@ -377,11 +367,10 @@ namespace Khala.EventSourcing.Sql
             }
         }
 
-        [Theory]
-        [AutoData]
-        public async Task SaveEvents_inserts_UniqueIndexedProperty_for_new_property(
-            FakeUserCreated created)
+        [TestMethod]
+        public async Task SaveEvents_inserts_UniqueIndexedProperty_for_new_property()
         {
+            var created = fixture.Create<FakeUserCreated>();
             var events = new DomainEvent[] { created };
             RaiseEvents(userId, events);
 
@@ -403,12 +392,11 @@ namespace Khala.EventSourcing.Sql
             }
         }
 
-        [Theory]
-        [AutoData]
-        public async Task SaveEvents_inserts_UniqueIndexedProperty_with_value_of_latest_indexed_event(
-            FakeUserCreated created,
-            FakeUsernameChanged usernameChanged)
+        [TestMethod]
+        public async Task SaveEvents_inserts_UniqueIndexedProperty_with_value_of_latest_indexed_event()
         {
+            var created = fixture.Create<FakeUserCreated>();
+            var usernameChanged = fixture.Create<FakeUsernameChanged>();
             var events = new DomainEvent[] { created, usernameChanged };
             RaiseEvents(userId, events);
 
@@ -428,7 +416,7 @@ namespace Khala.EventSourcing.Sql
             }
         }
 
-        [Fact]
+        [TestMethod]
         public async Task SaveEvents_does_not_insert_UniqueIndexedProperty_if_property_value_is_null()
         {
             var created = new FakeUserCreated { Username = null };
@@ -451,15 +439,15 @@ namespace Khala.EventSourcing.Sql
             }
         }
 
-        [Theory]
-        [AutoData]
-        public async Task SaveEvents_removes_existing_UniqueIndexedProperty_if_property_value_is_null(
-            FakeUserCreated created,
-            FakeUsernameChanged usernameChanged)
+        [TestMethod]
+        public async Task SaveEvents_removes_existing_UniqueIndexedProperty_if_property_value_is_null()
         {
             // Arrange
+            var created = fixture.Create<FakeUserCreated>();
             RaiseEvents(userId, created);
             await sut.SaveEvents<FakeUser>(new[] { created });
+
+            var usernameChanged = fixture.Create<FakeUsernameChanged>();
             usernameChanged.Username = null;
             RaiseEvents(userId, 1, usernameChanged);
 
@@ -481,15 +469,15 @@ namespace Khala.EventSourcing.Sql
             }
         }
 
-        [Theory]
-        [AutoData]
-        public async Task SaveEvents_updates_existing_UniqueIndexedProperty_correctly(
-            FakeUserCreated created,
-            FakeUsernameChanged usernameChanged)
+        [TestMethod]
+        public async Task SaveEvents_updates_existing_UniqueIndexedProperty_correctly()
         {
             // Arrange
+            var created = fixture.Create<FakeUserCreated>();
             RaiseEvents(userId, created);
             await sut.SaveEvents<FakeUser>(new[] { created });
+
+            var usernameChanged = fixture.Create<FakeUsernameChanged>();
             RaiseEvents(userId, 1, usernameChanged);
 
             // Act
@@ -511,19 +499,19 @@ namespace Khala.EventSourcing.Sql
             }
         }
 
-        [Theory]
-        [AutoData]
-        public async Task SaveEvents_fails_if_unique_indexed_property_duplicate(
-            Guid macId,
-            Guid toshId,
-            string duplicateUserName)
+        [TestMethod]
+        public async Task SaveEvents_fails_if_unique_indexed_property_duplicate()
         {
             // Arrange
+            var duplicateUserName = fixture.Create<string>();
+
+            var macId = Guid.NewGuid();
             var macCreated = new FakeUserCreated { Username = duplicateUserName };
             RaiseEvents(macId, macCreated);
             await sut.SaveEvents<FakeUser>(new[] { macCreated });
 
             // Act
+            var toshId = Guid.NewGuid();
             var toshCreated = new FakeUserCreated { Username = duplicateUserName };
             RaiseEvents(toshId, toshCreated);
             Func<Task> action = () => sut.SaveEvents<FakeUser>(new[] { toshCreated });
@@ -540,11 +528,11 @@ namespace Khala.EventSourcing.Sql
             }
         }
 
-        [Theory]
-        [AutoData]
-        public async Task SaveEvents_inserts_Correlation_entity_correctly(
-            FakeUserCreated created, Guid correlationId)
+        [TestMethod]
+        public async Task SaveEvents_inserts_Correlation_entity_correctly()
         {
+            var created = fixture.Create<FakeUserCreated>();
+            var correlationId = Guid.NewGuid();
             RaiseEvents(userId, created);
             var now = DateTimeOffset.Now;
 
@@ -564,14 +552,13 @@ namespace Khala.EventSourcing.Sql
             }
         }
 
-        [Theory]
-        [AutoData]
-        public async Task SaveEvents_throws_DuplicateCorrelationException_if_correlation_duplicate(
-            FakeUserCreated created,
-            FakeUsernameChanged usernameChanged,
-            Guid correlationId)
+        [TestMethod]
+        public async Task SaveEvents_throws_DuplicateCorrelationException_if_correlation_duplicate()
         {
+            var created = fixture.Create<FakeUserCreated>();
+            var usernameChanged = fixture.Create<FakeUsernameChanged>();
             RaiseEvents(userId, created, usernameChanged);
+            var correlationId = Guid.NewGuid();
             await sut.SaveEvents<FakeUser>(new[] { created }, correlationId);
 
             Func<Task> action = () => sut.SaveEvents<FakeUser>(new[] { usernameChanged }, correlationId);
@@ -584,13 +571,12 @@ namespace Khala.EventSourcing.Sql
                 x.InnerException is DbUpdateException);
         }
 
-        [Theory]
-        [AutoData]
-        public async Task LoadEvents_restores_all_events_correctly(
-            FakeUserCreated created,
-            FakeUsernameChanged usernameChanged)
+        [TestMethod]
+        public async Task LoadEvents_restores_all_events_correctly()
         {
             // Arrange
+            var created = fixture.Create<FakeUserCreated>();
+            var usernameChanged = fixture.Create<FakeUsernameChanged>();
             var events = new DomainEvent[] { created, usernameChanged };
             RaiseEvents(userId, events);
             await sut.SaveEvents<FakeUser>(events);
@@ -602,13 +588,12 @@ namespace Khala.EventSourcing.Sql
             actual.ShouldAllBeEquivalentTo(events);
         }
 
-        [Theory]
-        [AutoData]
-        public async Task LoadEvents_restores_events_after_specified_version_correctly(
-            FakeUserCreated created,
-            FakeUsernameChanged usernameChanged)
+        [TestMethod]
+        public async Task LoadEvents_restores_events_after_specified_version_correctly()
         {
             // Arrange
+            var created = fixture.Create<FakeUserCreated>();
+            var usernameChanged = fixture.Create<FakeUsernameChanged>();
             var events = new DomainEvent[] { created, usernameChanged };
             RaiseEvents(userId, events);
             await sut.SaveEvents<FakeUser>(events);
@@ -621,8 +606,7 @@ namespace Khala.EventSourcing.Sql
             actual.ShouldAllBeEquivalentTo(events.Skip(1));
         }
 
-        [Theory]
-        [AutoData]
+        [TestMethod]
         public async Task FindIdByUniqueIndexedProperty_returns_null_if_property_not_found()
         {
             string value = fixture.Create("username");
@@ -631,11 +615,10 @@ namespace Khala.EventSourcing.Sql
             actual.Should().NotHaveValue();
         }
 
-        [Theory]
-        [AutoData]
-        public async Task FindIdByUniqueIndexedProperty_returns_aggregate_id_if_property_found(
-            FakeUserCreated created)
+        [TestMethod]
+        public async Task FindIdByUniqueIndexedProperty_returns_aggregate_id_if_property_found()
         {
+            var created = fixture.Create<FakeUserCreated>();
             RaiseEvents(userId, created);
             await sut.SaveEvents<FakeUser>(new[] { created });
 
