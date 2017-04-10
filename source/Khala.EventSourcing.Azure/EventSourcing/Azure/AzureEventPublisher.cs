@@ -132,8 +132,6 @@
         [EditorBrowsable(EditorBrowsableState.Never)]
         public async Task PublishAllEvents(CancellationToken cancellationToken)
         {
-            var partitions = new HashSet<string>();
-
             var query = new TableQuery<PendingEventTableEntity>();
             var filter = PendingEventTableEntity.ScanFilter;
             TableContinuationToken continuation = null;
@@ -144,19 +142,14 @@
                     .ExecuteQuerySegmentedAsync(query.Where(filter), continuation, cancellationToken)
                     .ConfigureAwait(false);
 
-                foreach (PendingEventTableEntity entity in segment)
+                foreach (string partition in segment.Select(e => e.PartitionKey).Distinct())
                 {
-                    partitions.Add(entity.PartitionKey);
+                    await Publish(partition, cancellationToken).ConfigureAwait(false);
                 }
 
                 continuation = segment.ContinuationToken;
             }
             while (continuation != null);
-
-            foreach (var partition in partitions)
-            {
-                await Publish(partition, cancellationToken).ConfigureAwait(false);
-            }
         }
     }
 }
