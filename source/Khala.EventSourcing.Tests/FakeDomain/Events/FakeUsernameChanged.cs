@@ -1,10 +1,10 @@
-﻿using System.Collections.Generic;
-using Khala.EventSourcing;
-using Khala.EventSourcing.Sql;
-using Newtonsoft.Json;
-
-namespace Khala.FakeDomain.Events
+﻿namespace Khala.FakeDomain.Events
 {
+    using System.Collections.Generic;
+    using Khala.EventSourcing;
+    using Khala.EventSourcing.Sql;
+    using Newtonsoft.Json;
+
     public class FakeUsernameChanged : DomainEvent, IUniqueIndexedDomainEvent
     {
         public string Username { get; set; }

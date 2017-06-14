@@ -1,17 +1,17 @@
-﻿using System;
-using FluentAssertions;
-using Khala.FakeDomain;
-using Khala.FakeDomain.Events;
-using Khala.Messaging;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Microsoft.WindowsAzure.Storage.Table;
-using Ploeh.AutoFixture;
-using Ploeh.AutoFixture.AutoMoq;
-using Ploeh.AutoFixture.Idioms;
-using static Khala.EventSourcing.Azure.EventTableEntity;
-
-namespace Khala.EventSourcing.Azure
+﻿namespace Khala.EventSourcing.Azure
 {
+    using System;
+    using FluentAssertions;
+    using Khala.FakeDomain;
+    using Khala.FakeDomain.Events;
+    using Khala.Messaging;
+    using Microsoft.VisualStudio.TestTools.UnitTesting;
+    using Microsoft.WindowsAzure.Storage.Table;
+    using Ploeh.AutoFixture;
+    using Ploeh.AutoFixture.AutoMoq;
+    using Ploeh.AutoFixture.Idioms;
+    using static Khala.EventSourcing.Azure.EventTableEntity;
+
     [TestClass]
     public class EventTableEntity_features
     {

@@ -1,16 +1,16 @@
-﻿using FluentAssertions;
-using Khala.FakeDomain;
-using Khala.FakeDomain.Events;
-using Khala.Messaging;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Microsoft.WindowsAzure.Storage.Table;
-using Ploeh.AutoFixture;
-using Ploeh.AutoFixture.AutoMoq;
-using Ploeh.AutoFixture.Idioms;
-using static Khala.EventSourcing.Azure.PendingEventTableEntity;
-
-namespace Khala.EventSourcing.Azure
+﻿namespace Khala.EventSourcing.Azure
 {
+    using FluentAssertions;
+    using Khala.FakeDomain;
+    using Khala.FakeDomain.Events;
+    using Khala.Messaging;
+    using Microsoft.VisualStudio.TestTools.UnitTesting;
+    using Microsoft.WindowsAzure.Storage.Table;
+    using Ploeh.AutoFixture;
+    using Ploeh.AutoFixture.AutoMoq;
+    using Ploeh.AutoFixture.Idioms;
+    using static Khala.EventSourcing.Azure.PendingEventTableEntity;
+
     [TestClass]
     public class PendingEventTableEntity_features
     {

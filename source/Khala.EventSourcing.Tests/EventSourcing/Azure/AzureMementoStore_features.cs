@@ -1,21 +1,21 @@
-﻿using System;
-using System.IO;
-using System.Net;
-using System.Threading;
-using System.Threading.Tasks;
-using FluentAssertions;
-using Khala.FakeDomain;
-using Khala.Messaging;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Microsoft.WindowsAzure.Storage;
-using Microsoft.WindowsAzure.Storage.Blob;
-using Microsoft.WindowsAzure.Storage.RetryPolicies;
-using Ploeh.AutoFixture;
-using Ploeh.AutoFixture.AutoMoq;
-using Ploeh.AutoFixture.Idioms;
-
-namespace Khala.EventSourcing.Azure
+﻿namespace Khala.EventSourcing.Azure
 {
+    using System;
+    using System.IO;
+    using System.Net;
+    using System.Threading;
+    using System.Threading.Tasks;
+    using FluentAssertions;
+    using Khala.FakeDomain;
+    using Khala.Messaging;
+    using Microsoft.VisualStudio.TestTools.UnitTesting;
+    using Microsoft.WindowsAzure.Storage;
+    using Microsoft.WindowsAzure.Storage.Blob;
+    using Microsoft.WindowsAzure.Storage.RetryPolicies;
+    using Ploeh.AutoFixture;
+    using Ploeh.AutoFixture.AutoMoq;
+    using Ploeh.AutoFixture.Idioms;
+
     [TestClass]
     public class AzureMementoStore_features
     {

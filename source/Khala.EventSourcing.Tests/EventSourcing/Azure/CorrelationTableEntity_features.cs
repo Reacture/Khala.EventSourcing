@@ -1,11 +1,11 @@
-﻿using System;
-using FluentAssertions;
-using Khala.FakeDomain;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Microsoft.WindowsAzure.Storage.Table;
-
-namespace Khala.EventSourcing.Azure
+﻿namespace Khala.EventSourcing.Azure
 {
+    using System;
+    using FluentAssertions;
+    using Khala.FakeDomain;
+    using Microsoft.VisualStudio.TestTools.UnitTesting;
+    using Microsoft.WindowsAzure.Storage.Table;
+
     [TestClass]
     public class CorrelationTableEntity_features
     {

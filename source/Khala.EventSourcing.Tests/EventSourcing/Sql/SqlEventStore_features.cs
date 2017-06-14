@@ -1,22 +1,22 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Data.Entity;
-using System.Data.Entity.Infrastructure;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using FluentAssertions;
-using Khala.FakeDomain;
-using Khala.FakeDomain.Events;
-using Khala.Messaging;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Moq;
-using Ploeh.AutoFixture;
-using Ploeh.AutoFixture.AutoMoq;
-using Ploeh.AutoFixture.Idioms;
-
-namespace Khala.EventSourcing.Sql
+﻿namespace Khala.EventSourcing.Sql
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Data.Entity;
+    using System.Data.Entity.Infrastructure;
+    using System.Linq;
+    using System.Threading;
+    using System.Threading.Tasks;
+    using FluentAssertions;
+    using Khala.FakeDomain;
+    using Khala.FakeDomain.Events;
+    using Khala.Messaging;
+    using Microsoft.VisualStudio.TestTools.UnitTesting;
+    using Moq;
+    using Ploeh.AutoFixture;
+    using Ploeh.AutoFixture.AutoMoq;
+    using Ploeh.AutoFixture.Idioms;
+
     [TestClass]
     public class SqlEventStore_features
     {
@@ -164,6 +164,7 @@ namespace Khala.EventSourcing.Sql
                 db.Aggregates.Add(aggregate);
                 await db.SaveChangesAsync();
             }
+
             var usernameChanged = fixture.Create<FakeUsernameChanged>();
             var events = new DomainEvent[] { usernameChanged };
             RaiseEvents(userId, 1, usernameChanged);
@@ -213,6 +214,7 @@ namespace Khala.EventSourcing.Sql
                 db.Aggregates.Add(aggregate);
                 await db.SaveChangesAsync();
             }
+
             var usernameChanged = fixture.Create<FakeUsernameChanged>();
             var events = new DomainEvent[] { usernameChanged };
             RaiseEvents(userId, 2, usernameChanged);

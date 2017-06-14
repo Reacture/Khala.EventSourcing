@@ -1,16 +1,16 @@
-﻿using System;
-using System.Reflection;
-using FluentAssertions;
-using Khala.Messaging;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Moq;
-using Newtonsoft.Json;
-using Ploeh.AutoFixture;
-using Ploeh.AutoFixture.AutoMoq;
-using Ploeh.AutoFixture.Idioms;
-
-namespace Khala.EventSourcing
+﻿namespace Khala.EventSourcing
 {
+    using System;
+    using System.Reflection;
+    using FluentAssertions;
+    using Khala.Messaging;
+    using Microsoft.VisualStudio.TestTools.UnitTesting;
+    using Moq;
+    using Newtonsoft.Json;
+    using Ploeh.AutoFixture;
+    using Ploeh.AutoFixture.AutoMoq;
+    using Ploeh.AutoFixture.Idioms;
+
     [TestClass]
     public class DomainEvent_features
     {

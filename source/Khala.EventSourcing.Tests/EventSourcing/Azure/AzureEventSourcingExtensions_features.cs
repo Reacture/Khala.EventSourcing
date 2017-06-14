@@ -1,16 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
-using FluentAssertions;
-using Khala.FakeDomain;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Moq;
-using Ploeh.AutoFixture;
-using Ploeh.AutoFixture.AutoMoq;
-
-namespace Khala.EventSourcing.Azure
+﻿namespace Khala.EventSourcing.Azure
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Threading;
+    using System.Threading.Tasks;
+    using FluentAssertions;
+    using Khala.FakeDomain;
+    using Microsoft.VisualStudio.TestTools.UnitTesting;
+    using Moq;
+    using Ploeh.AutoFixture;
+    using Ploeh.AutoFixture.AutoMoq;
+
     [TestClass]
     public class AzureEventSourcingExtensions_features
     {

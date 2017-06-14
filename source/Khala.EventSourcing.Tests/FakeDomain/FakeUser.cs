@@ -1,10 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using Khala.EventSourcing;
-using Khala.FakeDomain.Events;
-
-namespace Khala.FakeDomain
+﻿namespace Khala.FakeDomain
 {
+    using System;
+    using System.Collections.Generic;
+    using Khala.EventSourcing;
+    using Khala.FakeDomain.Events;
+
     public class FakeUser : EventSourced, IMementoOriginator
     {
         public FakeUser(Guid id, string username)

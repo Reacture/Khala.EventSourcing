@@ -1,7 +1,7 @@
-﻿using Khala.EventSourcing;
-
-namespace Khala.FakeDomain
+﻿namespace Khala.FakeDomain
 {
+    using Khala.EventSourcing;
+
     public class FakeUserMemento : IMemento
     {
         public int Version { get; set; }

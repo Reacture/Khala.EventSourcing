@@ -1,12 +1,12 @@
-﻿using System;
-using FluentAssertions;
-using Khala.FakeDomain.Events;
-using Khala.Messaging;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Ploeh.AutoFixture;
-
-namespace Khala.EventSourcing.Sql
+﻿namespace Khala.EventSourcing.Sql
 {
+    using System;
+    using FluentAssertions;
+    using Khala.FakeDomain.Events;
+    using Khala.Messaging;
+    using Microsoft.VisualStudio.TestTools.UnitTesting;
+    using Ploeh.AutoFixture;
+
     [TestClass]
     public class PendingEvent_features
     {
