@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.25420.1
+# Visual Studio 15
+VisualStudioVersion = 15.0.26430.15
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Khala.EventSourcing", "Khala.EventSourcing\Khala.EventSourcing.csproj", "{6CD2103D-D560-4204-A770-FE6EC790291B}"
 EndProject
@@ -17,6 +17,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Khala.EventSourcing.Sql", "Khala.EventSourcing.Sql\Khala.EventSourcing.Sql.csproj", "{DACBBD4B-4064-4F04-A056-2479ED98114D}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Khala.EventSourcing.Tests", "Khala.EventSourcing.Tests\Khala.EventSourcing.Tests.csproj", "{46947615-CE01-49AD-BC6B-185294226870}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Khala.EventSourcing.Owin", "Khala.EventSourcing.Owin\Khala.EventSourcing.Owin.csproj", "{25F03890-3CE8-4363-BD27-88155D84CBA1}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -40,6 +42,10 @@ Global
 		{46947615-CE01-49AD-BC6B-185294226870}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{46947615-CE01-49AD-BC6B-185294226870}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{46947615-CE01-49AD-BC6B-185294226870}.Release|Any CPU.Build.0 = Release|Any CPU
+		{25F03890-3CE8-4363-BD27-88155D84CBA1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{25F03890-3CE8-4363-BD27-88155D84CBA1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{25F03890-3CE8-4363-BD27-88155D84CBA1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{25F03890-3CE8-4363-BD27-88155D84CBA1}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
