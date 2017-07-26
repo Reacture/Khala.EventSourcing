@@ -62,13 +62,13 @@
         {
             // Arrange
             IAppBuilder app = null;
-            IEventSourcedRepository<IEventSourced> respository = new FooRepository();
+            IEventSourcedRepository<IEventSourced> repository = new FooRepository();
 
             // Act
             object exception = null;
             try
             {
-                AppBuilderExtensions.EnqueuePendingEvents(app, respository);
+                AppBuilderExtensions.EnqueuePendingEvents(app, repository);
             }
             catch (Exception thrown)
             {
@@ -86,11 +86,11 @@
         {
             // Arrange
             IAppBuilder app = new FooAppBuilder();
-            IEventSourcedRepository<IEventSourced> respository = null;
+            IEventSourcedRepository<IEventSourced> repository = null;
 
             // Act
             Action action = () =>
-            AppBuilderExtensions.EnqueuePendingEvents(app, respository);
+            AppBuilderExtensions.EnqueuePendingEvents(app, repository);
 
             // Assert
             action.ShouldThrow<ArgumentNullException>().Where(x => x.ParamName == "repository");
