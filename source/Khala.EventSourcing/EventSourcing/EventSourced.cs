@@ -85,19 +85,25 @@
 
         private void WireupEvents()
         {
-            var handlers =
-                from m in GetType().GetTypeInfo().GetDeclaredMethods("Handle")
-                where m.ReturnType == typeof(void)
-                let parameters = m.GetParameters()
-                where parameters.Length == 1
-                let parameter = parameters.Single()
-                let parameterType = parameter.ParameterType
-                where typeof(IDomainEvent).GetTypeInfo().IsAssignableFrom(parameterType.GetTypeInfo())
-                select new { EventType = parameterType, Method = m };
-
-            foreach (var handler in handlers)
+            Type type = GetType();
+            while (type != null)
             {
-                WireupEvent(handler.EventType, handler.Method);
+                var handlers =
+                    from m in type.GetTypeInfo().GetDeclaredMethods("Handle")
+                    where m.ReturnType == typeof(void)
+                    let parameters = m.GetParameters()
+                    where parameters.Length == 1
+                    let parameter = parameters.Single()
+                    let parameterType = parameter.ParameterType
+                    where typeof(IDomainEvent).GetTypeInfo().IsAssignableFrom(parameterType.GetTypeInfo())
+                    select new { EventType = parameterType, Method = m };
+
+                foreach (var handler in handlers)
+                {
+                    WireupEvent(handler.EventType, handler.Method);
+                }
+
+                type = type.GetTypeInfo().BaseType;
             }
         }
 
