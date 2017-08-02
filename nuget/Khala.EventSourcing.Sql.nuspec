@@ -2,7 +2,7 @@
 <package >
   <metadata>
     <id>Khala.EventSourcing.Sql</id>
-    <version>0.9.3</version>
+    <version>0.10.0</version>
     <title>Khala.EventSourcing.Sql</title>
     <authors>Gyuwon</authors>
     <owners>Gyuwon</owners>
@@ -15,8 +15,8 @@
     <tags>CQRS EventSourcing SQL EntityFramework Reactive</tags>
     <dependencies>
       <group targetFramework="net45">
-        <dependency id="Khala.EventSourcing.Core" version="0.9.3" />
-        <dependency id="Khala.Messaging.Abstraction" version="0.9.0" />
+        <dependency id="Khala.EventSourcing.Core" version="0.10.0" />
+        <dependency id="Khala.Messaging.Abstraction" version="0.10.0" />
         <dependency id="Newtonsoft.Json" version="9.0.1" />
         <dependency id="EntityFramework" version="6.1.0" />
       </group>

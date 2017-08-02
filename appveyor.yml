@@ -1,4 +1,4 @@
-version: 0.9.{build}
+version: 0.10.{build}
 image: Visual Studio 2017
 configuration: Release
 before_build:
@@ -11,6 +11,8 @@ after_build:
     nuget pack nuget\Khala.EventSourcing.Core.nuspec -Symbols
 
     nuget pack nuget\Khala.EventSourcing.Azure.nuspec -Symbols
+
+    nuget pack nuget\Khala.EventSourcing.Owin.nuspec -Symbols
 
     nuget pack nuget\Khala.EventSourcing.Sql.nuspec -Symbols
 test:
