@@ -4,7 +4,6 @@ using Khala.EventSourcing;
 using Khala.EventSourcing.Sql;
 using Khala.Messaging;
 using Microsoft.Owin;
-using Microsoft.Owin.BuilderProperties;
 using Owin;
 using TodoList.Domain;
 using TodoList.Domain.DataAccess;
@@ -62,8 +61,7 @@ namespace TodoList
                 await next.Invoke();
             });
 
-            var properties = new AppProperties(app.Properties);
-            repository.EventPublisher.EnqueueAll(properties.OnAppDisposing);
+            app.EnqueuePendingEvents(repository);
         }
     }
 }
