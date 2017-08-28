@@ -4,9 +4,11 @@
     using System.Collections.Generic;
     using System.ComponentModel;
     using System.Linq;
+    using System.Net;
     using System.Threading;
     using System.Threading.Tasks;
     using Messaging;
+    using Microsoft.WindowsAzure.Storage;
     using Microsoft.WindowsAzure.Storage.Table;
     using static Microsoft.WindowsAzure.Storage.Table.QueryComparisons;
     using static Microsoft.WindowsAzure.Storage.Table.TableOperators;
@@ -117,13 +119,22 @@
                 .ConfigureAwait(false));
         }
 
-        private Task DeletePendingEvents(
+        private async Task DeletePendingEvents(
             List<PendingEventTableEntity> pendingEvents,
             CancellationToken cancellationToken)
         {
-            var batch = new TableBatchOperation();
-            pendingEvents.ForEach(batch.Delete);
-            return _eventTable.ExecuteBatchAsync(batch, cancellationToken);
+            foreach (PendingEventTableEntity pendingEvent in pendingEvents)
+            {
+                try
+                {
+                    var operation = TableOperation.Delete(pendingEvent);
+                    await _eventTable.ExecuteAsync(operation, cancellationToken).ConfigureAwait(false);
+                }
+                catch (StorageException exception)
+                when (((exception.InnerException as WebException)?.Response as HttpWebResponse)?.StatusCode == HttpStatusCode.NotFound)
+                {
+                }
+            }
         }
 
         public async void EnqueueAll(CancellationToken cancellationToken)
