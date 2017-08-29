@@ -165,12 +165,6 @@
         }
 
         [TestMethod]
-        public void SaveEvents_executes_batch_twice()
-        {
-            Assert.Inconclusive();
-        }
-
-        [TestMethod]
         public void SaveEvents_does_not_insert_event_entities_if_fails_to_insert_pending_events()
         {
             Assert.Inconclusive();

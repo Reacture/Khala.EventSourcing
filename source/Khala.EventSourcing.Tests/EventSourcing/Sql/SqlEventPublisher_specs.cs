@@ -190,35 +190,6 @@
         }
 
         [TestMethod]
-        public async Task PublishPendingEvents_commits_once()
-        {
-            // Arrange
-            var created = fixture.Create<FakeUserCreated>();
-            var usernameChanged = fixture.Create<FakeUsernameChanged>();
-            var sourceId = Guid.NewGuid();
-
-            var events = new DomainEvent[] { created, usernameChanged };
-            RaiseEvents(sourceId, events);
-
-            Mock.Get(mockDbContext.PendingEvents)
-                .SetupData(events
-                .Select(e => new Envelope(e))
-                .Select(e => PendingEvent.FromEnvelope(e, serializer))
-                .ToList());
-
-            var sut = new SqlEventPublisher(
-                () => mockDbContext, serializer, messageBus);
-
-            // Act
-            await sut.PublishPendingEvents(sourceId, CancellationToken.None);
-
-            // Assert
-            Mock.Get(mockDbContext).Verify(
-                x => x.SaveChangesAsync(CancellationToken.None),
-                Times.Once());
-        }
-
-        [TestMethod]
         public async Task PublishAllPendingEvents_sends_app_pending_events()
         {
             // Arrange
@@ -288,6 +259,68 @@
                                                      select e;
                     (await query.AnyAsync()).Should().BeFalse();
                 }
+            }
+        }
+
+        public class AwaitingMessageBus : IMessageBus
+        {
+            private readonly Task _awaitable;
+
+            public AwaitingMessageBus(Task awaitable)
+            {
+                _awaitable = awaitable;
+            }
+
+            public Task Send(Envelope envelope, CancellationToken cancellationToken)
+            {
+                return _awaitable;
+            }
+
+            public Task SendBatch(IEnumerable<Envelope> envelopes, CancellationToken cancellationToken)
+            {
+                return _awaitable;
+            }
+        }
+
+        [TestMethod]
+        public async Task PublishPendingEvents_consumes_exception_caused_by_that_some_pending_event_already_deleted_since_loaded()
+        {
+            // Arrange
+            var completionSource = new TaskCompletionSource<bool>();
+            IMessageBus messageBus = new AwaitingMessageBus(completionSource.Task);
+            var fixture = new Fixture();
+            var user = fixture.Create<FakeUser>();
+            user.ChangeUsername(fixture.Create(nameof(user.Username)));
+            var eventStore = new SqlEventStore(CreateDbContext, serializer);
+            await eventStore.SaveEvents<FakeUser>(user.PendingEvents);
+            var sut = new SqlEventPublisher(CreateDbContext, serializer, messageBus);
+
+            // Act
+            Func<Task> action = async () =>
+            {
+                Task publishTask = sut.PublishPendingEvents(user.Id, CancellationToken.None);
+                using (EventStoreDbContext db = CreateDbContext())
+                {
+                    List<PendingEvent> pendingEvents = await db
+                        .PendingEvents
+                        .Where(e => e.AggregateId == user.Id)
+                        .OrderBy(e => e.Version)
+                        .Take(1)
+                        .ToListAsync();
+                    db.PendingEvents.RemoveRange(pendingEvents);
+                    await db.SaveChangesAsync();
+                }
+
+                completionSource.SetResult(true);
+                await publishTask;
+            };
+
+            // Assert
+            action.ShouldNotThrow();
+            using (EventStoreDbContext db = CreateDbContext())
+            {
+                (await db.PendingEvents.AnyAsync(e => e.AggregateId == user.Id))
+                .Should().BeFalse("all pending events should be deleted");
             }
         }
 
