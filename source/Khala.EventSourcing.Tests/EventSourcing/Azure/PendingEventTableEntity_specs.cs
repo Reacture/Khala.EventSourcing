@@ -12,7 +12,7 @@
     using static Khala.EventSourcing.Azure.PendingEventTableEntity;
 
     [TestClass]
-    public class PendingEventTableEntity_features
+    public class PendingEventTableEntity_specs
     {
         private IFixture fixture;
         private IMessageSerializer serializer;

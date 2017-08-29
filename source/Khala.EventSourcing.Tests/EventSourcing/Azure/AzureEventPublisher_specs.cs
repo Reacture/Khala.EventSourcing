@@ -20,7 +20,7 @@
     using Ploeh.AutoFixture.Idioms;
 
     [TestClass]
-    public class AzureEventPublisher_features
+    public class AzureEventPublisher_specs
     {
         private static CloudStorageAccount s_storageAccount;
         private static CloudTable s_eventTable;

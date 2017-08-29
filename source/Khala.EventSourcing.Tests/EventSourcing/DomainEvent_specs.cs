@@ -12,7 +12,7 @@
     using Ploeh.AutoFixture.Idioms;
 
     [TestClass]
-    public class DomainEvent_features
+    public class DomainEvent_specs
     {
         private IFixture fixture =
             new Fixture().Customize(new AutoMoqCustomization());

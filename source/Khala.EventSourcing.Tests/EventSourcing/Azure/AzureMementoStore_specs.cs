@@ -17,7 +17,7 @@
     using Ploeh.AutoFixture.Idioms;
 
     [TestClass]
-    public class AzureMementoStore_features
+    public class AzureMementoStore_specs
     {
         private static CloudStorageAccount s_storageAccount;
         private static CloudBlobContainer s_container;

@@ -9,7 +9,7 @@
     using Ploeh.AutoFixture.Idioms;
 
     [TestClass]
-    public class EventSourced_features
+    public class EventSourced_specs
     {
         public abstract class AbstractAggregate : EventSourced
         {

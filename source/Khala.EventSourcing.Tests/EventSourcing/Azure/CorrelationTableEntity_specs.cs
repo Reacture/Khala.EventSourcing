@@ -7,7 +7,7 @@
     using Microsoft.WindowsAzure.Storage.Table;
 
     [TestClass]
-    public class CorrelationTableEntity_features
+    public class CorrelationTableEntity_specs
     {
         [TestMethod]
         public void class_inherits_TableEntity()

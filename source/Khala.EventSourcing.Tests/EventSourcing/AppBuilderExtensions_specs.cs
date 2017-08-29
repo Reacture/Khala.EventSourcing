@@ -11,7 +11,7 @@
     using Owin;
 
     [TestClass]
-    public class AppBuilderExtensions_features
+    public class AppBuilderExtensions_specs
     {
         public class FooAppBuilder : IAppBuilder
         {

@@ -8,7 +8,7 @@
     using Ploeh.AutoFixture;
 
     [TestClass]
-    public class PendingEvent_features
+    public class PendingEvent_specs
     {
         private IFixture fixture;
         private IMessageSerializer serializer;

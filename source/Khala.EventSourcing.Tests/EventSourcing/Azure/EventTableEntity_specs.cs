@@ -13,7 +13,7 @@
     using static Khala.EventSourcing.Azure.EventTableEntity;
 
     [TestClass]
-    public class EventTableEntity_features
+    public class EventTableEntity_specs
     {
         private IFixture fixture;
         private IMessageSerializer serializer;

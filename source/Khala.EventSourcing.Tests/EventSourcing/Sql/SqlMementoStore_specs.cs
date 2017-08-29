@@ -14,7 +14,7 @@
     using Ploeh.AutoFixture.Idioms;
 
     [TestClass]
-    public class SqlMementoStore_features
+    public class SqlMementoStore_specs
     {
         private IFixture fixture;
         private IMessageSerializer serializer;

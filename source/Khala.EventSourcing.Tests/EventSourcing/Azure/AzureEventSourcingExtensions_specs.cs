@@ -12,7 +12,7 @@
     using Ploeh.AutoFixture.AutoMoq;
 
     [TestClass]
-    public class AzureEventSourcingExtensions_features
+    public class AzureEventSourcingExtensions_specs
     {
         [TestMethod]
         public void SaveEvents_relays_with_null_correlaton()

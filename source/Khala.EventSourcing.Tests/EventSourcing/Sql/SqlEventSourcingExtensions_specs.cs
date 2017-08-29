@@ -12,7 +12,7 @@
     using Ploeh.AutoFixture.AutoMoq;
 
     [TestClass]
-    public class SqlEventSourcingExtensions_features
+    public class SqlEventSourcingExtensions_specs
     {
         [TestMethod]
         public void SaveEvents_relays_with_null_correlaton()

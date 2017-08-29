@@ -158,26 +158,26 @@
     <Otherwise />
   </Choose>
   <ItemGroup>
-    <Compile Include="EventSourcing\AppBuilderExtensions_features.cs" />
-    <Compile Include="EventSourcing\Azure\AzureEventPublisher_features.cs" />
-    <Compile Include="EventSourcing\Azure\AzureEventSourcedRepository_features.cs" />
-    <Compile Include="EventSourcing\Azure\AzureEventSourcingExtensions_features.cs" />
-    <Compile Include="EventSourcing\Azure\AzureEventStore_features.cs" />
-    <Compile Include="EventSourcing\Azure\AzureMementoStore_features.cs" />
-    <Compile Include="EventSourcing\Azure\CorrelationTableEntity_features.cs" />
-    <Compile Include="EventSourcing\Azure\EventTableEntity_features.cs" />
-    <Compile Include="EventSourcing\Azure\PendingEventTableEntity_features.cs" />
-    <Compile Include="EventSourcing\DomainEvent_features.cs" />
-    <Compile Include="EventSourcing\EventSourced_features.cs" />
-    <Compile Include="EventSourcing\EventSourcingExtensions_features.cs" />
-    <Compile Include="EventSourcing\Sql\PendingEvent_features.cs" />
-    <Compile Include="EventSourcing\Sql\PersistentEvent_features.cs" />
-    <Compile Include="EventSourcing\Sql\SqlEventPublisher_features.cs" />
-    <Compile Include="EventSourcing\Sql\SqlEventSourcedRepository_features.cs" />
-    <Compile Include="EventSourcing\Sql\SqlEventSourcingAbstractionExtensions_features.cs" />
-    <Compile Include="EventSourcing\Sql\SqlEventSourcingExtensions_features.cs" />
-    <Compile Include="EventSourcing\Sql\SqlEventStore_features.cs" />
-    <Compile Include="EventSourcing\Sql\SqlMementoStore_features.cs" />
+    <Compile Include="EventSourcing\AppBuilderExtensions_specs.cs" />
+    <Compile Include="EventSourcing\Azure\AzureEventPublisher_specs.cs" />
+    <Compile Include="EventSourcing\Azure\AzureEventSourcedRepository_specs.cs" />
+    <Compile Include="EventSourcing\Azure\AzureEventSourcingExtensions_specs.cs" />
+    <Compile Include="EventSourcing\Azure\AzureEventStore_specs.cs" />
+    <Compile Include="EventSourcing\Azure\AzureMementoStore_specs.cs" />
+    <Compile Include="EventSourcing\Azure\CorrelationTableEntity_specs.cs" />
+    <Compile Include="EventSourcing\Azure\EventTableEntity_specs.cs" />
+    <Compile Include="EventSourcing\Azure\PendingEventTableEntity_specs.cs" />
+    <Compile Include="EventSourcing\DomainEvent_specs.cs" />
+    <Compile Include="EventSourcing\EventSourced_specs.cs" />
+    <Compile Include="EventSourcing\EventSourcingExtensions_specs.cs" />
+    <Compile Include="EventSourcing\Sql\PendingEvent_specs.cs" />
+    <Compile Include="EventSourcing\Sql\PersistentEvent_specs.cs" />
+    <Compile Include="EventSourcing\Sql\SqlEventPublisher_specs.cs" />
+    <Compile Include="EventSourcing\Sql\SqlEventSourcedRepository_specs.cs" />
+    <Compile Include="EventSourcing\Sql\SqlEventSourcingAbstractionExtensions_specs.cs" />
+    <Compile Include="EventSourcing\Sql\SqlEventSourcingExtensions_specs.cs" />
+    <Compile Include="EventSourcing\Sql\SqlEventStore_specs.cs" />
+    <Compile Include="EventSourcing\Sql\SqlMementoStore_specs.cs" />
     <Compile Include="FakeDomain\Events\FakeUserCreated.cs" />
     <Compile Include="FakeDomain\Events\FakeUsernameChanged.cs" />
     <Compile Include="FakeDomain\FakeUser.cs" />

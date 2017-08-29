@@ -12,7 +12,7 @@
     using Ploeh.AutoFixture.Idioms;
 
     [TestClass]
-    public class EventSourcingExtensions_features
+    public class EventSourcingExtensions_specs
     {
         [TestMethod]
         public void class_has_guard_clauses()

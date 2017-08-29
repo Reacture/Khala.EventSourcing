@@ -18,7 +18,7 @@
     using Ploeh.AutoFixture.Idioms;
 
     [TestClass]
-    public class AzureEventStore_features
+    public class AzureEventStore_specs
     {
         private static CloudStorageAccount s_storageAccount;
         private static CloudTable s_eventTable;

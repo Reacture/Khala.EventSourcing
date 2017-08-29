@@ -18,7 +18,7 @@
     using Ploeh.AutoFixture.Idioms;
 
     [TestClass]
-    public class SqlEventStore_features
+    public class SqlEventStore_specs
     {
         public class DataContext : EventStoreDbContext
         {

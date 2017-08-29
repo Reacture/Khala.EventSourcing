@@ -17,7 +17,7 @@
     using Ploeh.AutoFixture.Idioms;
 
     [TestClass]
-    public class SqlEventPublisher_features
+    public class SqlEventPublisher_specs
     {
         public class DataContext : EventStoreDbContext
         {

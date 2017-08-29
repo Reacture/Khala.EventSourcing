@@ -1,4 +1,4 @@
-﻿namespace Khala.EventSourcing.Sql
+﻿namespace Khala.EventSourcing.Azure
 {
     using System;
     using System.Collections.Generic;
@@ -8,28 +8,29 @@
     using FluentAssertions;
     using Khala.FakeDomain;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
+    using Microsoft.WindowsAzure.Storage;
     using Moq;
     using Ploeh.AutoFixture;
     using Ploeh.AutoFixture.AutoMoq;
     using Ploeh.AutoFixture.Idioms;
 
     [TestClass]
-    public class SqlEventSourcedRepository_features
+    public class AzureEventSourcedRepository_specs
     {
         private IFixture fixture;
-        private ISqlEventStore eventStore;
-        private ISqlEventPublisher eventPublisher;
+        private IAzureEventStore eventStore;
+        private IAzureEventPublisher eventPublisher;
         private IMementoStore mementoStore;
-        private SqlEventSourcedRepository<FakeUser> sut;
+        private AzureEventSourcedRepository<FakeUser> sut;
 
         [TestInitialize]
         public void TestInitialize()
         {
             fixture = new Fixture().Customize(new AutoMoqCustomization());
-            eventStore = Mock.Of<ISqlEventStore>();
-            eventPublisher = Mock.Of<ISqlEventPublisher>();
+            eventStore = Mock.Of<IAzureEventStore>();
+            eventPublisher = Mock.Of<IAzureEventPublisher>();
             mementoStore = Mock.Of<IMementoStore>();
-            sut = new SqlEventSourcedRepository<FakeUser>(
+            sut = new AzureEventSourcedRepository<FakeUser>(
                 eventStore,
                 eventPublisher,
                 mementoStore,
@@ -38,36 +39,31 @@
         }
 
         [TestMethod]
-        public void sut_implements_ISqlEventSourcedRepository()
-        {
-            sut.Should().BeAssignableTo
-                <ISqlEventSourcedRepository<FakeUser>>();
-        }
-
-        [TestMethod]
         public void sut_implements_IEventSourcedRepositoryT()
         {
-            sut.Should().BeAssignableTo
-                <IEventSourcedRepository<FakeUser>>();
+            sut.Should().BeAssignableTo<IEventSourcedRepository<FakeUser>>();
         }
 
         [TestMethod]
         public void class_has_guard_clauses()
         {
             var assertion = new GuardClauseAssertion(fixture);
-            fixture.Inject<Func<EventStoreDbContext>>(() => new EventStoreDbContext());
-            assertion.Verify(typeof(SqlEventSourcedRepository<>));
+            fixture.Inject(CloudStorageAccount.DevelopmentStorageAccount.CreateCloudTableClient().GetTableReference("foo"));
+            assertion.Verify(typeof(AzureEventSourcedRepository<>));
         }
 
         [TestMethod]
         public async Task Save_saves_events()
         {
+            // Arrange
             var user = fixture.Create<FakeUser>();
             var correlationId = Guid.NewGuid();
-            user.ChangeUsername(fixture.Create("username"));
+            user.ChangeUsername("foo");
 
+            // Act
             await sut.Save(user, correlationId, CancellationToken.None);
 
+            // Assert
             Mock.Get(eventStore).Verify(
                 x =>
                 x.SaveEvents<FakeUser>(
@@ -82,37 +78,44 @@
         {
             var user = fixture.Create<FakeUser>();
             var correlationId = Guid.NewGuid();
-            user.ChangeUsername(fixture.Create("username"));
+            user.ChangeUsername("foo");
 
             await sut.Save(user, correlationId, CancellationToken.None);
 
             Mock.Get(eventPublisher).Verify(
                 x =>
-                x.PublishPendingEvents(user.Id, CancellationToken.None),
+                x.PublishPendingEvents<FakeUser>(
+                    user.Id,
+                    CancellationToken.None),
                 Times.Once());
         }
 
         [TestMethod]
-        public void Save_does_not_publish_events_if_fails_to_save_events()
+        public void Save_does_not_publish_events_if_fails_to_save()
         {
+            // Arrange
             var user = fixture.Create<FakeUser>();
             var correlationId = Guid.NewGuid();
-            user.ChangeUsername(fixture.Create("username"));
+            user.ChangeUsername("foo");
             Mock.Get(eventStore)
                 .Setup(
                     x =>
                     x.SaveEvents<FakeUser>(
-                        user.PendingEvents,
-                        correlationId,
+                        It.IsAny<IEnumerable<IDomainEvent>>(),
+                        It.IsAny<Guid?>(),
                         CancellationToken.None))
                 .Throws<InvalidOperationException>();
 
+            // Act
             Func<Task> action = () => sut.Save(user, correlationId, CancellationToken.None);
 
+            // Assert
             action.ShouldThrow<InvalidOperationException>();
             Mock.Get(eventPublisher).Verify(
                 x =>
-                x.PublishPendingEvents(user.Id, It.IsAny<CancellationToken>()),
+                x.PublishPendingEvents<FakeUser>(
+                    user.Id,
+                    CancellationToken.None),
                 Times.Never());
         }
 
@@ -121,6 +124,7 @@
         {
             var user = fixture.Create<FakeUser>();
             var correlationId = Guid.NewGuid();
+            user.ChangeUsername("foo");
 
             await sut.Save(user, correlationId, CancellationToken.None);
 
@@ -137,17 +141,18 @@
         }
 
         [TestMethod]
-        public void Save_does_not_saves_memento_if_fails_to_save_events()
+        public void Save_does_not_save_memento_if_fails_to_save_events()
         {
             // Arrange
             var user = fixture.Create<FakeUser>();
             var correlationId = Guid.NewGuid();
+            user.ChangeUsername("foo");
             Mock.Get(eventStore)
                 .Setup(
                     x =>
                     x.SaveEvents<FakeUser>(
-                        user.PendingEvents,
-                        correlationId,
+                        It.IsAny<IEnumerable<IDomainEvent>>(),
+                        It.IsAny<Guid?>(),
                         CancellationToken.None))
                 .Throws<InvalidOperationException>();
 
@@ -159,50 +164,83 @@
             Mock.Get(mementoStore).Verify(
                 x =>
                 x.Save<FakeUser>(
+                        user.Id,
+                        It.IsAny<IMemento>(),
+                        It.IsAny<CancellationToken>()),
+                Times.Never());
+        }
+
+        [TestMethod]
+        public async Task Find_publishes_pending_events()
+        {
+            var user = fixture.Create<FakeUser>();
+            user.ChangeUsername("foo");
+
+            await sut.Find(user.Id, CancellationToken.None);
+
+            Mock.Get(eventPublisher).Verify(
+                x =>
+                x.PublishPendingEvents<FakeUser>(
                     user.Id,
-                    It.IsAny<IMemento>(),
+                    CancellationToken.None),
+                Times.Once());
+        }
+
+        [TestMethod]
+        public async Task Find_restores_aggregate()
+        {
+            var user = fixture.Create<FakeUser>();
+            user.ChangeUsername("foo");
+            Mock.Get(eventStore)
+                .Setup(x => x.LoadEvents<FakeUser>(user.Id, 0, CancellationToken.None))
+                .ReturnsAsync(user.PendingEvents);
+
+            FakeUser actual = await sut.Find(user.Id, CancellationToken.None);
+
+            actual.ShouldBeEquivalentTo(user, opts => opts.Excluding(x => x.PendingEvents));
+        }
+
+        [TestMethod]
+        public void Find_does_not_load_events_if_fails_to_publish_events()
+        {
+            // Arrange
+            var user = fixture.Create<FakeUser>();
+            user.ChangeUsername("foo");
+            Mock.Get(eventPublisher)
+                .Setup(
+                    x =>
+                    x.PublishPendingEvents<FakeUser>(
+                        user.Id,
+                        CancellationToken.None))
+                .Throws<InvalidOperationException>();
+
+            // Act
+            Func<Task> action = () => sut.Find(user.Id, CancellationToken.None);
+
+            // Assert
+            action.ShouldThrow<InvalidOperationException>();
+            Mock.Get(eventStore).Verify(
+                x =>
+                x.LoadEvents<FakeUser>(
+                    user.Id,
+                    It.IsAny<int>(),
                     It.IsAny<CancellationToken>()),
                 Times.Never());
         }
 
         [TestMethod]
-        public async Task Find_loads_events()
+        public async Task Find_returns_null_if_event_not_found()
         {
-            var user = fixture.Create<FakeUser>();
-            user.ChangeUsername(fixture.Create("username"));
+            var userId = Guid.NewGuid();
             Mock.Get(eventStore)
                 .Setup(
                     x =>
-                    x.LoadEvents<FakeUser>(user.Id, 0, CancellationToken.None))
-                .ReturnsAsync(user.PendingEvents)
-                .Verifiable();
+                    x.LoadEvents<FakeUser>(userId, 0, CancellationToken.None))
+                .ReturnsAsync(Enumerable.Empty<IDomainEvent>());
 
-            await sut.Find(user.Id, CancellationToken.None);
+            FakeUser actual = await sut.Find(userId, CancellationToken.None);
 
-            Mock.Get(eventStore).Verify();
-        }
-
-        [TestMethod]
-        public async Task Find_restores_aggregate_from_events()
-        {
-            // Arrange
-            var user = fixture.Create<FakeUser>();
-            user.ChangeUsername(fixture.Create("username"));
-
-            Mock.Get(eventStore)
-                .Setup(
-                    x =>
-                    x.LoadEvents<FakeUser>(user.Id, 0, CancellationToken.None))
-                .ReturnsAsync(user.PendingEvents)
-                .Verifiable();
-
-            // Act
-            FakeUser actual = await sut.Find(user.Id, CancellationToken.None);
-
-            // Assert
-            Mock.Get(eventStore).Verify();
-            actual.ShouldBeEquivalentTo(
-                user, opts => opts.Excluding(x => x.PendingEvents));
+            actual.Should().BeNull();
         }
 
         [TestMethod]
@@ -210,8 +248,8 @@
         {
             // Arrange
             var user = fixture.Create<FakeUser>();
-            IMemento memento = user.SaveToMemento();
-            user.ChangeUsername(fixture.Create("username"));
+            var memento = user.SaveToMemento();
+            user.ChangeUsername("foo");
 
             Mock.Get(mementoStore)
                 .Setup(x => x.Find<FakeUser>(user.Id, CancellationToken.None))
@@ -233,49 +271,20 @@
                 user, opts => opts.Excluding(x => x.PendingEvents));
         }
 
-        [TestMethod]
-        public async Task Find_returns_null_if_no_event()
+        private void RaiseEvents(Guid sourceId, params DomainEvent[] events)
         {
-            var userId = Guid.NewGuid();
-            Mock.Get(eventStore)
-                .Setup(
-                    x =>
-                    x.LoadEvents<FakeUser>(userId, 0, CancellationToken.None))
-                .ReturnsAsync(new IDomainEvent[0]);
-
-            FakeUser actual = await sut.Find(userId, CancellationToken.None);
-
-            actual.Should().BeNull();
+            RaiseEvents(sourceId, 0, events);
         }
 
-        [TestMethod]
-        public async Task FindIdByUniqueIndexedProperty_relays_to_event_store()
+        private void RaiseEvents(
+            Guid sourceId, int versionOffset, params DomainEvent[] events)
         {
-            // Arrange
-            var name = fixture.Create<string>();
-            var value = fixture.Create<string>();
-            var expected = fixture.Create<Guid?>();
-
-            var eventStore = Mock.Of<ISqlEventStore>();
-            Mock.Get(eventStore)
-                .Setup(
-                    x =>
-                    x.FindIdByUniqueIndexedProperty<FakeUser>(
-                        name,
-                        value,
-                        CancellationToken.None))
-                .ReturnsAsync(expected);
-
-            var sut = new SqlEventSourcedRepository<FakeUser>(
-                eventStore,
-                Mock.Of<ISqlEventPublisher>(),
-                Mock.Of<Func<Guid, IEnumerable<IDomainEvent>, FakeUser>>());
-
-            // Act
-            Guid? actual = await sut.FindIdByUniqueIndexedProperty(name, value, CancellationToken.None);
-
-            // Assert
-            actual.Should().Be(expected);
+            for (int i = 0; i < events.Length; i++)
+            {
+                events[i].SourceId = sourceId;
+                events[i].Version = versionOffset + i + 1;
+                events[i].RaisedAt = DateTimeOffset.Now;
+            }
         }
     }
 }

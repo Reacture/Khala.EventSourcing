@@ -9,7 +9,7 @@
     using Ploeh.AutoFixture.Idioms;
 
     [TestClass]
-    public class PersistentEvent_features
+    public class PersistentEvent_specs
     {
         public class FakeDomainEvent : DomainEvent
         {

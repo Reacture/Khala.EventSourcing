@@ -10,7 +10,7 @@
     using Ploeh.AutoFixture;
 
     [TestClass]
-    public class SqlEventSourcingAbstractionExtensions_features
+    public class SqlEventSourcingAbstractionExtensions_specs
     {
         [TestMethod]
         public void FindIdByUniqueIndexedProperty_relays_with_none_cancellation_token()
