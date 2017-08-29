@@ -2,7 +2,7 @@
 <package >
   <metadata>
     <id>Khala.EventSourcing.Azure</id>
-    <version>0.10.0</version>
+    <version>0.10.1</version>
     <title>Khala.EventSourcing.Azure</title>
     <authors>Gyuwon</authors>
     <owners>Gyuwon</owners>

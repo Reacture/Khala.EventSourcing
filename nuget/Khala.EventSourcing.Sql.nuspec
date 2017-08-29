@@ -2,7 +2,7 @@
 <package >
   <metadata>
     <id>Khala.EventSourcing.Sql</id>
-    <version>0.10.0</version>
+    <version>0.10.1</version>
     <title>Khala.EventSourcing.Sql</title>
     <authors>Gyuwon</authors>
     <owners>Gyuwon</owners>
