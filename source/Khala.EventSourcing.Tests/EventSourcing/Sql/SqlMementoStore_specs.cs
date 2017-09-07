@@ -16,11 +16,11 @@
     [TestClass]
     public class SqlMementoStore_specs
     {
-        private IFixture fixture;
-        private IMessageSerializer serializer;
-        private SqlMementoStore sut;
+        private IFixture _fixture;
+        private IMessageSerializer _serializer;
+        private SqlMementoStore _sut;
 
-        public class DataContext : MementoStoreDbContext
+        private class DataContext : MementoStoreDbContext
         {
         }
 
@@ -29,13 +29,13 @@
         [TestInitialize]
         public void TestInitialize()
         {
-            fixture = new Fixture().Customize(new AutoMoqCustomization());
-            fixture.Inject<Func<IMementoStoreDbContext>>(() => new DataContext());
+            _fixture = new Fixture().Customize(new AutoMoqCustomization());
+            _fixture.Inject<Func<IMementoStoreDbContext>>(() => new DataContext());
 
-            serializer = new JsonMessageSerializer();
-            fixture.Inject(serializer);
+            _serializer = new JsonMessageSerializer();
+            _fixture.Inject(_serializer);
 
-            sut = new SqlMementoStore(() => new DataContext(), serializer);
+            _sut = new SqlMementoStore(() => new DataContext(), _serializer);
 
             using (var db = new DataContext())
             {
@@ -47,7 +47,7 @@
         [TestMethod]
         public void SqlMementoStore_has_guard_clauses()
         {
-            var assertion = new GuardClauseAssertion(fixture);
+            var assertion = new GuardClauseAssertion(_fixture);
             assertion.Verify(typeof(SqlMementoStore));
         }
 
@@ -56,10 +56,10 @@
         {
             // Arrange
             var sourceId = Guid.NewGuid();
-            var memento = fixture.Create<FakeUserMemento>();
+            var memento = _fixture.Create<FakeUserMemento>();
 
             // Act
-            await sut.Save<FakeUser>(sourceId, memento, CancellationToken.None);
+            await _sut.Save<FakeUser>(sourceId, memento, CancellationToken.None);
 
             // Assert
             using (var db = new DataContext())
@@ -71,7 +71,7 @@
                     .SingleOrDefaultAsync();
 
                 actual.Should().NotBeNull();
-                object restored = serializer.Deserialize(actual.MementoJson);
+                object restored = _serializer.Deserialize(actual.MementoJson);
                 restored.Should().BeOfType<FakeUserMemento>();
                 restored.ShouldBeEquivalentTo(memento);
             }
@@ -82,8 +82,8 @@
         {
             // Arrange
             var sourceId = Guid.NewGuid();
-            var oldMemento = fixture.Create<FakeUserMemento>();
-            var newMemento = fixture.Create<FakeUserMemento>();
+            var oldMemento = _fixture.Create<FakeUserMemento>();
+            var newMemento = _fixture.Create<FakeUserMemento>();
 
             long sequence = 0;
             using (var db = new DataContext())
@@ -91,7 +91,7 @@
                 var memento = new Memento
                 {
                     AggregateId = sourceId,
-                    MementoJson = serializer.Serialize(oldMemento)
+                    MementoJson = _serializer.Serialize(oldMemento)
                 };
                 db.Mementoes.Add(memento);
                 await db.SaveChangesAsync();
@@ -99,7 +99,7 @@
             }
 
             // Act
-            await sut.Save<FakeUser>(sourceId, newMemento, CancellationToken.None);
+            await _sut.Save<FakeUser>(sourceId, newMemento, CancellationToken.None);
 
             // Assert
             using (var db = new DataContext())
@@ -111,7 +111,7 @@
 
                 actual.Should().NotBeNull();
                 actual.AggregateId.Should().Be(sourceId);
-                object restored = serializer.Deserialize(actual.MementoJson);
+                object restored = _serializer.Deserialize(actual.MementoJson);
                 restored.Should().BeOfType<FakeUserMemento>();
                 restored.ShouldBeEquivalentTo(newMemento);
             }
@@ -121,11 +121,11 @@
         public async Task Find_returns_memento_correctly()
         {
             var sourceId = Guid.NewGuid();
-            var memento = fixture.Create<FakeUserMemento>();
-            await sut.Save<FakeUser>(sourceId, memento, CancellationToken.None);
+            var memento = _fixture.Create<FakeUserMemento>();
+            await _sut.Save<FakeUser>(sourceId, memento, CancellationToken.None);
 
             IMemento actual = await
-                sut.Find<FakeUser>(sourceId, CancellationToken.None);
+                _sut.Find<FakeUser>(sourceId, CancellationToken.None);
 
             actual.Should().BeOfType<FakeUserMemento>();
             actual.ShouldBeEquivalentTo(memento);
@@ -137,7 +137,7 @@
             var sourceId = Guid.NewGuid();
 
             IMemento actual = await
-                sut.Find<FakeUser>(sourceId, CancellationToken.None);
+                _sut.Find<FakeUser>(sourceId, CancellationToken.None);
 
             actual.Should().BeNull();
         }
@@ -146,10 +146,10 @@
         public async Task Delete_deletes_Memento_entity()
         {
             var sourceId = Guid.NewGuid();
-            var memento = fixture.Create<FakeUserMemento>();
-            await sut.Save<FakeUser>(sourceId, memento, CancellationToken.None);
+            var memento = _fixture.Create<FakeUserMemento>();
+            await _sut.Save<FakeUser>(sourceId, memento, CancellationToken.None);
 
-            await sut.Delete<FakeUser>(sourceId, CancellationToken.None);
+            await _sut.Delete<FakeUser>(sourceId, CancellationToken.None);
 
             using (var db = new DataContext())
             {
@@ -165,7 +165,7 @@
         public void Delete_does_not_fail_even_if_Memento_entity_does_not_exist()
         {
             var sourceId = Guid.NewGuid();
-            Func<Task> action = () => sut.Delete<FakeUser>(sourceId, CancellationToken.None);
+            Func<Task> action = () => _sut.Delete<FakeUser>(sourceId, CancellationToken.None);
             action.ShouldNotThrow();
         }
     }

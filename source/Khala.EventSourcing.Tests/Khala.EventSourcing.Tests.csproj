@@ -184,6 +184,7 @@
     <Compile Include="FakeDomain\Events\FakeUsernameChanged.cs" />
     <Compile Include="FakeDomain\FakeUser.cs" />
     <Compile Include="FakeDomain\FakeUserMemento.cs" />
+    <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -213,7 +214,16 @@
       <Name>Khala.EventSourcing</Name>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <CodeAnalysisDictionary Include="..\Rules\Khala.EventSourcing.Dictionary.xml">
+      <Link>Khala.EventSourcing.Dictionary.xml</Link>
+    </CodeAnalysisDictionary>
+  </ItemGroup>
+  <ItemGroup>
+    <CodeAnalysisDictionary Include="..\Rules\Khala.EventSourcing.Tests.Dictionary.xml">
+      <Link>Khala.EventSourcing.Tests.Dictionary.xml</Link>
+    </CodeAnalysisDictionary>
+  </ItemGroup>
   <Choose>
     <When Condition="'$(VisualStudioVersion)' == '10.0' And '$(IsCodedUITest)' == 'True'">
       <ItemGroup>

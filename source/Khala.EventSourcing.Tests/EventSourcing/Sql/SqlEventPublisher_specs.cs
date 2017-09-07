@@ -19,15 +19,14 @@
     [TestClass]
     public class SqlEventPublisher_specs
     {
-        public class DataContext : EventStoreDbContext
+        private class DataContext : EventStoreDbContext
         {
         }
 
-        private IFixture fixture;
-        private IMessageSerializer serializer;
-        private IMessageBus messageBus;
-        private SqlEventPublisher sut;
-        private EventStoreDbContext mockDbContext;
+        private IFixture _fixture;
+        private IMessageSerializer _serializer;
+        private IMessageBus _messageBus;
+        private SqlEventPublisher _sut;
 
         public TestContext TestContext { get; set; }
 
@@ -41,29 +40,14 @@
         [TestInitialize]
         public void TestInitialize()
         {
-            fixture = new Fixture().Customize(new AutoMoqCustomization());
-            fixture.Inject<Func<EventStoreDbContext>>(CreateDbContext);
+            _fixture = new Fixture().Customize(new AutoMoqCustomization());
+            _fixture.Inject<Func<EventStoreDbContext>>(CreateDbContext);
 
-            serializer = new JsonMessageSerializer();
+            _serializer = new JsonMessageSerializer();
 
-            messageBus = Mock.Of<IMessageBus>();
+            _messageBus = Mock.Of<IMessageBus>();
 
-            sut = new SqlEventPublisher(CreateDbContext, serializer, messageBus);
-
-            mockDbContext = Mock.Of<EventStoreDbContext>(
-                x => x.SaveChangesAsync() == Task.FromResult(default(int)));
-
-            mockDbContext.Aggregates = Mock.Of<DbSet<Aggregate>>();
-            Mock.Get(mockDbContext.Aggregates).SetupData();
-
-            mockDbContext.PersistentEvents = Mock.Of<DbSet<PersistentEvent>>();
-            Mock.Get(mockDbContext.PersistentEvents).SetupData();
-
-            mockDbContext.PendingEvents = Mock.Of<DbSet<PendingEvent>>();
-            Mock.Get(mockDbContext.PendingEvents).SetupData();
-
-            mockDbContext.UniqueIndexedProperties = Mock.Of<DbSet<UniqueIndexedProperty>>();
-            Mock.Get(mockDbContext.UniqueIndexedProperties).SetupData();
+            _sut = new SqlEventPublisher(CreateDbContext, _serializer, _messageBus);
         }
 
         [TestCleanup]
@@ -81,13 +65,13 @@
         [TestMethod]
         public void sut_implements_IEventPublisher()
         {
-            sut.Should().BeAssignableTo<ISqlEventPublisher>();
+            _sut.Should().BeAssignableTo<ISqlEventPublisher>();
         }
 
         [TestMethod]
         public void class_has_guard_clauses()
         {
-            var assertion = new GuardClauseAssertion(fixture);
+            var assertion = new GuardClauseAssertion(_fixture);
             assertion.Verify(typeof(SqlEventPublisher));
         }
 
@@ -95,8 +79,8 @@
         public async Task PublishPendingEvents_sends_events()
         {
             // Arrange
-            var created = fixture.Create<FakeUserCreated>();
-            var usernameChanged = fixture.Create<FakeUsernameChanged>();
+            var created = _fixture.Create<FakeUserCreated>();
+            var usernameChanged = _fixture.Create<FakeUsernameChanged>();
             var sourceId = Guid.NewGuid();
 
             var events = new DomainEvent[] { created, usernameChanged };
@@ -110,7 +94,7 @@
                 {
                     var envelope = new Envelope(e);
                     envelopes.Add(envelope);
-                    db.PendingEvents.Add(PendingEvent.FromEnvelope(envelope, serializer));
+                    db.PendingEvents.Add(PendingEvent.FromEnvelope(envelope, _serializer));
                 }
 
                 await db.SaveChangesAsync();
@@ -118,7 +102,7 @@
 
             List<Envelope> batch = null;
 
-            Mock.Get(messageBus)
+            Mock.Get(_messageBus)
                 .Setup(
                     x =>
                     x.SendBatch(
@@ -128,10 +112,10 @@
                 .Returns(Task.FromResult(true));
 
             // Act
-            await sut.PublishPendingEvents(sourceId, CancellationToken.None);
+            await _sut.PublishPendingEvents(sourceId, CancellationToken.None);
 
             // Assert
-            Mock.Get(messageBus).Verify(
+            Mock.Get(_messageBus).Verify(
                 x =>
                 x.SendBatch(
                     It.IsAny<IEnumerable<Envelope>>(),
@@ -144,8 +128,8 @@
         public async Task PublishEvents_does_not_invoke_SendBatch_if_pending_event_not_found()
         {
             var sourceId = Guid.NewGuid();
-            await sut.PublishPendingEvents(sourceId, CancellationToken.None);
-            Mock.Get(messageBus).Verify(
+            await _sut.PublishPendingEvents(sourceId, CancellationToken.None);
+            Mock.Get(_messageBus).Verify(
                 x =>
                 x.SendBatch(
                     It.IsAny<IEnumerable<Envelope>>(),
@@ -157,8 +141,8 @@
         public async Task PublishPendingEvents_deletes_pending_events()
         {
             // Arrange
-            var created = fixture.Create<FakeUserCreated>();
-            var usernameChanged = fixture.Create<FakeUsernameChanged>();
+            var created = _fixture.Create<FakeUserCreated>();
+            var usernameChanged = _fixture.Create<FakeUsernameChanged>();
             var sourceId = Guid.NewGuid();
 
             var events = new DomainEvent[] { created, usernameChanged };
@@ -169,14 +153,14 @@
                 foreach (DomainEvent e in events)
                 {
                     var envelope = new Envelope(e);
-                    db.PendingEvents.Add(PendingEvent.FromEnvelope(envelope, serializer));
+                    db.PendingEvents.Add(PendingEvent.FromEnvelope(envelope, _serializer));
                 }
 
                 await db.SaveChangesAsync();
             }
 
             // Act
-            await sut.PublishPendingEvents(sourceId, CancellationToken.None);
+            await _sut.PublishPendingEvents(sourceId, CancellationToken.None);
 
             // Assert
             using (var db = new DataContext())
@@ -193,11 +177,11 @@
         public async Task PublishAllPendingEvents_sends_app_pending_events()
         {
             // Arrange
-            IEnumerable<FakeUserCreated> createdEvents = fixture
+            IEnumerable<FakeUserCreated> createdEvents = _fixture
                 .Build<FakeUserCreated>()
                 .With(e => e.Version, 1)
                 .CreateMany();
-            var eventStore = new SqlEventStore(() => new DataContext(), serializer);
+            var eventStore = new SqlEventStore(() => new DataContext(), _serializer);
             foreach (FakeUserCreated createdEvent in createdEvents)
             {
                 await eventStore.SaveEvents<FakeUser>(new[] { createdEvent });
@@ -205,7 +189,7 @@
 
             var sentEvents = new List<Envelope>();
 
-            Mock.Get(messageBus)
+            Mock.Get(_messageBus)
                 .Setup(
                     x =>
                     x.SendBatch(
@@ -215,7 +199,7 @@
                 .Returns(Task.FromResult(true));
 
             // Act
-            await sut.PublishAllPendingEvents(CancellationToken.None);
+            await _sut.PublishAllPendingEvents(CancellationToken.None);
 
             // Assert
             foreach (FakeUserCreated createdEvent in createdEvents)
@@ -235,18 +219,18 @@
         public async Task PublishAllPendingEvents_deletes_all_pending_events()
         {
             // Arrange
-            IEnumerable<FakeUserCreated> createdEvents = fixture
+            IEnumerable<FakeUserCreated> createdEvents = _fixture
                 .Build<FakeUserCreated>()
                 .With(e => e.Version, 1)
                 .CreateMany();
-            var eventStore = new SqlEventStore(() => new DataContext(), serializer);
+            var eventStore = new SqlEventStore(() => new DataContext(), _serializer);
             foreach (FakeUserCreated createdEvent in createdEvents)
             {
                 await eventStore.SaveEvents<FakeUser>(new[] { createdEvent });
             }
 
             // Act
-            await sut.PublishAllPendingEvents(CancellationToken.None);
+            await _sut.PublishAllPendingEvents(CancellationToken.None);
 
             // Assert
             using (var db = new DataContext())
@@ -262,7 +246,7 @@
             }
         }
 
-        public class AwaitingMessageBus : IMessageBus
+        private class AwaitingMessageBus : IMessageBus
         {
             private readonly Task _awaitable;
 
@@ -291,9 +275,9 @@
             var fixture = new Fixture();
             var user = fixture.Create<FakeUser>();
             user.ChangeUsername(fixture.Create(nameof(user.Username)));
-            var eventStore = new SqlEventStore(CreateDbContext, serializer);
+            var eventStore = new SqlEventStore(CreateDbContext, _serializer);
             await eventStore.SaveEvents<FakeUser>(user.PendingEvents);
-            var sut = new SqlEventPublisher(CreateDbContext, serializer, messageBus);
+            var sut = new SqlEventPublisher(CreateDbContext, _serializer, messageBus);
 
             // Act
             Func<Task> action = async () =>

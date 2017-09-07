@@ -14,14 +14,14 @@
     [TestClass]
     public class PendingEventTableEntity_specs
     {
-        private IFixture fixture;
-        private IMessageSerializer serializer;
+        private IFixture _fixture;
+        private IMessageSerializer _serializer;
 
         [TestInitialize]
         public void TestInitialize()
         {
-            fixture = new Fixture();
-            serializer = new JsonMessageSerializer();
+            _fixture = new Fixture();
+            _serializer = new JsonMessageSerializer();
         }
 
         [TestMethod]
@@ -33,19 +33,19 @@
         [TestMethod]
         public void FromEnvelope_has_guard_clauses()
         {
-            fixture.Customize(new AutoMoqCustomization());
-            var assertion = new GuardClauseAssertion(fixture);
+            _fixture.Customize(new AutoMoqCustomization());
+            var assertion = new GuardClauseAssertion(_fixture);
             assertion.Verify(typeof(PendingEventTableEntity).GetMethod("FromEnvelope"));
         }
 
         [TestMethod]
         public void FromEnvelope_sets_PartitionKey_correctly()
         {
-            var domainEvent = fixture.Create<FakeUserCreated>();
+            var domainEvent = _fixture.Create<FakeUserCreated>();
             var envelope = new Envelope(domainEvent);
 
             PendingEventTableEntity actual =
-                FromEnvelope<FakeUser>(envelope, serializer);
+                FromEnvelope<FakeUser>(envelope, _serializer);
 
             actual.PartitionKey.Should().Be(
                 GetPartitionKey(typeof(FakeUser), domainEvent.SourceId));
@@ -54,11 +54,11 @@
         [TestMethod]
         public void FromEnvelope_sets_RowKey_correctly()
         {
-            var domainEvent = fixture.Create<FakeUserCreated>();
+            var domainEvent = _fixture.Create<FakeUserCreated>();
             var envelope = new Envelope(domainEvent);
 
             PendingEventTableEntity actual =
-                FromEnvelope<FakeUser>(envelope, serializer);
+                FromEnvelope<FakeUser>(envelope, _serializer);
 
             actual.RowKey.Should().Be(GetRowKey(domainEvent.Version));
         }
@@ -66,11 +66,11 @@
         [TestMethod]
         public void FromEnvelope_sets_PersistentPartition_correctly()
         {
-            var domainEvent = fixture.Create<FakeUserCreated>();
+            var domainEvent = _fixture.Create<FakeUserCreated>();
             var envelope = new Envelope(domainEvent);
 
             PendingEventTableEntity actual =
-                FromEnvelope<FakeUser>(envelope, serializer);
+                FromEnvelope<FakeUser>(envelope, _serializer);
 
             actual.PersistentPartition.Should().Be(
                 EventTableEntity.GetPartitionKey(
@@ -80,11 +80,11 @@
         [TestMethod]
         public void FromEnvelope_sets_Version_correctly()
         {
-            var domainEvent = fixture.Create<FakeUserCreated>();
+            var domainEvent = _fixture.Create<FakeUserCreated>();
             var envelope = new Envelope(domainEvent);
 
             PendingEventTableEntity actual =
-                FromEnvelope<FakeUser>(envelope, serializer);
+                FromEnvelope<FakeUser>(envelope, _serializer);
 
             actual.Version.Should().Be(domainEvent.Version);
         }
@@ -92,11 +92,11 @@
         [TestMethod]
         public void FromEnvelope_sets_MessageId_correctly()
         {
-            var domainEvent = fixture.Create<FakeUserCreated>();
+            var domainEvent = _fixture.Create<FakeUserCreated>();
             var envelope = new Envelope(domainEvent);
 
             PendingEventTableEntity actual =
-                FromEnvelope<FakeUser>(envelope, serializer);
+                FromEnvelope<FakeUser>(envelope, _serializer);
 
             actual.MessageId.Should().Be(envelope.MessageId);
         }
@@ -104,12 +104,12 @@
         [TestMethod]
         public void FromEnvelope_sets_CorrelationId_correctly()
         {
-            var domainEvent = fixture.Create<FakeUserCreated>();
+            var domainEvent = _fixture.Create<FakeUserCreated>();
             var correlationId = GuidGenerator.Create();
             var envelope = new Envelope(correlationId, domainEvent);
 
             PendingEventTableEntity actual =
-                FromEnvelope<FakeUser>(envelope, serializer);
+                FromEnvelope<FakeUser>(envelope, _serializer);
 
             actual.CorrelationId.Should().Be(correlationId);
         }
@@ -117,13 +117,13 @@
         [TestMethod]
         public void FromEnvelope_sets_EventJson_correctly()
         {
-            var domainEvent = fixture.Create<FakeUserCreated>();
+            var domainEvent = _fixture.Create<FakeUserCreated>();
             var envelope = new Envelope(domainEvent);
 
             PendingEventTableEntity actual =
-                FromEnvelope<FakeUser>(envelope, serializer);
+                FromEnvelope<FakeUser>(envelope, _serializer);
 
-            object message = serializer.Deserialize(actual.EventJson);
+            object message = _serializer.Deserialize(actual.EventJson);
             message.Should().BeOfType<FakeUserCreated>();
             message.ShouldBeEquivalentTo(domainEvent);
         }

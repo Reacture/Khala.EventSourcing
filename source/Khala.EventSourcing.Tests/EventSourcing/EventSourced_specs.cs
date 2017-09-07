@@ -11,7 +11,7 @@
     [TestClass]
     public class EventSourced_specs
     {
-        public abstract class AbstractAggregate : EventSourced
+        private abstract class AbstractAggregate : EventSourced
         {
             protected AbstractAggregate(Guid id)
                 : base(id)
@@ -26,7 +26,7 @@
             }
         }
 
-        public class ConcreteAggregate : AbstractAggregate
+        private class ConcreteAggregate : AbstractAggregate
         {
             public ConcreteAggregate(Guid id)
                 : base(id)
@@ -39,12 +39,12 @@
             }
         }
 
-        public class SomeDomainEvent : DomainEvent
+        private class SomeDomainEvent : DomainEvent
         {
             public Guid Property { get; set; }
         }
 
-        public class EventSourcedProxy : EventSourced
+        private class EventSourcedProxy : EventSourced
         {
             public EventSourcedProxy(Guid id)
                 : base(id)
@@ -70,6 +70,7 @@
                 base.HandlePastEvents(pastEvents);
             }
 
+            [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1061:DoNotHideBaseClassMethods", Justification = "Proxy for testing.")]
             public new void RaiseEvent<TEvent>(TEvent domainEvent)
                 where TEvent : IDomainEvent
             {
@@ -109,7 +110,7 @@
         }
 
         [TestMethod]
-        public void SetEventHandler_has_guard_clause_against_duplidate_event_type()
+        public void SetEventHandler_has_guard_clause_against_duplicate_event_type()
         {
             var sut = new EventSourcedProxy(Guid.NewGuid());
             sut.SetEventHandler<SomeDomainEvent>(e => { });

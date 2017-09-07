@@ -63,6 +63,10 @@
       <Name>Khala.EventSourcing</Name>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <CodeAnalysisDictionary Include="..\Rules\Khala.EventSourcing.Dictionary.xml">
+      <Link>Khala.EventSourcing.Dictionary.xml</Link>
+    </CodeAnalysisDictionary>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

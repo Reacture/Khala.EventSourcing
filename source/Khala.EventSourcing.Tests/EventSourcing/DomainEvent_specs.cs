@@ -14,10 +14,10 @@
     [TestClass]
     public class DomainEvent_specs
     {
-        private IFixture fixture =
+        private IFixture _fixture =
             new Fixture().Customize(new AutoMoqCustomization());
 
-        public class FakeDomainEvent : DomainEvent
+        private class FakeDomainEvent : DomainEvent
         {
         }
 
@@ -51,7 +51,7 @@
         [TestMethod]
         public void PartitionKey_returns_SourceId_as_string()
         {
-            var sut = fixture.Create<FakeDomainEvent>();
+            var sut = _fixture.Create<FakeDomainEvent>();
             string actual = sut.PartitionKey;
             actual.Should().Be(sut.SourceId.ToString());
         }
@@ -59,8 +59,8 @@
         [TestMethod]
         public void Raise_has_guard_clause()
         {
-            var assertion = new GuardClauseAssertion(fixture);
-            fixture.Register<FakeDomainEvent, DomainEvent>(evt => evt);
+            var assertion = new GuardClauseAssertion(_fixture);
+            _fixture.Register<FakeDomainEvent, DomainEvent>(evt => evt);
             assertion.Verify(typeof(DomainEvent).GetMethod("Raise"));
         }
 
@@ -80,7 +80,7 @@
         [TestMethod]
         public void Raise_sets_version_correctly()
         {
-            var version = fixture.Create<int>();
+            var version = _fixture.Create<int>();
             var versionedEntity =
                 Mock.Of<IVersionedEntity>(x => x.Version == version);
             var sut = new FakeDomainEvent();

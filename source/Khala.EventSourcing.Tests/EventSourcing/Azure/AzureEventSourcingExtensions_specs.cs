@@ -15,7 +15,7 @@
     public class AzureEventSourcingExtensions_specs
     {
         [TestMethod]
-        public void SaveEvents_relays_with_null_correlaton()
+        public void SaveEvents_relays_with_null_correlation()
         {
             var task = Task.FromResult(true);
             var events = new IDomainEvent[] { };

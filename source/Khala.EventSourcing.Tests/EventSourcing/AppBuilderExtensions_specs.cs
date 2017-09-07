@@ -13,7 +13,7 @@
     [TestClass]
     public class AppBuilderExtensions_specs
     {
-        public class FooAppBuilder : IAppBuilder
+        private class FooAppBuilder : IAppBuilder
         {
             public IDictionary<string, object> Properties => throw new NotImplementedException();
 
@@ -33,7 +33,7 @@
             }
         }
 
-        public class FooRepository : IEventSourcedRepository<IEventSourced>
+        private class FooRepository : IEventSourcedRepository<IEventSourced>
         {
             public IEventPublisher EventPublisher => throw new NotImplementedException();
 
@@ -48,6 +48,7 @@
             }
         }
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1034:NestedTypesShouldNotBeVisible", Justification = "Should be mockable.")]
         public class FooEventSourced : IEventSourced
         {
             public IEnumerable<IDomainEvent> PendingEvents => throw new NotImplementedException();
@@ -111,8 +112,10 @@
                     x => x.EventPublisher == eventPublisher);
 
             var cancellationToken = new CancellationToken(canceled);
+#pragma warning disable IDE0017 // Simplify object initialization
             var appProperties = new AppProperties(app.Properties);
             appProperties.OnAppDisposing = cancellationToken;
+#pragma warning restore IDE0017 // Simplify object initialization
 
             // Act
             app.EnqueuePendingEvents(repository);
