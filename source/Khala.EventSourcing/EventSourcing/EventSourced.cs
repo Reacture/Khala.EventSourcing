@@ -232,5 +232,18 @@
                 throw new InvalidOperationException(message);
             }
         }
+
+        public IEnumerable<IDomainEvent> FlushPendingEvents()
+        {
+            List<IDomainEvent> domainEvents = _pendingEvents.ToList();
+            try
+            {
+                return domainEvents;
+            }
+            finally
+            {
+                _pendingEvents.Clear();
+            }
+        }
     }
 }

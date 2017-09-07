@@ -2,7 +2,9 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
     using FluentAssertions;
+    using Khala.FakeDomain;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
     using Ploeh.AutoFixture;
     using Ploeh.AutoFixture.AutoMoq;
@@ -217,6 +219,29 @@
             Action action = () => sut.HandlePastEvents(pastEvents);
 
             action.ShouldThrow<InvalidOperationException>();
+        }
+
+        [TestMethod]
+        public void FlushPendingEvents_returns_all_pending_events()
+        {
+            var fixture = new Fixture();
+            var sut = new FakeUser(Guid.NewGuid(), fixture.Create(nameof(FakeUser.Username)));
+            List<IDomainEvent> expected = sut.PendingEvents.ToList();
+
+            IEnumerable<IDomainEvent> actual = sut.FlushPendingEvents();
+
+            actual.Should().Equal(expected);
+        }
+
+        [TestMethod]
+        public void FlushPendingEvents_clears_pending_events()
+        {
+            var fixture = new Fixture();
+            var sut = new FakeUser(Guid.NewGuid(), fixture.Create(nameof(FakeUser.Username)));
+
+            sut.FlushPendingEvents();
+
+            sut.PendingEvents.Should().BeEmpty();
         }
 
         [TestMethod]
