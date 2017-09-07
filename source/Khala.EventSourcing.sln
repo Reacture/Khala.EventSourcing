@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.26430.15
+VisualStudioVersion = 15.0.26730.12
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Khala.EventSourcing", "Khala.EventSourcing\Khala.EventSourcing.csproj", "{6CD2103D-D560-4204-A770-FE6EC790291B}"
 EndProject
@@ -9,6 +9,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Rules", "Rules", "{6C4406FD
 	ProjectSection(SolutionItems) = preProject
 		Rules\Khala.EventSourcing.Dictionary.xml = Rules\Khala.EventSourcing.Dictionary.xml
 		Rules\Khala.EventSourcing.ruleset = Rules\Khala.EventSourcing.ruleset
+		Rules\Khala.EventSourcing.Tests.Dictionary.xml = Rules\Khala.EventSourcing.Tests.Dictionary.xml
 		Rules\Khala.EventSourcing.Tests.ruleset = Rules\Khala.EventSourcing.Tests.ruleset
 	EndProjectSection
 EndProject
@@ -49,5 +50,8 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {5CCEA295-9BE6-4801-B7D4-930A18CD6408}
 	EndGlobalSection
 EndGlobal
