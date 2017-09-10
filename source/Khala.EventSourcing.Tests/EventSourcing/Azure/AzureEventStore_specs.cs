@@ -4,6 +4,7 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Net;
+    using System.Threading;
     using System.Threading.Tasks;
     using FluentAssertions;
     using Khala.FakeDomain;
@@ -80,7 +81,16 @@
         [TestMethod]
         public void SaveEvents_fails_if_events_contains_null()
         {
-            Assert.Inconclusive();
+            var fixture = new Fixture().Customize(new AutoMoqCustomization());
+            var random = new Random();
+            IEnumerable<IDomainEvent> events = Enumerable
+                .Repeat(fixture.Create<IDomainEvent>(), 10)
+                .Concat(new[] { default(IDomainEvent) })
+                .OrderBy(_ => random.Next());
+
+            Func<Task> action = () => _sut.SaveEvents<FakeUser>(events, null, CancellationToken.None);
+
+            action.ShouldThrow<ArgumentException>().Where(x => x.ParamName == "events");
         }
 
         [TestMethod]
