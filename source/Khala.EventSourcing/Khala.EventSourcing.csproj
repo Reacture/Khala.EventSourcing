@@ -43,20 +43,16 @@
     <None Include="project.json" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="EventSourcing\DomainEvent.cs" />
     <Compile Include="EventSourcing\DuplicateCorrelationException.cs" />
     <Compile Include="EventSourcing\EventSourced.cs" />
     <Compile Include="EventSourcing\EventSourcingExtensions.cs" />
-    <Compile Include="EventSourcing\IDomainEvent.cs" />
     <Compile Include="EventSourcing\IEventPublisher.cs" />
     <Compile Include="EventSourcing\IEventSourced.cs" />
     <Compile Include="EventSourcing\IEventSourcedRepository.cs" />
     <Compile Include="EventSourcing\IMemento.cs" />
     <Compile Include="EventSourcing\IMementoOriginator.cs" />
     <Compile Include="EventSourcing\IMementoStore.cs" />
-    <Compile Include="EventSourcing\IVersionedEntity.cs" />
     <Compile Include="EventSourcing\Sql\ISqlEventSourcedRepository.cs" />
-    <Compile Include="EventSourcing\Sql\IUniqueIndexedDomainEvent.cs" />
     <Compile Include="EventSourcing\Sql\SqlEventSourcingAbstractionExtensions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
@@ -64,6 +60,12 @@
     <CodeAnalysisDictionary Include="..\Rules\Khala.EventSourcing.Dictionary.xml">
       <Link>Khala.EventSourcing.Dictionary.xml</Link>
     </CodeAnalysisDictionary>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Khala.EventSourcing.Contracts\Khala.EventSourcing.Contracts.csproj">
+      <Project>{078c4906-79c1-4a07-9913-4bd292a1d50c}</Project>
+      <Name>Khala.EventSourcing.Contracts</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

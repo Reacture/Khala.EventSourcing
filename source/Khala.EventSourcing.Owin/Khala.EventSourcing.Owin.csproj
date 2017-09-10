@@ -58,6 +58,10 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Khala.EventSourcing.Contracts\Khala.EventSourcing.Contracts.csproj">
+      <Project>{078c4906-79c1-4a07-9913-4bd292a1d50c}</Project>
+      <Name>Khala.EventSourcing.Contracts</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Khala.EventSourcing\Khala.EventSourcing.csproj">
       <Project>{6cd2103d-d560-4204-a770-fe6ec790291b}</Project>
       <Name>Khala.EventSourcing</Name>

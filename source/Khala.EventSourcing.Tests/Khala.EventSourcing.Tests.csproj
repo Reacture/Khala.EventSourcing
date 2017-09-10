@@ -70,8 +70,11 @@
       <HintPath>..\packages\FluentAssertions.4.18.0\lib\net45\FluentAssertions.Core.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Khala.Messaging.Abstraction, Version=0.10.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Khala.Messaging.Abstraction.0.10.0\lib\netstandard1.1\Khala.Messaging.Abstraction.dll</HintPath>
+    <Reference Include="Khala.Messaging.Abstraction, Version=0.12.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Khala.Messaging.Abstraction.0.12.0\lib\netstandard1.1\Khala.Messaging.Abstraction.dll</HintPath>
+    </Reference>
+    <Reference Include="Khala.Messaging.Contracts, Version=0.12.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Khala.Messaging.Contracts.0.12.0\lib\netstandard1.1\Khala.Messaging.Contracts.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.Data.Edm, Version=5.6.2.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.Data.Edm.5.6.2\lib\net40\Microsoft.Data.Edm.dll</HintPath>
@@ -200,6 +203,10 @@
     <ProjectReference Include="..\Khala.EventSourcing.Azure\Khala.EventSourcing.Azure.csproj">
       <Project>{1ee3ddf4-c2fb-44e9-ab13-63d18102bb9a}</Project>
       <Name>Khala.EventSourcing.Azure</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Khala.EventSourcing.Contracts\Khala.EventSourcing.Contracts.csproj">
+      <Project>{078c4906-79c1-4a07-9913-4bd292a1d50c}</Project>
+      <Name>Khala.EventSourcing.Contracts</Name>
     </ProjectReference>
     <ProjectReference Include="..\Khala.EventSourcing.Owin\Khala.EventSourcing.Owin.csproj">
       <Project>{25f03890-3ce8-4363-bd27-88155d84cba1}</Project>

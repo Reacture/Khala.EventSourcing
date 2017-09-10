@@ -42,8 +42,11 @@
       <HintPath>..\packages\EntityFramework.6.1.0\lib\net45\EntityFramework.SqlServer.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Khala.Messaging.Abstraction, Version=0.10.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Khala.Messaging.Abstraction.0.10.0\lib\netstandard1.1\Khala.Messaging.Abstraction.dll</HintPath>
+    <Reference Include="Khala.Messaging.Abstraction, Version=0.12.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Khala.Messaging.Abstraction.0.12.0\lib\netstandard1.1\Khala.Messaging.Abstraction.dll</HintPath>
+    </Reference>
+    <Reference Include="Khala.Messaging.Contracts, Version=0.12.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Khala.Messaging.Contracts.0.12.0\lib\netstandard1.1\Khala.Messaging.Contracts.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=9.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>..\packages\Newtonsoft.Json.9.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
@@ -87,7 +90,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
-    <None Include="packages.config" />
+    <None Include="packages.config">
+      <SubType>Designer</SubType>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Analyzer Include="..\packages\StyleCop.Analyzers.1.0.0\analyzers\dotnet\cs\Newtonsoft.Json.dll" />
@@ -95,6 +100,10 @@
     <Analyzer Include="..\packages\StyleCop.Analyzers.1.0.0\analyzers\dotnet\cs\StyleCop.Analyzers.dll" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Khala.EventSourcing.Contracts\Khala.EventSourcing.Contracts.csproj">
+      <Project>{078c4906-79c1-4a07-9913-4bd292a1d50c}</Project>
+      <Name>Khala.EventSourcing.Contracts</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Khala.EventSourcing\Khala.EventSourcing.csproj">
       <Project>{6cd2103d-d560-4204-a770-fe6ec790291b}</Project>
       <Name>Khala.EventSourcing</Name>
