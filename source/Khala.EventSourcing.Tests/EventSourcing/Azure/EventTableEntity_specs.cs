@@ -32,6 +32,13 @@
         }
 
         [TestMethod]
+        public void GetPartitionKey_has_guard_clauses()
+        {
+            var builder = new Fixture();
+            new GuardClauseAssertion(builder).Verify(typeof(EventTableEntity).GetMethod("GetPartitionKey"));
+        }
+
+        [TestMethod]
         public void FromEnvelope_has_guard_clauses()
         {
             _fixture.Customize(new AutoMoqCustomization());

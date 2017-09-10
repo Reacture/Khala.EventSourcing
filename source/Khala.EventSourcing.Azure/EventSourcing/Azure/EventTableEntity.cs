@@ -25,6 +25,11 @@
                 throw new ArgumentNullException(nameof(sourceType));
             }
 
+            if (sourceId == Guid.Empty)
+            {
+                throw new ArgumentException("Value cannot be empty.", nameof(sourceId));
+            }
+
             return $"Event-{sourceType.Name}-{sourceId.ToString("n")}";
         }
 
