@@ -2,7 +2,7 @@
 <package >
   <metadata>
     <id>Khala.EventSourcing.Core</id>
-    <version>0.10.1</version>
+    <version>0.11.0</version>
     <title>Khala.EventSourcing.Core</title>
     <authors>Gyuwon</authors>
     <owners>Gyuwon</owners>
@@ -15,7 +15,8 @@
     <tags>Khala CQRS EventSourcing Reactive</tags>
     <dependencies>
       <group targetFramework="netstandard1.1">
-        <dependency id="Khala.Messaging.Abstraction" version="0.10.0" />
+        <dependency id="Khala.EventSourcing.Contracts" version="0.11.0" />
+        <dependency id="Khala.Messaging.Abstraction" version="0.12.0" />
         <dependency id="NETStandard.Library" version="1.6.0" />
         <dependency id="Newtonsoft.Json" version="9.0.1" />
       </group>
