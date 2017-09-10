@@ -10,10 +10,18 @@
     using Moq;
     using Ploeh.AutoFixture;
     using Ploeh.AutoFixture.AutoMoq;
+    using Ploeh.AutoFixture.Idioms;
 
     [TestClass]
     public class SqlEventSourcingExtensions_specs
     {
+        [TestMethod]
+        public void sut_has_guard_clauses()
+        {
+            var builder = new Fixture().Customize(new AutoMoqCustomization());
+            new GuardClauseAssertion(builder).Verify(typeof(SqlEventSourcingExtensions));
+        }
+
         [TestMethod]
         public void SaveEvents_relays_with_null_correlation()
         {
