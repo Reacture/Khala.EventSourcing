@@ -1,5 +1,6 @@
 ﻿namespace Khala.EventSourcing.Azure
 {
+    using System;
     using FluentAssertions;
     using Khala.FakeDomain;
     using Khala.FakeDomain.Events;
@@ -22,6 +23,13 @@
         {
             _fixture = new Fixture();
             _serializer = new JsonMessageSerializer();
+        }
+
+        [TestMethod]
+        public void GetPartitionKey_has_guard_clauses()
+        {
+            var builder = new Fixture();
+            new GuardClauseAssertion(builder).Verify(typeof(PendingEventTableEntity).GetMethod("GetPartitionKey"));
         }
 
         [TestMethod]
@@ -126,6 +134,14 @@
             object message = _serializer.Deserialize(actual.EventJson);
             message.Should().BeOfType<FakeUserCreated>();
             message.ShouldBeEquivalentTo(domainEvent);
+        }
+
+        [TestMethod]
+        public void FromEnvelope_has_guard_clause_for_invalid_message()
+        {
+            var envelope = new Envelope(new object());
+            Action action = () => FromEnvelope<FakeUser>(envelope, _serializer);
+            action.ShouldThrow<ArgumentException>().Where(x => x.ParamName == "envelope");
         }
     }
 }
