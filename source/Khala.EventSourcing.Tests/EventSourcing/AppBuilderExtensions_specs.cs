@@ -51,7 +51,7 @@
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1034:NestedTypesShouldNotBeVisible", Justification = "Should be mockable.")]
         public class FooEventSourced : IEventSourced
         {
-            public IEnumerable<IDomainEvent> PendingEvents => throw new NotImplementedException();
+            public IEnumerable<IDomainEvent> FlushPendingEvents() => throw new NotImplementedException();
 
             public Guid Id => throw new NotImplementedException();
 

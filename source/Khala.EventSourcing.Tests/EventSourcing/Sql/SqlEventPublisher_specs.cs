@@ -276,7 +276,7 @@
             var user = fixture.Create<FakeUser>();
             user.ChangeUsername(fixture.Create(nameof(user.Username)));
             var eventStore = new SqlEventStore(CreateDbContext, _serializer);
-            await eventStore.SaveEvents<FakeUser>(user.PendingEvents);
+            await eventStore.SaveEvents<FakeUser>(user.FlushPendingEvents());
             var sut = new SqlEventPublisher(CreateDbContext, _serializer, messageBus);
 
             // Act

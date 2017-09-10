@@ -8,11 +8,11 @@
     public interface IEventSourced : IVersionedEntity
     {
         /// <summary>
-        /// Gets the sequence of domain events raised after the aggregate is initialized or restored.
+        /// Returns the sequence of domain events raised after the aggregate is initialized or restored and remove them from the event queue.
         /// </summary>
-        /// <value>
+        /// <returns>
         /// The sequence of domain events raised after the aggregate is initialized or restored.
-        /// </value>
-        IEnumerable<IDomainEvent> PendingEvents { get; }
+        /// </returns>
+        IEnumerable<IDomainEvent> FlushPendingEvents();
     }
 }

@@ -59,6 +59,7 @@
             var user = _fixture.Create<FakeUser>();
             var correlationId = Guid.NewGuid();
             user.ChangeUsername("foo");
+            var pendingEvents = new List<IDomainEvent>(user.PendingEvents);
 
             // Act
             await _sut.Save(user, correlationId, CancellationToken.None);
@@ -67,7 +68,7 @@
             Mock.Get(_eventStore).Verify(
                 x =>
                 x.SaveEvents<FakeUser>(
-                    user.PendingEvents,
+                    pendingEvents,
                     correlationId,
                     CancellationToken.None),
                 Times.Once());
@@ -193,11 +194,11 @@
             user.ChangeUsername("foo");
             Mock.Get(_eventStore)
                 .Setup(x => x.LoadEvents<FakeUser>(user.Id, 0, CancellationToken.None))
-                .ReturnsAsync(user.PendingEvents);
+                .ReturnsAsync(user.FlushPendingEvents());
 
             FakeUser actual = await _sut.Find(user.Id, CancellationToken.None);
 
-            actual.ShouldBeEquivalentTo(user, opts => opts.Excluding(x => x.PendingEvents));
+            actual.ShouldBeEquivalentTo(user);
         }
 
         [TestMethod]
@@ -259,7 +260,7 @@
                 .Setup(
                     x =>
                     x.LoadEvents<FakeUser>(user.Id, 1, CancellationToken.None))
-                .ReturnsAsync(user.PendingEvents.Skip(1))
+                .ReturnsAsync(user.FlushPendingEvents().Skip(1))
                 .Verifiable();
 
             // Act
@@ -267,8 +268,7 @@
 
             // Assert
             Mock.Get(_eventStore).Verify();
-            actual.ShouldBeEquivalentTo(
-                user, opts => opts.Excluding(x => x.PendingEvents));
+            actual.ShouldBeEquivalentTo(user);
         }
     }
 }

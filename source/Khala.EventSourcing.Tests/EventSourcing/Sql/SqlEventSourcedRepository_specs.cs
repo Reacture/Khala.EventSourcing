@@ -65,13 +65,14 @@
             var user = _fixture.Create<FakeUser>();
             var correlationId = Guid.NewGuid();
             user.ChangeUsername(_fixture.Create("username"));
+            var pendingEvents = new List<IDomainEvent>(user.PendingEvents);
 
             await _sut.Save(user, correlationId, CancellationToken.None);
 
             Mock.Get(_eventStore).Verify(
                 x =>
                 x.SaveEvents<FakeUser>(
-                    user.PendingEvents,
+                    pendingEvents,
                     correlationId,
                     CancellationToken.None),
                 Times.Once());
@@ -102,7 +103,7 @@
                 .Setup(
                     x =>
                     x.SaveEvents<FakeUser>(
-                        user.PendingEvents,
+                        It.IsAny<IEnumerable<IDomainEvent>>(),
                         correlationId,
                         CancellationToken.None))
                 .Throws<InvalidOperationException>();
@@ -146,7 +147,7 @@
                 .Setup(
                     x =>
                     x.SaveEvents<FakeUser>(
-                        user.PendingEvents,
+                        It.IsAny<IEnumerable<IDomainEvent>>(),
                         correlationId,
                         CancellationToken.None))
                 .Throws<InvalidOperationException>();
@@ -174,7 +175,7 @@
                 .Setup(
                     x =>
                     x.LoadEvents<FakeUser>(user.Id, 0, CancellationToken.None))
-                .ReturnsAsync(user.PendingEvents)
+                .ReturnsAsync(user.FlushPendingEvents())
                 .Verifiable();
 
             await _sut.Find(user.Id, CancellationToken.None);
@@ -193,7 +194,7 @@
                 .Setup(
                     x =>
                     x.LoadEvents<FakeUser>(user.Id, 0, CancellationToken.None))
-                .ReturnsAsync(user.PendingEvents)
+                .ReturnsAsync(user.FlushPendingEvents())
                 .Verifiable();
 
             // Act
@@ -201,8 +202,7 @@
 
             // Assert
             Mock.Get(_eventStore).Verify();
-            actual.ShouldBeEquivalentTo(
-                user, opts => opts.Excluding(x => x.PendingEvents));
+            actual.ShouldBeEquivalentTo(user);
         }
 
         [TestMethod]
@@ -221,7 +221,7 @@
                 .Setup(
                     x =>
                     x.LoadEvents<FakeUser>(user.Id, 1, CancellationToken.None))
-                .ReturnsAsync(user.PendingEvents.Skip(1))
+                .ReturnsAsync(user.FlushPendingEvents().Skip(1))
                 .Verifiable();
 
             // Act
@@ -229,8 +229,7 @@
 
             // Assert
             Mock.Get(_eventStore).Verify();
-            actual.ShouldBeEquivalentTo(
-                user, opts => opts.Excluding(x => x.PendingEvents));
+            actual.ShouldBeEquivalentTo(user);
         }
 
         [TestMethod]
