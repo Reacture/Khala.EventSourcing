@@ -6,6 +6,8 @@
     using Khala.Messaging;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
     using Ploeh.AutoFixture;
+    using Ploeh.AutoFixture.AutoMoq;
+    using Ploeh.AutoFixture.Idioms;
 
     [TestClass]
     public class PendingEvent_specs
@@ -18,6 +20,13 @@
         {
             _fixture = new Fixture();
             _serializer = new JsonMessageSerializer();
+        }
+
+        [TestMethod]
+        public void FromEnvelope_has_guard_clauses()
+        {
+            var builder = new Fixture().Customize(new AutoMoqCustomization());
+            new GuardClauseAssertion(builder).Verify(typeof(PendingEvent).GetMethod("FromEnvelope"));
         }
 
         [TestMethod]
