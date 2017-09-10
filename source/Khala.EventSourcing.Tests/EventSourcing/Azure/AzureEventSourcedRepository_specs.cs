@@ -53,6 +53,19 @@
         }
 
         [TestMethod]
+        public void constructor_sets_EventPublisher_correctly()
+        {
+            var eventPublisher = Mock.Of<IAzureEventPublisher>();
+
+            var sut = new AzureEventSourcedRepository<FakeUser>(
+                Mock.Of<IAzureEventStore>(),
+                eventPublisher,
+                FakeUser.Factory);
+
+            sut.EventPublisher.Should().BeSameAs(eventPublisher);
+        }
+
+        [TestMethod]
         public async Task Save_saves_events()
         {
             // Arrange
