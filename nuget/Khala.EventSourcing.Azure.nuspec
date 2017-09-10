@@ -2,7 +2,7 @@
 <package >
   <metadata>
     <id>Khala.EventSourcing.Azure</id>
-    <version>0.11.0</version>
+    <version>0.12.0</version>
     <title>Khala.EventSourcing.Azure</title>
     <authors>Gyuwon</authors>
     <owners>Gyuwon</owners>
@@ -15,8 +15,8 @@
     <tags>CQRS EventSourcing Azure TableStorage Cloud Reactive</tags>
     <dependencies>
       <group targetFramework="net45">
-        <dependency id="Khala.EventSourcing.Core" version="0.11.0" />
-        <dependency id="Khala.Messaging.Abstraction" version="0.12.0" />
+        <dependency id="Khala.EventSourcing.Core" version="0.12.0" />
+        <dependency id="Khala.Messaging.Abstraction" version="0.13.0" />
         <dependency id="Newtonsoft.Json" version="9.0.1" />
         <dependency id="WindowsAzure.Storage" version="4.3.0" />
       </group>
