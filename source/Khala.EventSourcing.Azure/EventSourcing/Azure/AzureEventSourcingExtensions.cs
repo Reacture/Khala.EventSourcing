@@ -2,7 +2,6 @@
 {
     using System;
     using System.Collections.Generic;
-    using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
 
@@ -20,6 +19,11 @@
                 throw new ArgumentNullException(nameof(eventStore));
             }
 
+            if (events == null)
+            {
+                throw new ArgumentNullException(nameof(events));
+            }
+
             return eventStore.SaveEvents<T>(events, null, cancellationToken);
         }
 
@@ -35,6 +39,11 @@
                 throw new ArgumentNullException(nameof(eventStore));
             }
 
+            if (events == null)
+            {
+                throw new ArgumentNullException(nameof(events));
+            }
+
             return eventStore.SaveEvents<T>(events, correlationId, CancellationToken.None);
         }
 
@@ -47,6 +56,11 @@
             if (eventStore == null)
             {
                 throw new ArgumentNullException(nameof(eventStore));
+            }
+
+            if (events == null)
+            {
+                throw new ArgumentNullException(nameof(events));
             }
 
             return eventStore.SaveEvents<T>(events, null, CancellationToken.None);
@@ -64,6 +78,11 @@
                 throw new ArgumentNullException(nameof(eventStore));
             }
 
+            if (sourceId == Guid.Empty)
+            {
+                throw new ArgumentException("Value cannot be empty.", nameof(sourceId));
+            }
+
             return eventStore.LoadEvents<T>(sourceId, default(int), cancellationToken);
         }
 
@@ -79,6 +98,11 @@
                 throw new ArgumentNullException(nameof(eventStore));
             }
 
+            if (sourceId == Guid.Empty)
+            {
+                throw new ArgumentException("Value cannot be empty.", nameof(sourceId));
+            }
+
             return eventStore.LoadEvents<T>(sourceId, afterVersion, CancellationToken.None);
         }
 
@@ -91,6 +115,11 @@
             if (eventStore == null)
             {
                 throw new ArgumentNullException(nameof(eventStore));
+            }
+
+            if (sourceId == Guid.Empty)
+            {
+                throw new ArgumentException("Value cannot be empty.", nameof(sourceId));
             }
 
             return eventStore.LoadEvents<T>(sourceId, default(int), CancellationToken.None);
