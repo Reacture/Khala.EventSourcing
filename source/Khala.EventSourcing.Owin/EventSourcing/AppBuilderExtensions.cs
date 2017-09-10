@@ -1,10 +1,10 @@
-﻿using System;
-using System.Threading;
-using Microsoft.Owin.BuilderProperties;
-using Owin;
-
-namespace Khala.EventSourcing
+﻿namespace Khala.EventSourcing
 {
+    using System;
+    using System.Threading;
+    using Microsoft.Owin.BuilderProperties;
+    using Owin;
+
     public static class AppBuilderExtensions
     {
         public static void EnqueuePendingEvents<T>(
@@ -13,10 +13,14 @@ namespace Khala.EventSourcing
             where T : class, IEventSourced
         {
             if (app == null)
+            {
                 throw new ArgumentNullException(nameof(app));
+            }
 
             if (repository == null)
+            {
                 throw new ArgumentNullException(nameof(repository));
+            }
 
             var appProperties = new AppProperties(app.Properties);
             CancellationToken cancellationToken = appProperties.OnAppDisposing;
