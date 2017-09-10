@@ -4,21 +4,6 @@
 
     public class DuplicateCorrelationException : Exception
     {
-        public DuplicateCorrelationException()
-        {
-        }
-
-        public DuplicateCorrelationException(string message)
-            : base(message)
-        {
-        }
-
-        public DuplicateCorrelationException(
-            string message, Exception innerException)
-            : base(message, innerException)
-        {
-        }
-
         public DuplicateCorrelationException(
             Type sourceType,
             Guid sourceId,
@@ -26,7 +11,7 @@
             Exception innerException)
             : base(
                   GetMessage(sourceType, sourceId, correlationId),
-                  innerException)
+                  Guard(innerException))
         {
             SourceType = sourceType;
             SourceId = sourceId;
@@ -35,9 +20,14 @@
 
         public Type SourceType { get; }
 
-        public Guid? SourceId { get; }
+        public Guid SourceId { get; }
 
-        public Guid? CorrelationId { get; }
+        public Guid CorrelationId { get; }
+
+        private static Exception Guard(Exception innerException)
+        {
+            return innerException ?? throw new ArgumentNullException(nameof(innerException));
+        }
 
         private static string GetMessage(
             Type sourceType,

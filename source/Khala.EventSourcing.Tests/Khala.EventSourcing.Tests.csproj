@@ -173,6 +173,7 @@
     <Compile Include="EventSourcing\Azure\EventTableEntity_specs.cs" />
     <Compile Include="EventSourcing\Azure\PendingEventTableEntity_specs.cs" />
     <Compile Include="EventSourcing\DomainEvent_specs.cs" />
+    <Compile Include="EventSourcing\DuplicateCorrelationException_specs.cs" />
     <Compile Include="EventSourcing\EventSourced_specs.cs" />
     <Compile Include="EventSourcing\EventSourcingExtensions_specs.cs" />
     <Compile Include="EventSourcing\Sql\PendingEvent_specs.cs" />
