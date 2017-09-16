@@ -76,7 +76,7 @@
         }
 
         [TestMethod]
-        public async Task PublishPendingEvents_sends_events()
+        public async Task FlushPendingEvents_sends_events()
         {
             // Arrange
             var created = _fixture.Create<FakeUserCreated>();
@@ -112,7 +112,7 @@
                 .Returns(Task.FromResult(true));
 
             // Act
-            await _sut.PublishPendingEvents(sourceId, CancellationToken.None);
+            await _sut.FlushPendingEvents(sourceId, CancellationToken.None);
 
             // Assert
             Mock.Get(_messageBus).Verify(
@@ -125,10 +125,10 @@
         }
 
         [TestMethod]
-        public async Task PublishEvents_does_not_invoke_SendBatch_if_pending_event_not_found()
+        public async Task FlushPendingEvents_does_not_invoke_SendBatch_if_pending_event_not_found()
         {
             var sourceId = Guid.NewGuid();
-            await _sut.PublishPendingEvents(sourceId, CancellationToken.None);
+            await _sut.FlushPendingEvents(sourceId, CancellationToken.None);
             Mock.Get(_messageBus).Verify(
                 x =>
                 x.SendBatch(
@@ -138,7 +138,7 @@
         }
 
         [TestMethod]
-        public async Task PublishPendingEvents_deletes_pending_events()
+        public async Task FlushPendingEvents_deletes_pending_events()
         {
             // Arrange
             var created = _fixture.Create<FakeUserCreated>();
@@ -160,7 +160,7 @@
             }
 
             // Act
-            await _sut.PublishPendingEvents(sourceId, CancellationToken.None);
+            await _sut.FlushPendingEvents(sourceId, CancellationToken.None);
 
             // Assert
             using (var db = new DataContext())
@@ -174,7 +174,7 @@
         }
 
         [TestMethod]
-        public async Task PublishAllPendingEvents_sends_app_pending_events()
+        public async Task FlushAllPendingEvents_sends_app_pending_events()
         {
             // Arrange
             IEnumerable<FakeUserCreated> createdEvents = _fixture
@@ -199,7 +199,7 @@
                 .Returns(Task.FromResult(true));
 
             // Act
-            await _sut.PublishAllPendingEvents(CancellationToken.None);
+            await _sut.FlushAllPendingEvents(CancellationToken.None);
 
             // Assert
             foreach (FakeUserCreated createdEvent in createdEvents)
@@ -216,7 +216,7 @@
         }
 
         [TestMethod]
-        public async Task PublishAllPendingEvents_deletes_all_pending_events()
+        public async Task FlushAllPendingEvents_deletes_all_pending_events()
         {
             // Arrange
             IEnumerable<FakeUserCreated> createdEvents = _fixture
@@ -230,7 +230,7 @@
             }
 
             // Act
-            await _sut.PublishAllPendingEvents(CancellationToken.None);
+            await _sut.FlushAllPendingEvents(CancellationToken.None);
 
             // Assert
             using (var db = new DataContext())
@@ -267,7 +267,7 @@
         }
 
         [TestMethod]
-        public async Task PublishPendingEvents_consumes_exception_caused_by_that_some_pending_event_already_deleted_since_loaded()
+        public async Task FlushPendingEvents_absorbs_exception_caused_by_that_some_pending_event_already_deleted_since_loaded()
         {
             // Arrange
             var completionSource = new TaskCompletionSource<bool>();
@@ -282,7 +282,7 @@
             // Act
             Func<Task> action = async () =>
             {
-                Task publishTask = sut.PublishPendingEvents(user.Id, CancellationToken.None);
+                Task publishTask = sut.FlushPendingEvents(user.Id, CancellationToken.None);
                 using (EventStoreDbContext db = CreateDbContext())
                 {
                     List<PendingEvent> pendingEvents = await db

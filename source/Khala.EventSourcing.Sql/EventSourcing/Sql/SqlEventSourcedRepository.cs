@@ -81,7 +81,7 @@
             => _eventStore.SaveEvents<T>(source.FlushPendingEvents(), correlationId, cancellationToken);
 
         private Task FlushEvents(T source, CancellationToken cancellationToken)
-            => _eventPublisher.PublishPendingEvents(source.Id, cancellationToken);
+            => _eventPublisher.FlushPendingEvents(source.Id, cancellationToken);
 
         private Task SaveMementoIfPossible(T source, CancellationToken cancellationToken)
         {

@@ -27,7 +27,7 @@
             _messageBus = messageBus ?? throw new ArgumentNullException(nameof(messageBus));
         }
 
-        public Task PublishPendingEvents(
+        public Task FlushPendingEvents(
             Guid sourceId,
             CancellationToken cancellationToken)
         {
@@ -103,10 +103,10 @@
         }
 
         public async void EnqueueAll(CancellationToken cancellationToken)
-            => await PublishAllPendingEvents(cancellationToken).ConfigureAwait(false);
+            => await FlushAllPendingEvents(cancellationToken).ConfigureAwait(false);
 
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public async Task PublishAllPendingEvents(CancellationToken cancellationToken)
+        public async Task FlushAllPendingEvents(CancellationToken cancellationToken)
         {
             using (EventStoreDbContext context = _dbContextFactory.Invoke())
             {
@@ -121,7 +121,7 @@
                     .ToListAsync(cancellationToken)
                     .ConfigureAwait(false);
 
-                Task[] tasks = source.Select(sourceId => PublishPendingEvents(sourceId, cancellationToken)).ToArray();
+                Task[] tasks = source.Select(sourceId => FlushPendingEvents(sourceId, cancellationToken)).ToArray();
                 await Task.WhenAll(tasks).ConfigureAwait(false);
 
                 if (source.Any())

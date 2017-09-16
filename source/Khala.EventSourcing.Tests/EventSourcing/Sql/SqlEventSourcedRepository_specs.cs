@@ -89,7 +89,7 @@
 
             Mock.Get(_eventPublisher).Verify(
                 x =>
-                x.PublishPendingEvents(user.Id, CancellationToken.None),
+                x.FlushPendingEvents(user.Id, CancellationToken.None),
                 Times.Once());
         }
 
@@ -113,7 +113,7 @@
             action.ShouldThrow<InvalidOperationException>();
             Mock.Get(_eventPublisher).Verify(
                 x =>
-                x.PublishPendingEvents(user.Id, It.IsAny<CancellationToken>()),
+                x.FlushPendingEvents(user.Id, It.IsAny<CancellationToken>()),
                 Times.Never());
         }
 
