@@ -42,7 +42,7 @@
                 throw new NotImplementedException();
             }
 
-            public Task Save(IEventSourced source, Guid? correlationId, CancellationToken cancellationToken)
+            public Task SaveAndPublish(IEventSourced source, Guid? correlationId, CancellationToken cancellationToken)
             {
                 throw new NotImplementedException();
             }

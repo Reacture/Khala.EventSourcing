@@ -60,14 +60,14 @@
         }
 
         [TestMethod]
-        public async Task Save_saves_events()
+        public async Task SaveAndPublish_saves_events()
         {
             var user = _fixture.Create<FakeUser>();
             var correlationId = Guid.NewGuid();
             user.ChangeUsername(_fixture.Create("username"));
             var pendingEvents = new List<IDomainEvent>(user.PendingEvents);
 
-            await _sut.Save(user, correlationId, CancellationToken.None);
+            await _sut.SaveAndPublish(user, correlationId, CancellationToken.None);
 
             Mock.Get(_eventStore).Verify(
                 x =>
@@ -79,13 +79,13 @@
         }
 
         [TestMethod]
-        public async Task Save_publishes_events()
+        public async Task SaveAndPublish_publishes_events()
         {
             var user = _fixture.Create<FakeUser>();
             var correlationId = Guid.NewGuid();
             user.ChangeUsername(_fixture.Create("username"));
 
-            await _sut.Save(user, correlationId, CancellationToken.None);
+            await _sut.SaveAndPublish(user, correlationId, CancellationToken.None);
 
             Mock.Get(_eventPublisher).Verify(
                 x =>
@@ -94,7 +94,7 @@
         }
 
         [TestMethod]
-        public void Save_does_not_publish_events_if_fails_to_save_events()
+        public void SaveAndPublish_does_not_publish_events_if_fails_to_save_events()
         {
             var user = _fixture.Create<FakeUser>();
             var correlationId = Guid.NewGuid();
@@ -108,7 +108,7 @@
                         CancellationToken.None))
                 .Throws<InvalidOperationException>();
 
-            Func<Task> action = () => _sut.Save(user, correlationId, CancellationToken.None);
+            Func<Task> action = () => _sut.SaveAndPublish(user, correlationId, CancellationToken.None);
 
             action.ShouldThrow<InvalidOperationException>();
             Mock.Get(_eventPublisher).Verify(
@@ -118,12 +118,12 @@
         }
 
         [TestMethod]
-        public async Task Save_saves_memento()
+        public async Task SaveAndPublish_saves_memento()
         {
             var user = _fixture.Create<FakeUser>();
             var correlationId = Guid.NewGuid();
 
-            await _sut.Save(user, correlationId, CancellationToken.None);
+            await _sut.SaveAndPublish(user, correlationId, CancellationToken.None);
 
             Mock.Get(_mementoStore).Verify(
                 x =>
@@ -138,7 +138,7 @@
         }
 
         [TestMethod]
-        public void Save_does_not_saves_memento_if_fails_to_save_events()
+        public void SaveAndPublish_does_not_saves_memento_if_fails_to_save_events()
         {
             // Arrange
             var user = _fixture.Create<FakeUser>();
@@ -153,7 +153,7 @@
                 .Throws<InvalidOperationException>();
 
             // Act
-            Func<Task> action = () => _sut.Save(user, correlationId, CancellationToken.None);
+            Func<Task> action = () => _sut.SaveAndPublish(user, correlationId, CancellationToken.None);
 
             // Assert
             action.ShouldThrow<InvalidOperationException>();

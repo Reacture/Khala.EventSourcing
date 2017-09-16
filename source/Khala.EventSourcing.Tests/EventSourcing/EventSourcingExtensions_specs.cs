@@ -23,51 +23,51 @@
         }
 
         [TestMethod]
-        public void Save_relays_with_null_correlation()
+        public void SaveAndPublish_relays_with_null_correlation()
         {
             var fixture = new Fixture();
             var repository = Mock.Of<IEventSourcedRepository<FakeUser>>();
             var source = fixture.Create<FakeUser>();
 
-            repository.Save(source, CancellationToken.None);
+            repository.SaveAndPublish(source, CancellationToken.None);
 
             Mock.Get(repository).Verify(
                 x =>
-                x.Save(source, null, CancellationToken.None),
+                x.SaveAndPublish(source, null, CancellationToken.None),
                 Times.Once());
         }
 
         [TestMethod]
-        public void Save_relays_with_none_cancellation_token()
+        public void SaveAndPublish_relays_with_none_cancellation_token()
         {
             var task = Task.FromResult(true);
             var source = new FakeUser(Guid.NewGuid(), "foo");
             var correlationId = Guid.NewGuid();
             var repository = Mock.Of<IEventSourcedRepository<FakeUser>>(
-                x => x.Save(source, correlationId, CancellationToken.None) == task);
+                x => x.SaveAndPublish(source, correlationId, CancellationToken.None) == task);
 
-            Task result = repository.Save(source, correlationId);
+            Task result = repository.SaveAndPublish(source, correlationId);
 
             Mock.Get(repository).Verify(
                 x =>
-                x.Save(source, correlationId, CancellationToken.None),
+                x.SaveAndPublish(source, correlationId, CancellationToken.None),
                 Times.Once());
             result.Should().BeSameAs(task);
         }
 
         [TestMethod]
-        public void Save_relays_with_null_correlation_and_none_cancellation_token()
+        public void SaveAndPublish_relays_with_null_correlation_and_none_cancellation_token()
         {
             var task = Task.FromResult(true);
             var source = new FakeUser(Guid.NewGuid(), "foo");
             var repository = Mock.Of<IEventSourcedRepository<FakeUser>>(
-                x => x.Save(source, null, CancellationToken.None) == task);
+                x => x.SaveAndPublish(source, null, CancellationToken.None) == task);
 
-            Task result = repository.Save(source);
+            Task result = repository.SaveAndPublish(source);
 
             Mock.Get(repository).Verify(
                 x =>
-                x.Save(source, null, CancellationToken.None),
+                x.SaveAndPublish(source, null, CancellationToken.None),
                 Times.Once());
             result.Should().BeSameAs(task);
         }

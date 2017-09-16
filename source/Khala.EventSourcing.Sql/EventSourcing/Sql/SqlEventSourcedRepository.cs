@@ -57,7 +57,7 @@
 
         public IEventPublisher EventPublisher => _eventPublisher;
 
-        public Task Save(
+        public Task SaveAndPublish(
             T source,
             Guid? correlationId,
             CancellationToken cancellationToken)
@@ -67,23 +67,32 @@
                 throw new ArgumentNullException(nameof(source));
             }
 
-            return SaveSource(source, correlationId, cancellationToken);
+            async Task Run()
+            {
+                await SaveEvents(source, correlationId, cancellationToken).ConfigureAwait(false);
+                await FlushEvents(source, cancellationToken).ConfigureAwait(false);
+                await SaveMementoIfPossible(source, cancellationToken).ConfigureAwait(false);
+            }
+
+            return Run();
         }
 
-        private async Task SaveSource(
-            T source, Guid? correlationId, CancellationToken cancellationToken)
-        {
-            await _eventStore.SaveEvents<T>(source.FlushPendingEvents(), correlationId, cancellationToken).ConfigureAwait(false);
-            await _eventPublisher.PublishPendingEvents(source.Id, cancellationToken).ConfigureAwait(false);
+        private Task SaveEvents(T source, Guid? correlationId, CancellationToken cancellationToken)
+            => _eventStore.SaveEvents<T>(source.FlushPendingEvents(), correlationId, cancellationToken);
 
-            if (_mementoStore != null)
+        private Task FlushEvents(T source, CancellationToken cancellationToken)
+            => _eventPublisher.PublishPendingEvents(source.Id, cancellationToken);
+
+        private Task SaveMementoIfPossible(T source, CancellationToken cancellationToken)
+        {
+            if (_mementoStore != null &&
+                source is IMementoOriginator mementoOriginator)
             {
-                if (source is IMementoOriginator mementoOriginator)
-                {
-                    IMemento memento = mementoOriginator.SaveToMemento();
-                    await _mementoStore.Save<T>(source.Id, memento, cancellationToken).ConfigureAwait(false);
-                }
+                IMemento memento = mementoOriginator.SaveToMemento();
+                return _mementoStore.Save<T>(source.Id, memento, cancellationToken);
             }
+
+            return Task.FromResult(true);
         }
 
         public Task<T> Find(Guid sourceId, CancellationToken cancellationToken)

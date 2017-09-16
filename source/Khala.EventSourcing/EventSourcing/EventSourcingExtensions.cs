@@ -6,7 +6,7 @@
 
     public static class EventSourcingExtensions
     {
-        public static Task Save<T>(
+        public static Task SaveAndPublish<T>(
             this IEventSourcedRepository<T> repository,
             T source,
             CancellationToken cancellationToken)
@@ -22,10 +22,10 @@
                 throw new ArgumentNullException(nameof(source));
             }
 
-            return repository.Save(source, null, cancellationToken);
+            return repository.SaveAndPublish(source, null, cancellationToken);
         }
 
-        public static Task Save<T>(
+        public static Task SaveAndPublish<T>(
             this IEventSourcedRepository<T> repository,
             T source,
             Guid? correlationId)
@@ -41,10 +41,10 @@
                 throw new ArgumentNullException(nameof(source));
             }
 
-            return repository.Save(source, correlationId, CancellationToken.None);
+            return repository.SaveAndPublish(source, correlationId, CancellationToken.None);
         }
 
-        public static Task Save<T>(
+        public static Task SaveAndPublish<T>(
             this IEventSourcedRepository<T> repository,
             T source)
             where T : class, IEventSourced
@@ -59,7 +59,7 @@
                 throw new ArgumentNullException(nameof(source));
             }
 
-            return repository.Save(source, null, CancellationToken.None);
+            return repository.SaveAndPublish(source, null, CancellationToken.None);
         }
 
         public static Task<T> Find<T>(

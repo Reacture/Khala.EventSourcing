@@ -26,7 +26,7 @@
         /// <param name="correlationId">The identifier of the correlation.</param>
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
         /// <returns>A task representing the asynchronous operation.</returns>
-        Task Save(
+        Task SaveAndPublish(
             T source,
             Guid? correlationId,
             CancellationToken cancellationToken);
