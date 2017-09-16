@@ -37,47 +37,43 @@
                     $"{nameof(sourceId)} cannot be empty.", nameof(sourceId));
             }
 
-            return PublishEvents(sourceId, cancellationToken);
+            async Task Run()
+            {
+                using (EventStoreDbContext context = _dbContextFactory.Invoke())
+                {
+                    List<PendingEvent> pendingEvents = await LoadEvents(context, sourceId, cancellationToken).ConfigureAwait(false);
+                    if (pendingEvents.Any() == false)
+                    {
+                        return;
+                    }
+
+                    await SendEvents(pendingEvents, cancellationToken).ConfigureAwait(false);
+                    await RemoveEvents(context, pendingEvents, cancellationToken).ConfigureAwait(false);
+                }
+            }
+
+            return Run();
         }
 
-        private async Task PublishEvents(
+        private static Task<List<PendingEvent>> LoadEvents(
+            EventStoreDbContext context,
             Guid sourceId,
             CancellationToken cancellationToken)
         {
-            using (EventStoreDbContext context = _dbContextFactory.Invoke())
-            {
-                List<PendingEvent> pendingEvents = await context
-                    .PendingEvents
-                    .Where(e => e.AggregateId == sourceId)
-                    .OrderBy(e => e.Version)
-                    .ToListAsync(cancellationToken)
-                    .ConfigureAwait(false);
+            IQueryable<PendingEvent> query = from e in context.PendingEvents
+                                             where e.AggregateId == sourceId
+                                             orderby e.Version
+                                             select e;
 
-                List<Envelope> envelopes = pendingEvents
-                    .Select(e => RestoreEnvelope(e))
-                    .ToList();
+            return query.ToListAsync(cancellationToken);
+        }
 
-                if (envelopes.Any() == false)
-                {
-                    return;
-                }
+        private Task SendEvents(List<PendingEvent> pendingEvents, CancellationToken cancellationToken)
+            => _messageBus.SendBatch(RestoreEnvelopes(pendingEvents), cancellationToken);
 
-                await _messageBus.SendBatch(envelopes, cancellationToken).ConfigureAwait(false);
-
-                foreach (PendingEvent pendingEvent in pendingEvents)
-                {
-                    try
-                    {
-                        context.PendingEvents.Remove(pendingEvent);
-                        await context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
-                    }
-                    catch (DbUpdateConcurrencyException exception)
-                    when (exception.InnerException is OptimisticConcurrencyException)
-                    {
-                        context.Entry(pendingEvent).State = EntityState.Detached;
-                    }
-                }
-            }
+        private List<Envelope> RestoreEnvelopes(List<PendingEvent> pendingEvents)
+        {
+            return pendingEvents.Select(e => RestoreEnvelope(e)).ToList();
         }
 
         private Envelope RestoreEnvelope(PendingEvent pendingEvent) =>
@@ -85,6 +81,26 @@
                 pendingEvent.MessageId,
                 pendingEvent.CorrelationId,
                 _serializer.Deserialize(pendingEvent.EventJson));
+
+        private static async Task RemoveEvents(
+            EventStoreDbContext context,
+            List<PendingEvent> pendingEvents,
+            CancellationToken cancellationToken)
+        {
+            foreach (PendingEvent pendingEvent in pendingEvents)
+            {
+                try
+                {
+                    context.PendingEvents.Remove(pendingEvent);
+                    await context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+                }
+                catch (DbUpdateConcurrencyException exception)
+                when (exception.InnerException is OptimisticConcurrencyException)
+                {
+                    context.Entry(pendingEvent).State = EntityState.Detached;
+                }
+            }
+        }
 
         public async void EnqueueAll(CancellationToken cancellationToken)
             => await PublishAllPendingEvents(cancellationToken).ConfigureAwait(false);
@@ -105,7 +121,7 @@
                     .ToListAsync(cancellationToken)
                     .ConfigureAwait(false);
 
-                Task[] tasks = source.Select(sourceId => PublishEvents(sourceId, cancellationToken)).ToArray();
+                Task[] tasks = source.Select(sourceId => PublishPendingEvents(sourceId, cancellationToken)).ToArray();
                 await Task.WhenAll(tasks).ConfigureAwait(false);
 
                 if (source.Any())
