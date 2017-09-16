@@ -30,7 +30,7 @@
             _messageBus = messageBus ?? throw new ArgumentNullException(nameof(messageBus));
         }
 
-        public Task PublishPendingEvents<T>(
+        public Task FlushPendingEvents<T>(
             Guid sourceId,
             CancellationToken cancellationToken)
             where T : class, IEventSourced
@@ -42,10 +42,10 @@
             }
 
             string pendingPartition = PendingEventTableEntity.GetPartitionKey(typeof(T), sourceId);
-            return Publish(pendingPartition, cancellationToken);
+            return Flush(pendingPartition, cancellationToken);
         }
 
-        private async Task Publish(
+        private async Task Flush(
             string pendingPartition,
             CancellationToken cancellationToken)
         {
@@ -138,10 +138,10 @@
         }
 
         public async void EnqueueAll(CancellationToken cancellationToken)
-            => await PublishAllEvents(cancellationToken).ConfigureAwait(false);
+            => await FlushAllPendingEvents(cancellationToken).ConfigureAwait(false);
 
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public async Task PublishAllEvents(CancellationToken cancellationToken)
+        public async Task FlushAllPendingEvents(CancellationToken cancellationToken)
         {
             var query = new TableQuery<PendingEventTableEntity>();
             var filter = PendingEventTableEntity.ScanFilter;
@@ -155,7 +155,7 @@
 
                 foreach (string partition in segment.Select(e => e.PartitionKey).Distinct())
                 {
-                    await Publish(partition, cancellationToken).ConfigureAwait(false);
+                    await Flush(partition, cancellationToken).ConfigureAwait(false);
                 }
 
                 continuation = segment.ContinuationToken;

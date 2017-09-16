@@ -98,7 +98,7 @@
 
             Mock.Get(_eventPublisher).Verify(
                 x =>
-                x.PublishPendingEvents<FakeUser>(
+                x.FlushPendingEvents<FakeUser>(
                     user.Id,
                     CancellationToken.None),
                 Times.Once());
@@ -127,7 +127,7 @@
             action.ShouldThrow<InvalidOperationException>();
             Mock.Get(_eventPublisher).Verify(
                 x =>
-                x.PublishPendingEvents<FakeUser>(
+                x.FlushPendingEvents<FakeUser>(
                     user.Id,
                     CancellationToken.None),
                 Times.Never());
@@ -194,7 +194,7 @@
 
             Mock.Get(_eventPublisher).Verify(
                 x =>
-                x.PublishPendingEvents<FakeUser>(
+                x.FlushPendingEvents<FakeUser>(
                     user.Id,
                     CancellationToken.None),
                 Times.Once());
@@ -223,7 +223,7 @@
             Mock.Get(_eventPublisher)
                 .Setup(
                     x =>
-                    x.PublishPendingEvents<FakeUser>(
+                    x.FlushPendingEvents<FakeUser>(
                         user.Id,
                         CancellationToken.None))
                 .Throws<InvalidOperationException>();

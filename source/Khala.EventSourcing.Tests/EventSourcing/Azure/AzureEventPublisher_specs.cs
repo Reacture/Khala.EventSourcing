@@ -80,7 +80,7 @@
         }
 
         [TestMethod]
-        public async Task PublishPendingEvents_sends_pending_events()
+        public async Task FlushPendingEvents_sends_pending_events()
         {
             // Arrange
             var userId = Guid.NewGuid();
@@ -116,7 +116,7 @@
                 .Returns(Task.FromResult(true));
 
             // Act
-            await _sut.PublishPendingEvents<FakeUser>(userId, CancellationToken.None);
+            await _sut.FlushPendingEvents<FakeUser>(userId, CancellationToken.None);
 
             // Assert
             Mock.Get(_messageBus).Verify(
@@ -129,7 +129,7 @@
         }
 
         [TestMethod]
-        public async Task PublishPendingEvents_sends_only_persisted_pending_events()
+        public async Task FlushPendingEvents_sends_only_persisted_pending_events()
         {
             // Arrange
             var userId = Guid.NewGuid();
@@ -166,7 +166,7 @@
                 .Returns(Task.FromResult(true));
 
             // Act
-            await _sut.PublishPendingEvents<FakeUser>(userId, CancellationToken.None);
+            await _sut.FlushPendingEvents<FakeUser>(userId, CancellationToken.None);
 
             // Assert
             Mock.Get(_messageBus).Verify(
@@ -179,7 +179,7 @@
         }
 
         [TestMethod]
-        public async Task PublishPendingEvents_deletes_all_pending_events()
+        public async Task FlushPendingEvents_deletes_all_pending_events()
         {
             // Arrange
             var userId = Guid.NewGuid();
@@ -205,7 +205,7 @@
             await s_eventTable.ExecuteBatchAsync(batchOperation);
 
             // Act
-            await _sut.PublishPendingEvents<FakeUser>(userId, CancellationToken.None);
+            await _sut.FlushPendingEvents<FakeUser>(userId, CancellationToken.None);
 
             // Assert
             string partitionKey = PendingEventTableEntity.GetPartitionKey(typeof(FakeUser), userId);
@@ -215,7 +215,7 @@
         }
 
         [TestMethod]
-        public async Task PublishPendingEvents_does_not_delete_pending_events_if_fails_to_send()
+        public async Task FlushPendingEvents_does_not_delete_pending_events_if_fails_to_send()
         {
             // Arrange
             var userId = Guid.NewGuid();
@@ -251,7 +251,7 @@
             // Act
             try
             {
-                await _sut.PublishPendingEvents<FakeUser>(userId, CancellationToken.None);
+                await _sut.FlushPendingEvents<FakeUser>(userId, CancellationToken.None);
             }
             catch (InvalidOperationException)
             {
@@ -265,13 +265,13 @@
         }
 
         [TestMethod]
-        public void PublishPendingEvents_does_not_invoke_SendBatch_if_pending_event_not_found()
+        public void FlushPendingEvents_does_not_invoke_SendBatch_if_pending_event_not_found()
         {
             // Arrange
             var userId = Guid.NewGuid();
 
             // Act
-            Func<Task> action = () => _sut.PublishPendingEvents<FakeUser>(userId, CancellationToken.None);
+            Func<Task> action = () => _sut.FlushPendingEvents<FakeUser>(userId, CancellationToken.None);
 
             // Assert
             action.ShouldNotThrow();
@@ -284,7 +284,7 @@
         }
 
         [TestMethod]
-        public async Task PublishPendingEvents_does_not_fails_even_if_all_events_persisted()
+        public async Task FlushPendingEvents_does_not_fails_even_if_all_events_persisted()
         {
             // Arrange
             var userId = Guid.NewGuid();
@@ -309,14 +309,14 @@
             await s_eventTable.ExecuteBatchAsync(batchOperation);
 
             // Act
-            Func<Task> action = () => _sut.PublishPendingEvents<FakeUser>(userId, CancellationToken.None);
+            Func<Task> action = () => _sut.FlushPendingEvents<FakeUser>(userId, CancellationToken.None);
 
             // Assert
             action.ShouldNotThrow();
         }
 
         [TestMethod]
-        public async Task PublishAllEvents_sends_pending_events()
+        public async Task FlushAllPendingEvents_sends_pending_events()
         {
             // Arrange
             var domainEvents = new List<DomainEvent>();
@@ -364,7 +364,7 @@
                 .Returns(Task.FromResult(true));
 
             // Act
-            await _sut.PublishAllEvents(CancellationToken.None);
+            await _sut.FlushAllPendingEvents(CancellationToken.None);
 
             // Assert
             messages.Should().OnlyContain(e => e is IDomainEvent);
