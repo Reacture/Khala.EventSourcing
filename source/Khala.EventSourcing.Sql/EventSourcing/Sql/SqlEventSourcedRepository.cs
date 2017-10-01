@@ -67,14 +67,15 @@
                 throw new ArgumentNullException(nameof(source));
             }
 
-            async Task Run()
-            {
-                await SaveEvents(source, correlationId, cancellationToken).ConfigureAwait(false);
-                await FlushEvents(source, cancellationToken).ConfigureAwait(false);
-                await SaveMementoIfPossible(source, cancellationToken).ConfigureAwait(false);
-            }
+            return RunSaveAndPublish(source, correlationId, cancellationToken);
+        }
 
-            return Run();
+        private async Task RunSaveAndPublish(
+            T source, Guid? correlationId, CancellationToken cancellationToken)
+        {
+            await SaveEvents(source, correlationId, cancellationToken).ConfigureAwait(false);
+            await FlushEvents(source, cancellationToken).ConfigureAwait(false);
+            await SaveMementoIfPossible(source, cancellationToken).ConfigureAwait(false);
         }
 
         private Task SaveEvents(T source, Guid? correlationId, CancellationToken cancellationToken)
@@ -103,30 +104,42 @@
                     $"{nameof(sourceId)} cannot be empty.", nameof(sourceId));
             }
 
-            return FindSource(sourceId, cancellationToken);
+            return RunFind(sourceId, cancellationToken);
+        }
+
+        private async Task<T> RunFind(Guid sourceId, CancellationToken cancellationToken)
+        {
+            if (_mementoStore == null || _mementoEntityFactory == null)
+            {
+                return await FindSource(sourceId, cancellationToken).ConfigureAwait(false);
+            }
+            else
+            {
+                IMemento memento = await FindMemento(sourceId, cancellationToken).ConfigureAwait(false);
+                return memento == null
+                    ? await FindSource(sourceId, cancellationToken).ConfigureAwait(false)
+                    : await RehydrateWithMemento(sourceId, memento, cancellationToken).ConfigureAwait(false);
+            }
+        }
+
+        private Task<IMemento> FindMemento(Guid sourceId, CancellationToken cancellationToken)
+        {
+            return _mementoStore.Find<T>(sourceId, cancellationToken);
         }
 
         private async Task<T> FindSource(
             Guid sourceId, CancellationToken cancellationToken)
         {
-            IMemento memento = null;
-            if (_mementoStore != null && _mementoEntityFactory != null)
-            {
-                memento = await _mementoStore
-                    .Find<T>(sourceId, cancellationToken)
-                    .ConfigureAwait(false);
-            }
+            IEnumerable<IDomainEvent> domainEvents = await
+                _eventStore.LoadEvents<T>(sourceId, cancellationToken).ConfigureAwait(false);
+            return domainEvents.Any() ? _entityFactory.Invoke(sourceId, domainEvents) : null;
+        }
 
-            IEnumerable<IDomainEvent> domainEvents = await _eventStore
-                .LoadEvents<T>(sourceId, memento?.Version ?? 0, cancellationToken)
-                .ConfigureAwait(false);
-
-            return
-                memento == null
-                ? domainEvents.Any()
-                    ? _entityFactory.Invoke(sourceId, domainEvents)
-                    : default(T)
-                : _mementoEntityFactory.Invoke(sourceId, memento, domainEvents);
+        private async Task<T> RehydrateWithMemento(Guid sourceId, IMemento memento, CancellationToken cancellationToken)
+        {
+            IEnumerable<IDomainEvent> domainEvents = await
+                _eventStore.LoadEvents<T>(sourceId, memento.Version, cancellationToken).ConfigureAwait(false);
+            return _mementoEntityFactory.Invoke(sourceId, memento, domainEvents);
         }
 
         public Task<Guid?> FindIdByUniqueIndexedProperty(

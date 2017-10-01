@@ -197,8 +197,13 @@
                 .ReturnsAsync(user.FlushPendingEvents())
                 .Verifiable();
 
+            var sut = new SqlEventSourcedRepository<FakeUser>(
+                _eventStore,
+                _eventPublisher,
+                FakeUser.Factory);
+            
             // Act
-            FakeUser actual = await _sut.Find(user.Id, CancellationToken.None);
+            FakeUser actual = await sut.Find(user.Id, CancellationToken.None);
 
             // Assert
             Mock.Get(_eventStore).Verify();
