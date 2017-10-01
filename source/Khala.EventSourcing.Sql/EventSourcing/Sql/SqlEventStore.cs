@@ -132,13 +132,23 @@
         {
             foreach (IDomainEvent domainEvent in events)
             {
-                var envelope =
-                    correlationId == null
-                    ? new Envelope(domainEvent)
-                    : new Envelope(correlationId.Value, domainEvent);
-                context.PersistentEvents.Add(PersistentEvent.FromEnvelope(envelope, _serializer));
-                context.PendingEvents.Add(PendingEvent.FromEnvelope(envelope, _serializer));
+                InsertEvent(context, domainEvent, correlationId);
             }
+        }
+
+        private void InsertEvent(
+            EventStoreDbContext context, IDomainEvent domainEvent, Guid? correlationId)
+        {
+            Envelope envelope = Envelop(domainEvent, correlationId);
+            context.PersistentEvents.Add(PersistentEvent.FromEnvelope(envelope, _serializer));
+            context.PendingEvents.Add(PendingEvent.FromEnvelope(envelope, _serializer));
+        }
+
+        private static Envelope Envelop(IDomainEvent domainEvent, Guid? correlationId)
+        {
+            return correlationId == null
+                ? new Envelope(domainEvent)
+                : new Envelope(correlationId.Value, domainEvent);
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1822:MarkMembersAsStatic", Justification = "This method is extracted.")]
@@ -264,17 +274,18 @@
                     $"{sourceId} cannot be empty", nameof(sourceId));
             }
 
-            return Load(sourceId, afterVersion, cancellationToken);
+            return RunLoadEvents<T>(sourceId, afterVersion, cancellationToken);
         }
 
-        private async Task<IEnumerable<IDomainEvent>> Load(
+        private async Task<IEnumerable<IDomainEvent>> RunLoadEvents<T>(
             Guid sourceId,
             int afterVersion,
             CancellationToken cancellationToken)
+            where T : class, IEventSourced
         {
             using (EventStoreDbContext context = _dbContextFactory.Invoke())
             {
-                List<PersistentEvent> events = await context
+                List<PersistentEvent> persistentEvents = await context
                     .PersistentEvents
                     .Where(e => e.AggregateId == sourceId)
                     .Where(e => e.Version > afterVersion)
@@ -282,7 +293,7 @@
                     .ToListAsync(cancellationToken)
                     .ConfigureAwait(false);
 
-                List<IDomainEvent> domainEvents = events
+                List<IDomainEvent> domainEvents = persistentEvents
                     .Select(e => e.EventJson)
                     .Select(_serializer.Deserialize)
                     .Cast<IDomainEvent>()
