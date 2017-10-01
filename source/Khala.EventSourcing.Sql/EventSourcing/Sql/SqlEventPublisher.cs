@@ -37,22 +37,22 @@
                     $"{nameof(sourceId)} cannot be empty.", nameof(sourceId));
             }
 
-            async Task Run()
-            {
-                using (EventStoreDbContext context = _dbContextFactory.Invoke())
-                {
-                    List<PendingEvent> pendingEvents = await LoadEvents(context, sourceId, cancellationToken).ConfigureAwait(false);
-                    if (pendingEvents.Any() == false)
-                    {
-                        return;
-                    }
+            return RunFlushPendingEvents(sourceId, cancellationToken);
+        }
 
+        private async Task RunFlushPendingEvents(
+            Guid sourceId,
+            CancellationToken cancellationToken)
+        {
+            using (EventStoreDbContext context = _dbContextFactory.Invoke())
+            {
+                List<PendingEvent> pendingEvents = await LoadEvents(context, sourceId, cancellationToken).ConfigureAwait(false);
+                if (pendingEvents.Any())
+                {
                     await SendEvents(pendingEvents, cancellationToken).ConfigureAwait(false);
                     await RemoveEvents(context, pendingEvents, cancellationToken).ConfigureAwait(false);
                 }
             }
-
-            return Run();
         }
 
         private static Task<List<PendingEvent>> LoadEvents(
