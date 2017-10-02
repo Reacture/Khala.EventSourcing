@@ -57,6 +57,8 @@
 
         public IEventPublisher EventPublisher => _eventPublisher;
 
+        private bool MementoSupported => _mementoStore != null && _mementoEntityFactory != null;
+
         public Task SaveAndPublish(
             T source,
             Guid? correlationId,
@@ -109,22 +111,28 @@
 
         private async Task<T> RunFind(Guid sourceId, CancellationToken cancellationToken)
         {
-            if (_mementoStore == null || _mementoEntityFactory == null)
-            {
-                return await FindSource(sourceId, cancellationToken).ConfigureAwait(false);
-            }
-            else
+            if (MementoSupported)
             {
                 IMemento memento = await FindMemento(sourceId, cancellationToken).ConfigureAwait(false);
-                return memento == null
-                    ? await FindSource(sourceId, cancellationToken).ConfigureAwait(false)
-                    : await RehydrateWithMemento(sourceId, memento, cancellationToken).ConfigureAwait(false);
+                if (memento != null)
+                {
+                    return await RehydrateWithMemento(sourceId, memento, cancellationToken).ConfigureAwait(false);
+                }
             }
+
+            return await FindSource(sourceId, cancellationToken).ConfigureAwait(false);
         }
 
         private Task<IMemento> FindMemento(Guid sourceId, CancellationToken cancellationToken)
         {
             return _mementoStore.Find<T>(sourceId, cancellationToken);
+        }
+
+        private async Task<T> RehydrateWithMemento(Guid sourceId, IMemento memento, CancellationToken cancellationToken)
+        {
+            IEnumerable<IDomainEvent> domainEvents = await
+                _eventStore.LoadEvents<T>(sourceId, memento.Version, cancellationToken).ConfigureAwait(false);
+            return _mementoEntityFactory.Invoke(sourceId, memento, domainEvents);
         }
 
         private async Task<T> FindSource(
@@ -133,13 +141,6 @@
             IEnumerable<IDomainEvent> domainEvents = await
                 _eventStore.LoadEvents<T>(sourceId, cancellationToken).ConfigureAwait(false);
             return domainEvents.Any() ? _entityFactory.Invoke(sourceId, domainEvents) : null;
-        }
-
-        private async Task<T> RehydrateWithMemento(Guid sourceId, IMemento memento, CancellationToken cancellationToken)
-        {
-            IEnumerable<IDomainEvent> domainEvents = await
-                _eventStore.LoadEvents<T>(sourceId, memento.Version, cancellationToken).ConfigureAwait(false);
-            return _mementoEntityFactory.Invoke(sourceId, memento, domainEvents);
         }
 
         public Task<Guid?> FindIdByUniqueIndexedProperty(
