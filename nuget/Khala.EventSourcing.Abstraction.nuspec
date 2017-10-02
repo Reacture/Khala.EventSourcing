@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
-<package >
+<package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
   <metadata>
-    <id>Khala.EventSourcing.Core</id>
-    <version>0.13.1</version>
-    <title>Khala.EventSourcing.Core</title>
+    <id>Khala.EventSourcing.Abstraction</id>
+    <version>0.14.0</version>
+    <title>Khala.EventSourcing.Abstraction</title>
     <authors>Gyuwon</authors>
     <owners>Gyuwon</owners>
     <licenseUrl>https://github.com/Reacture/Khala.EventSourcing/blob/master/LICENSE</licenseUrl>
@@ -14,15 +14,18 @@
     <copyright>Copyright Gyuwon 2017</copyright>
     <tags>Khala CQRS EventSourcing Reactive</tags>
     <dependencies>
+      <group targetFramework="net45">
+        <dependency id="Khala.EventSourcing.Contracts" version="0.14.0" exclude="build,analyzers" />
+        <dependency id="Khala.Messaging.Abstraction" version="0.15.0" exclude="build,analyzers" />
+      </group>
       <group targetFramework="netstandard1.1">
-        <dependency id="Khala.EventSourcing.Contracts" version="0.13.0" />
-        <dependency id="Khala.Messaging.Abstraction" version="0.13.1" />
-        <dependency id="NETStandard.Library" version="1.6.0" />
-        <dependency id="Newtonsoft.Json" version="9.0.1" />
+        <dependency id="Khala.EventSourcing.Contracts" version="0.14.0" exclude="build,analyzers" />
+        <dependency id="Khala.Messaging.Abstraction" version="0.15.0" exclude="build,analyzers" />
+        <dependency id="NETStandard.Library" version="1.6.0" exclude="build,analyzers" />
       </group>
     </dependencies>
   </metadata>
   <files>
-    <file src="..\source\Khala.EventSourcing\bin\Release\Khala.EventSourcing.Core.dll" target="lib\netstandard1.1\Khala.EventSourcing.Core.dll" />
+    <file src="..\source\Khala.EventSourcing.Abstraction\bin\Release\netstandard1.1\Khala.EventSourcing.Abstraction.dll" target="lib\netstandard1.1\Khala.EventSourcing.Abstraction.dll" />
   </files>
 </package>

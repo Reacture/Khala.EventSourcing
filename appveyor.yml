@@ -1,4 +1,4 @@
-version: 0.10.{build}
+version: 0.14.{build}
 image: Visual Studio 2017
 configuration: Release
 before_build:
@@ -10,7 +10,7 @@ after_build:
 - cmd: >-
     nuget pack nuget\Khala.EventSourcing.Contracts.nuspec -Symbols
 
-    nuget pack nuget\Khala.EventSourcing.Core.nuspec -Symbols
+    nuget pack nuget\Khala.EventSourcing.Abstraction.nuspec -Symbols
 
     nuget pack nuget\Khala.EventSourcing.Azure.nuspec -Symbols
 
