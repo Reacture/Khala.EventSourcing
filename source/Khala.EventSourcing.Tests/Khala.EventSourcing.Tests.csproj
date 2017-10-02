@@ -199,6 +199,10 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Khala.EventSourcing.Abstraction\Khala.EventSourcing.Abstraction.csproj">
+      <Project>{7fdb44d0-fcbe-4990-b836-9c6d34f350a0}</Project>
+      <Name>Khala.EventSourcing.Abstraction</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Khala.EventSourcing.Azure\Khala.EventSourcing.Azure.csproj">
       <Project>{1ee3ddf4-c2fb-44e9-ab13-63d18102bb9a}</Project>
       <Name>Khala.EventSourcing.Azure</Name>
@@ -214,10 +218,6 @@
     <ProjectReference Include="..\Khala.EventSourcing.Sql\Khala.EventSourcing.Sql.csproj">
       <Project>{dacbbd4b-4064-4f04-a056-2479ed98114d}</Project>
       <Name>Khala.EventSourcing.Sql</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Khala.EventSourcing\Khala.EventSourcing.csproj">
-      <Project>{6cd2103d-d560-4204-a770-fe6ec790291b}</Project>
-      <Name>Khala.EventSourcing</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

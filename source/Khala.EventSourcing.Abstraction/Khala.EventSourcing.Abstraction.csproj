@@ -3,7 +3,6 @@
   <PropertyGroup>
     <TargetFramework>netstandard1.1</TargetFramework>
     <RootNamespace>Khala</RootNamespace>
-    <Authors>Gyuwon</Authors>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
@@ -17,9 +16,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Khala.Messaging.Contracts" Version="0.15.0" />
-    <PackageReference Include="Newtonsoft.Json" Version="9.0.1" />
+    <PackageReference Include="Khala.Messaging.Abstraction" Version="0.15.0" />
     <PackageReference Include="StyleCop.Analyzers" Version="1.0.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Khala.EventSourcing.Contracts\Khala.EventSourcing.Contracts.csproj" />
   </ItemGroup>
 
 </Project>
