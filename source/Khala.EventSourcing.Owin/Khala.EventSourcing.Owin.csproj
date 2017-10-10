@@ -9,7 +9,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Khala</RootNamespace>
     <AssemblyName>Khala.EventSourcing.Owin</AssemblyName>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
   </PropertyGroup>
@@ -55,9 +55,6 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="packages.config" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\Khala.EventSourcing.Abstraction\Khala.EventSourcing.Abstraction.csproj">
       <Project>{7fdb44d0-fcbe-4990-b836-9c6d34f350a0}</Project>
       <Name>Khala.EventSourcing.Abstraction</Name>
@@ -71,6 +68,9 @@
     <CodeAnalysisDictionary Include="..\Rules\Khala.EventSourcing.Dictionary.xml">
       <Link>Khala.EventSourcing.Dictionary.xml</Link>
     </CodeAnalysisDictionary>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
     <Analyzer Include="..\packages\StyleCop.Analyzers.1.0.2\analyzers\dotnet\cs\StyleCop.Analyzers.CodeFixes.dll" />
