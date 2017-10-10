@@ -69,7 +69,7 @@
         }
 
         private Task SendEvents(List<PendingEvent> pendingEvents, CancellationToken cancellationToken)
-            => _messageBus.SendBatch(RestoreEnvelopes(pendingEvents), cancellationToken);
+            => _messageBus.Send(RestoreEnvelopes(pendingEvents), cancellationToken);
 
         private List<Envelope> RestoreEnvelopes(List<PendingEvent> pendingEvents)
         {
