@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard1.1</TargetFramework>
+    <TargetFramework>netstandard1.3</TargetFramework>
     <RootNamespace>Khala</RootNamespace>
     <Version>0.14.0</Version>
     <Authors>Gyuwon</Authors>
@@ -18,7 +18,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Khala.Messaging.Abstraction" Version="0.15.0" />
     <PackageReference Include="StyleCop.Analyzers" Version="1.0.2" />
   </ItemGroup>
 
