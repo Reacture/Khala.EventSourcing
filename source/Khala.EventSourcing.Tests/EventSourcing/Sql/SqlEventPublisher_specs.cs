@@ -282,7 +282,8 @@
             // Act
             Func<Task> action = async () =>
             {
-                Task publishTask = sut.FlushPendingEvents(user.Id, CancellationToken.None);
+                Task flushTask = sut.FlushPendingEvents(user.Id, CancellationToken.None);
+
                 using (EventStoreDbContext db = CreateDbContext())
                 {
                     List<PendingEvent> pendingEvents = await db
@@ -296,7 +297,7 @@
                 }
 
                 completionSource.SetResult(true);
-                await publishTask;
+                await flushTask;
             };
 
             // Assert

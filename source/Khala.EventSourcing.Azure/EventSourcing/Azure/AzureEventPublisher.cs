@@ -4,7 +4,6 @@
     using System.Collections.Generic;
     using System.ComponentModel;
     using System.Linq;
-    using System.Net;
     using System.Threading;
     using System.Threading.Tasks;
     using Messaging;
@@ -132,11 +131,26 @@
                     // TODO: CancellationToken을 적용합니다.
                     await _eventTable.ExecuteAsync(operation).ConfigureAwait(false);
                 }
-                catch (StorageException exception)
-                when (((exception.InnerException as WebException)?.Response as HttpWebResponse)?.StatusCode == HttpStatusCode.NotFound)
+                catch (StorageException exception) when (ReasonIsNotFound(exception))
                 {
                 }
             }
+        }
+
+        private static bool ReasonIsNotFound(StorageException exception)
+        {
+            if (exception.InnerException.GetType().FullName == "System.Net.WebException")
+            {
+                dynamic innerException = exception.InnerException;
+                if (innerException.Response.GetType().FullName == "System.Net.HttpWebResponse")
+                {
+                    dynamic response = innerException.Response;
+                    object statusCode = response.StatusCode;
+                    return (int)statusCode == 404;
+                }
+            }
+
+            return false;
         }
 
         public async void EnqueueAll(CancellationToken cancellationToken)

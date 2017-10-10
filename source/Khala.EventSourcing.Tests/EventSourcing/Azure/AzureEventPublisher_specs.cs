@@ -316,6 +316,60 @@
         }
 
         [TestMethod]
+        public async Task FlushPendingEvents_absorbs_exception_caused_by_that_some_pending_event_already_deleted_since_loaded()
+        {
+            // Arrange
+            var userId = Guid.NewGuid();
+
+            var userCreated = _fixture.Create<FakeUserCreated>();
+            var usernameChanged = _fixture.Create<FakeUsernameChanged>();
+            var domainEvents = new DomainEvent[] { userCreated, usernameChanged };
+            RaiseEvents(userId, domainEvents);
+
+            var envelopes = new List<Envelope>(domainEvents.Select(e => new Envelope(e)));
+
+            var batchOperation = new TableBatchOperation();
+            var pendingEventEntities = new List<PendingEventTableEntity>(
+                from e in envelopes
+                select PendingEventTableEntity.FromEnvelope<FakeUser>(e, _serializer));
+            pendingEventEntities.ForEach(batchOperation.Insert);
+            await s_eventTable.ExecuteBatchAsync(batchOperation);
+
+            batchOperation.Clear();
+            envelopes
+                .Select(e => EventTableEntity.FromEnvelope<FakeUser>(e, _serializer))
+                .ForEach(batchOperation.Insert);
+            await s_eventTable.ExecuteBatchAsync(batchOperation);
+
+            var completionSource = new TaskCompletionSource<bool>();
+            IMessageBus messageBus = new AwaitingMessageBus(completionSource.Task);
+            var sut = new AzureEventPublisher(s_eventTable, _serializer, messageBus);
+
+            // Act
+            Func<Task> action = async () =>
+            {
+                Task flushTask = sut.FlushPendingEvents<FakeUser>(userId, CancellationToken.None);
+
+                batchOperation.Clear();
+                pendingEventEntities
+                    .OrderBy(e => e.GetHashCode())
+                    .Take(1)
+                    .ForEach(batchOperation.Delete);
+                await s_eventTable.ExecuteBatchAsync(batchOperation);
+
+                completionSource.SetResult(true);
+                await flushTask;
+            };
+
+            // Assert
+            action.ShouldNotThrow();
+            string partitionKey = PendingEventTableEntity.GetPartitionKey(typeof(FakeUser), userId);
+            var query = new TableQuery<PendingEventTableEntity>().Where($"PartitionKey eq '{partitionKey}'");
+            List<PendingEventTableEntity> actual = s_eventTable.ExecuteQuery(query).ToList();
+            actual.Should().BeEmpty();
+        }
+
+        [TestMethod]
         public async Task FlushAllPendingEvents_sends_pending_events()
         {
             // Arrange
@@ -384,6 +438,26 @@
                 events[i].SourceId = sourceId;
                 events[i].Version = versionOffset + i + 1;
                 events[i].RaisedAt = DateTimeOffset.Now;
+            }
+        }
+
+        private class AwaitingMessageBus : IMessageBus
+        {
+            private readonly Task _awaitable;
+
+            public AwaitingMessageBus(Task awaitable)
+            {
+                _awaitable = awaitable;
+            }
+
+            public Task Send(Envelope envelope, CancellationToken cancellationToken)
+            {
+                return _awaitable;
+            }
+
+            public Task Send(IEnumerable<Envelope> envelopes, CancellationToken cancellationToken)
+            {
+                return _awaitable;
             }
         }
     }
