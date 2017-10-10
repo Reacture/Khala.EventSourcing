@@ -109,7 +109,7 @@
             Mock.Get(_messageBus)
                 .Setup(
                     x =>
-                    x.SendBatch(
+                    x.Send(
                         It.IsAny<IEnumerable<Envelope>>(),
                         It.IsAny<CancellationToken>()))
                 .Callback<IEnumerable<Envelope>, CancellationToken>((b, t) => batch = b.ToList())
@@ -121,7 +121,7 @@
             // Assert
             Mock.Get(_messageBus).Verify(
                 x =>
-                x.SendBatch(
+                x.Send(
                     It.IsAny<IEnumerable<Envelope>>(),
                     CancellationToken.None),
                 Times.Once());
@@ -159,7 +159,7 @@
             Mock.Get(_messageBus)
                 .Setup(
                     x =>
-                    x.SendBatch(
+                    x.Send(
                         It.IsAny<IEnumerable<Envelope>>(),
                         It.IsAny<CancellationToken>()))
                 .Callback<IEnumerable<Envelope>, CancellationToken>((b, t) => batch = b.ToList())
@@ -171,7 +171,7 @@
             // Assert
             Mock.Get(_messageBus).Verify(
                 x =>
-                x.SendBatch(
+                x.Send(
                     It.IsAny<IEnumerable<Envelope>>(),
                     CancellationToken.None),
                 Times.Once());
@@ -243,7 +243,7 @@
             Mock.Get(_messageBus)
                 .Setup(
                     x =>
-                    x.SendBatch(
+                    x.Send(
                         It.IsAny<IEnumerable<Envelope>>(),
                         It.IsAny<CancellationToken>()))
                 .Throws(new InvalidOperationException());
@@ -277,7 +277,7 @@
             action.ShouldNotThrow();
             Mock.Get(_messageBus).Verify(
                 x =>
-                x.SendBatch(
+                x.Send(
                     It.IsAny<IEnumerable<Envelope>>(),
                     It.IsAny<CancellationToken>()),
                 Times.Never());
@@ -352,7 +352,7 @@
             Mock.Get(_messageBus)
                 .Setup(
                     x =>
-                    x.SendBatch(
+                    x.Send(
                         It.IsAny<IEnumerable<Envelope>>(),
                         It.IsAny<CancellationToken>()))
                 .Callback<IEnumerable<Envelope>, CancellationToken>(

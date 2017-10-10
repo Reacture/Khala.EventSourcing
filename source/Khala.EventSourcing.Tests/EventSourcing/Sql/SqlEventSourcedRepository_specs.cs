@@ -201,7 +201,7 @@
                 _eventStore,
                 _eventPublisher,
                 FakeUser.Factory);
-            
+
             // Act
             FakeUser actual = await sut.Find(user.Id, CancellationToken.None);
 

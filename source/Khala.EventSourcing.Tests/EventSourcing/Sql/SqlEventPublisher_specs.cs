@@ -105,7 +105,7 @@
             Mock.Get(_messageBus)
                 .Setup(
                     x =>
-                    x.SendBatch(
+                    x.Send(
                         It.IsAny<IEnumerable<Envelope>>(),
                         It.IsAny<CancellationToken>()))
                 .Callback<IEnumerable<Envelope>, CancellationToken>((b, t) => batch = b.ToList())
@@ -117,7 +117,7 @@
             // Assert
             Mock.Get(_messageBus).Verify(
                 x =>
-                x.SendBatch(
+                x.Send(
                     It.IsAny<IEnumerable<Envelope>>(),
                     CancellationToken.None),
                 Times.Once());
@@ -131,7 +131,7 @@
             await _sut.FlushPendingEvents(sourceId, CancellationToken.None);
             Mock.Get(_messageBus).Verify(
                 x =>
-                x.SendBatch(
+                x.Send(
                     It.IsAny<IEnumerable<Envelope>>(),
                     CancellationToken.None),
                 Times.Never());
@@ -192,7 +192,7 @@
             Mock.Get(_messageBus)
                 .Setup(
                     x =>
-                    x.SendBatch(
+                    x.Send(
                         It.IsAny<IEnumerable<Envelope>>(),
                         It.IsAny<CancellationToken>()))
                 .Callback<IEnumerable<Envelope>, CancellationToken>((batch, t) => sentEvents.AddRange(batch))
@@ -260,7 +260,7 @@
                 return _awaitable;
             }
 
-            public Task SendBatch(IEnumerable<Envelope> envelopes, CancellationToken cancellationToken)
+            public Task Send(IEnumerable<Envelope> envelopes, CancellationToken cancellationToken)
             {
                 return _awaitable;
             }
