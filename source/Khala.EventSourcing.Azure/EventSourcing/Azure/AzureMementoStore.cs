@@ -72,7 +72,9 @@
             string blobName = GetMementoBlobName<T>(sourceId);
             CloudBlockBlob blob = _container.GetBlockBlobReference(blobName);
             blob.Properties.ContentType = "application/json";
-            await blob.UploadTextAsync(_serializer.Serialize(memento), cancellationToken).ConfigureAwait(false);
+
+            // TODO: CancellationToken을 적용합니다.
+            await blob.UploadTextAsync(_serializer.Serialize(memento)).ConfigureAwait(false);
         }
 
         public Task<IMemento> Find<T>(
@@ -96,12 +98,15 @@
         {
             string blobName = GetMementoBlobName<T>(sourceId);
             CloudBlockBlob blob = _container.GetBlockBlobReference(blobName);
-            if (await blob.ExistsAsync(cancellationToken).ConfigureAwait(false) == false)
+
+            // TODO: CancellationToken을 적용합니다.
+            if (await blob.ExistsAsync().ConfigureAwait(false) == false)
             {
                 return null;
             }
 
-            using (Stream stream = await blob.OpenReadAsync(cancellationToken).ConfigureAwait(false))
+            // TODO: CancellationToken을 적용합니다.
+            using (Stream stream = await blob.OpenReadAsync().ConfigureAwait(false))
             using (var reader = new StreamReader(stream))
             {
                 string content = await reader.ReadToEndAsync().ConfigureAwait(false);
@@ -130,7 +135,9 @@
         {
             string blobName = GetMementoBlobName<T>(sourceId);
             CloudBlockBlob blob = _container.GetBlockBlobReference(blobName);
-            await blob.DeleteIfExistsAsync(cancellationToken);
+
+            // TODO: CancellationToken을 적용합니다.
+            await blob.DeleteIfExistsAsync();
         }
     }
 }

@@ -19,8 +19,9 @@
 
             do
             {
+                // TODO: CancellationToken을 적용합니다.
                 TableQuerySegment<TEntity> segment = await table
-                    .ExecuteQuerySegmentedAsync(query, continuation, cancellationToken)
+                    .ExecuteQuerySegmentedAsync(query, continuation)
                     .ConfigureAwait(false);
                 entities.AddRange(segment);
                 continuation = segment.ContinuationToken;

@@ -82,7 +82,8 @@
                 batch.Insert(PendingEventTableEntity.FromEnvelope<T>(envelope, _serializer));
             }
 
-            return _eventTable.ExecuteBatchAsync(batch, cancellationToken);
+            // TODO: CancellationToken을 적용합니다.
+            return _eventTable.ExecuteBatchAsync(batch);
         }
 
         private async Task InsertEventsAndCorrelation<T>(
@@ -108,7 +109,8 @@
 
             try
             {
-                await _eventTable.ExecuteBatchAsync(batch, cancellationToken).ConfigureAwait(false);
+                // TODO: CancellationToken을 적용합니다.
+                await _eventTable.ExecuteBatchAsync(batch).ConfigureAwait(false);
             }
             catch (StorageException exception) when (correlationId.HasValue)
             {

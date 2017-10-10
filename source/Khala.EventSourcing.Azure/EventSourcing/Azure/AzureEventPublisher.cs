@@ -93,7 +93,7 @@
                 where persistentVersions.Contains(e.Version)
                 select new Envelope(e.MessageId, e.CorrelationId, _serializer.Deserialize(e.EventJson));
 
-            await _messageBus.SendBatch(envelopes, cancellationToken).ConfigureAwait(false);
+            await _messageBus.Send(envelopes, cancellationToken).ConfigureAwait(false);
         }
 
         private async Task<List<EventTableEntity>> GetPersistentEvents(
@@ -128,7 +128,9 @@
                 try
                 {
                     var operation = TableOperation.Delete(pendingEvent);
-                    await _eventTable.ExecuteAsync(operation, cancellationToken).ConfigureAwait(false);
+
+                    // TODO: CancellationToken을 적용합니다.
+                    await _eventTable.ExecuteAsync(operation).ConfigureAwait(false);
                 }
                 catch (StorageException exception)
                 when (((exception.InnerException as WebException)?.Response as HttpWebResponse)?.StatusCode == HttpStatusCode.NotFound)
@@ -149,8 +151,9 @@
 
             do
             {
+                // TODO: CancellationToken을 적용합니다.
                 TableQuerySegment<PendingEventTableEntity> segment = await _eventTable
-                    .ExecuteQuerySegmentedAsync(query.Where(filter), continuation, cancellationToken)
+                    .ExecuteQuerySegmentedAsync(query.Where(filter), continuation)
                     .ConfigureAwait(false);
 
                 foreach (string partition in segment.Select(e => e.PartitionKey).Distinct())
