@@ -74,8 +74,7 @@
         [TestMethod]
         public void class_has_guard_clauses()
         {
-            var assertion = new GuardClauseAssertion(_fixture);
-            assertion.Verify(typeof(AzureEventStore));
+            new GuardClauseAssertion(_fixture).Verify(typeof(AzureEventStore));
         }
 
         [TestMethod]
@@ -175,9 +174,24 @@
         }
 
         [TestMethod]
-        public void SaveEvents_does_not_insert_event_entities_if_fails_to_insert_pending_events()
+        public async Task SaveEvents_does_not_insert_event_entities_if_fails_to_insert_pending_events()
         {
-            Assert.Inconclusive();
+            // Arrange
+            DomainEvent domainEvent = _fixture.Create<FakeUserCreated>();
+            RaiseEvents(_userId, new[] { domainEvent });
+            await s_eventTable.ExecuteAsync(TableOperation.Insert(new TableEntity
+            {
+                PartitionKey = PendingEventTableEntity.GetPartitionKey(typeof(FakeUser), _userId),
+                RowKey = PendingEventTableEntity.GetRowKey(domainEvent.Version)
+            }));
+
+            // Act
+            Func<Task> action = () => _sut.SaveEvents<FakeUser>(new[] { domainEvent });
+
+            // Assert
+            action.ShouldThrow<Exception>();
+            IEnumerable<IDomainEvent> actual = await _sut.LoadEvents<FakeUser>(_userId);
+            actual.Should().BeEmpty();
         }
 
         [TestMethod]
