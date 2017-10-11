@@ -9,6 +9,7 @@
     using Messaging;
     using Microsoft.WindowsAzure.Storage;
     using Microsoft.WindowsAzure.Storage.Table;
+
     using static Microsoft.WindowsAzure.Storage.Table.QueryComparisons;
     using static Microsoft.WindowsAzure.Storage.Table.TableOperators;
     using static Microsoft.WindowsAzure.Storage.Table.TableQuery;

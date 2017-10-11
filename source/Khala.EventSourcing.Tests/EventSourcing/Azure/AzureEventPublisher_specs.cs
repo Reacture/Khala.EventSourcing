@@ -25,7 +25,6 @@
         private static CloudStorageAccount s_storageAccount;
         private static CloudTable s_eventTable;
         private static bool s_storageEmulatorConnected;
-        private IFixture _fixture;
         private IMessageSerializer _serializer;
         private IMessageBus _messageBus;
         private AzureEventPublisher _sut;
@@ -59,8 +58,6 @@
                 Assert.Inconclusive("Could not connect to Azure Storage Emulator. See the output for details. Refer to the following URL for more information: http://go.microsoft.com/fwlink/?LinkId=392237");
             }
 
-            _fixture = new Fixture().Customize(new AutoMoqCustomization());
-            _fixture.Inject(s_eventTable);
             _serializer = new JsonMessageSerializer();
             _messageBus = Mock.Of<IMessageBus>();
             _sut = new AzureEventPublisher(s_eventTable, _serializer, _messageBus);
@@ -75,8 +72,60 @@
         [TestMethod]
         public void class_has_guard_clauses()
         {
-            var assertion = new GuardClauseAssertion(_fixture);
-            assertion.Verify(typeof(AzureEventPublisher));
+            var builder = new Fixture();
+            builder.Customize(new AutoMoqCustomization());
+            builder.Inject(s_eventTable);
+            new GuardClauseAssertion(builder).Verify(typeof(AzureEventPublisher));
+        }
+
+        private Task InsertPendingEvents(IEnumerable<Envelope> envelopes)
+        {
+            IEnumerable<PendingEventTableEntity> entities =
+                from e in envelopes
+                select PendingEventTableEntity.FromEnvelope<FakeUser>(e, _serializer);
+            return InsertPendingEvents(entities);
+        }
+
+        private static Task InsertPendingEvents(IEnumerable<PendingEventTableEntity> entities)
+        {
+            var batchOperation = new TableBatchOperation();
+            entities.ForEach(batchOperation.Insert);
+            return s_eventTable.ExecuteBatchAsync(batchOperation);
+        }
+
+        private static Task DeletePendingEvents(IEnumerable<PendingEventTableEntity> entities)
+        {
+            var batchOperation = new TableBatchOperation();
+            entities.ForEach(batchOperation.Delete);
+            return s_eventTable.ExecuteBatchAsync(batchOperation);
+        }
+
+        private Task InsertPersistentEvents(IEnumerable<Envelope> envelopes)
+        {
+            var batchOperation = new TableBatchOperation();
+            envelopes
+                .Select(e => EventTableEntity.FromEnvelope<FakeUser>(e, _serializer))
+                .ForEach(batchOperation.Insert);
+            return s_eventTable.ExecuteBatchAsync(batchOperation);
+        }
+
+        private static IEnumerable<PendingEventTableEntity> QueryPendingEventEntities<T>(Guid sourceId)
+        {
+            string partitionKey = PendingEventTableEntity.GetPartitionKey(typeof(T), sourceId);
+            var query = new TableQuery<PendingEventTableEntity>().Where($"PartitionKey eq '{partitionKey}'");
+            return s_eventTable.ExecuteQuery(query);
+        }
+
+        private IReadOnlyCollection<DomainEvent> CreateFakeUserDomainEvents(Guid userId)
+        {
+            var fixture = new Fixture();
+            var domainEvents = new DomainEvent[]
+            {
+                fixture.Create<FakeUserCreated>(),
+                fixture.Create<FakeUsernameChanged>()
+            };
+            RaiseEvents(userId, domainEvents);
+            return domainEvents;
         }
 
         [TestMethod]
@@ -84,36 +133,20 @@
         {
             // Arrange
             var userId = Guid.NewGuid();
-
-            var userCreated = _fixture.Create<FakeUserCreated>();
-            var usernameChanged = _fixture.Create<FakeUsernameChanged>();
-            var domainEvents = new DomainEvent[] { userCreated, usernameChanged };
-            RaiseEvents(userId, domainEvents);
-
+            IEnumerable<DomainEvent> domainEvents = CreateFakeUserDomainEvents(userId);
             var envelopes = new List<Envelope>(domainEvents.Select(e => new Envelope(e)));
+            await InsertPendingEvents(envelopes);
+            await InsertPersistentEvents(envelopes);
 
-            var batchOperation = new TableBatchOperation();
-            envelopes
-                .Select(e => PendingEventTableEntity.FromEnvelope<FakeUser>(e, _serializer))
-                .ForEach(batchOperation.Insert);
-            await s_eventTable.ExecuteBatchAsync(batchOperation);
-
-            batchOperation.Clear();
-            envelopes
-                .Select(e => EventTableEntity.FromEnvelope<FakeUser>(e, _serializer))
-                .ForEach(batchOperation.Insert);
-            await s_eventTable.ExecuteBatchAsync(batchOperation);
-
-            List<Envelope> batch = null;
-
+            List<Envelope> messages = null;
             Mock.Get(_messageBus)
                 .Setup(
                     x =>
                     x.Send(
                         It.IsAny<IEnumerable<Envelope>>(),
                         It.IsAny<CancellationToken>()))
-                .Callback<IEnumerable<Envelope>, CancellationToken>((b, t) => batch = b.ToList())
-                .Returns(Task.FromResult(true));
+                .Callback<IEnumerable<Envelope>, CancellationToken>((b, t) => messages = b.ToList())
+                .Returns(Task.CompletedTask);
 
             // Act
             await _sut.FlushPendingEvents<FakeUser>(userId, CancellationToken.None);
@@ -125,7 +158,7 @@
                     It.IsAny<IEnumerable<Envelope>>(),
                     CancellationToken.None),
                 Times.Once());
-            batch.ShouldAllBeEquivalentTo(envelopes, opts => opts.RespectingRuntimeTypes());
+            messages.ShouldAllBeEquivalentTo(envelopes, opts => opts.RespectingRuntimeTypes());
         }
 
         [TestMethod]
@@ -133,37 +166,20 @@
         {
             // Arrange
             var userId = Guid.NewGuid();
-
-            var userCreated = _fixture.Create<FakeUserCreated>();
-            var usernameChanged = _fixture.Create<FakeUsernameChanged>();
-            var domainEvents = new DomainEvent[] { userCreated, usernameChanged };
-            RaiseEvents(userId, domainEvents);
-
+            IEnumerable<DomainEvent> domainEvents = CreateFakeUserDomainEvents(userId);
             var envelopes = new List<Envelope>(domainEvents.Select(e => new Envelope(e)));
+            await InsertPendingEvents(envelopes);
+            await InsertPersistentEvents(envelopes.Take(1));
 
-            var batchOperation = new TableBatchOperation();
-            envelopes
-                .Select(e => PendingEventTableEntity.FromEnvelope<FakeUser>(e, _serializer))
-                .ForEach(batchOperation.Insert);
-            await s_eventTable.ExecuteBatchAsync(batchOperation);
-
-            batchOperation.Clear();
-            envelopes
-                .Take(1)
-                .Select(e => EventTableEntity.FromEnvelope<FakeUser>(e, _serializer))
-                .ForEach(batchOperation.Insert);
-            await s_eventTable.ExecuteBatchAsync(batchOperation);
-
-            List<Envelope> batch = null;
-
+            List<Envelope> sent = null;
             Mock.Get(_messageBus)
                 .Setup(
                     x =>
                     x.Send(
                         It.IsAny<IEnumerable<Envelope>>(),
                         It.IsAny<CancellationToken>()))
-                .Callback<IEnumerable<Envelope>, CancellationToken>((b, t) => batch = b.ToList())
-                .Returns(Task.FromResult(true));
+                .Callback<IEnumerable<Envelope>, CancellationToken>((b, t) => sent = b.ToList())
+                .Returns(Task.CompletedTask);
 
             // Act
             await _sut.FlushPendingEvents<FakeUser>(userId, CancellationToken.None);
@@ -175,7 +191,7 @@
                     It.IsAny<IEnumerable<Envelope>>(),
                     CancellationToken.None),
                 Times.Once());
-            batch.ShouldAllBeEquivalentTo(envelopes.Take(1), opts => opts.RespectingRuntimeTypes());
+            sent.ShouldAllBeEquivalentTo(envelopes.Take(1), opts => opts.RespectingRuntimeTypes());
         }
 
         [TestMethod]
@@ -183,34 +199,16 @@
         {
             // Arrange
             var userId = Guid.NewGuid();
-
-            var userCreated = _fixture.Create<FakeUserCreated>();
-            var usernameChanged = _fixture.Create<FakeUsernameChanged>();
-            var domainEvents = new DomainEvent[] { userCreated, usernameChanged };
-            RaiseEvents(userId, domainEvents);
-
+            IEnumerable<DomainEvent> domainEvents = CreateFakeUserDomainEvents(userId);
             var envelopes = new List<Envelope>(domainEvents.Select(e => new Envelope(e)));
-
-            var batchOperation = new TableBatchOperation();
-            envelopes
-                .Select(e => PendingEventTableEntity.FromEnvelope<FakeUser>(e, _serializer))
-                .ForEach(batchOperation.Insert);
-            await s_eventTable.ExecuteBatchAsync(batchOperation);
-
-            batchOperation.Clear();
-            envelopes
-                .Take(1)
-                .Select(e => EventTableEntity.FromEnvelope<FakeUser>(e, _serializer))
-                .ForEach(batchOperation.Insert);
-            await s_eventTable.ExecuteBatchAsync(batchOperation);
+            await InsertPendingEvents(envelopes);
+            await InsertPersistentEvents(envelopes.Take(1));
 
             // Act
             await _sut.FlushPendingEvents<FakeUser>(userId, CancellationToken.None);
 
             // Assert
-            string partitionKey = PendingEventTableEntity.GetPartitionKey(typeof(FakeUser), userId);
-            var query = new TableQuery<PendingEventTableEntity>().Where($"PartitionKey eq '{partitionKey}'");
-            List<PendingEventTableEntity> actual = s_eventTable.ExecuteQuery(query).ToList();
+            IEnumerable<PendingEventTableEntity> actual = QueryPendingEventEntities<FakeUser>(userId);
             actual.Should().BeEmpty();
         }
 
@@ -219,26 +217,15 @@
         {
             // Arrange
             var userId = Guid.NewGuid();
-
-            var userCreated = _fixture.Create<FakeUserCreated>();
-            var usernameChanged = _fixture.Create<FakeUsernameChanged>();
-            var domainEvents = new DomainEvent[] { userCreated, usernameChanged };
-            RaiseEvents(userId, domainEvents);
-
+            IEnumerable<DomainEvent> domainEvents = CreateFakeUserDomainEvents(userId);
             var envelopes = new List<Envelope>(domainEvents.Select(e => new Envelope(e)));
 
-            var batchOperation = new TableBatchOperation();
             var pendingEvents = new List<PendingEventTableEntity>(
-                envelopes.Select(e => PendingEventTableEntity.FromEnvelope<FakeUser>(e, _serializer)));
-            pendingEvents.ForEach(batchOperation.Insert);
-            await s_eventTable.ExecuteBatchAsync(batchOperation);
+                from e in envelopes
+                select PendingEventTableEntity.FromEnvelope<FakeUser>(e, _serializer));
+            await InsertPendingEvents(pendingEvents);
 
-            batchOperation.Clear();
-            envelopes
-                .Take(1)
-                .Select(e => EventTableEntity.FromEnvelope<FakeUser>(e, _serializer))
-                .ForEach(batchOperation.Insert);
-            await s_eventTable.ExecuteBatchAsync(batchOperation);
+            await InsertPersistentEvents(envelopes);
 
             Mock.Get(_messageBus)
                 .Setup(
@@ -260,7 +247,7 @@
             // Assert
             string partitionKey = PendingEventTableEntity.GetPartitionKey(typeof(FakeUser), userId);
             var query = new TableQuery<PendingEventTableEntity>().Where($"PartitionKey eq '{partitionKey}'");
-            IEnumerable<object> actual = s_eventTable.ExecuteQuery(query).Select(e => e.RowKey);
+            IEnumerable<string> actual = s_eventTable.ExecuteQuery(query).Select(e => e.RowKey);
             actual.ShouldAllBeEquivalentTo(pendingEvents.Select(e => e.RowKey));
         }
 
@@ -284,62 +271,20 @@
         }
 
         [TestMethod]
-        public async Task FlushPendingEvents_does_not_fails_even_if_all_events_persisted()
-        {
-            // Arrange
-            var userId = Guid.NewGuid();
-
-            var userCreated = _fixture.Create<FakeUserCreated>();
-            var usernameChanged = _fixture.Create<FakeUsernameChanged>();
-            var domainEvents = new DomainEvent[] { userCreated, usernameChanged };
-            RaiseEvents(userId, domainEvents);
-
-            var envelopes = new List<Envelope>(domainEvents.Select(e => new Envelope(e)));
-
-            var batchOperation = new TableBatchOperation();
-            envelopes
-                .Select(e => PendingEventTableEntity.FromEnvelope<FakeUser>(e, _serializer))
-                .ForEach(batchOperation.Insert);
-            await s_eventTable.ExecuteBatchAsync(batchOperation);
-
-            batchOperation.Clear();
-            envelopes
-                .Select(e => EventTableEntity.FromEnvelope<FakeUser>(e, _serializer))
-                .ForEach(batchOperation.Insert);
-            await s_eventTable.ExecuteBatchAsync(batchOperation);
-
-            // Act
-            Func<Task> action = () => _sut.FlushPendingEvents<FakeUser>(userId, CancellationToken.None);
-
-            // Assert
-            action.ShouldNotThrow();
-        }
-
-        [TestMethod]
         public async Task FlushPendingEvents_absorbs_exception_caused_by_that_some_pending_event_already_deleted_since_loaded()
         {
             // Arrange
             var userId = Guid.NewGuid();
-
-            var userCreated = _fixture.Create<FakeUserCreated>();
-            var usernameChanged = _fixture.Create<FakeUsernameChanged>();
-            var domainEvents = new DomainEvent[] { userCreated, usernameChanged };
-            RaiseEvents(userId, domainEvents);
+            IEnumerable<DomainEvent> domainEvents = CreateFakeUserDomainEvents(userId);
 
             var envelopes = new List<Envelope>(domainEvents.Select(e => new Envelope(e)));
 
-            var batchOperation = new TableBatchOperation();
-            var pendingEventEntities = new List<PendingEventTableEntity>(
+            var pendingEvents = new List<PendingEventTableEntity>(
                 from e in envelopes
                 select PendingEventTableEntity.FromEnvelope<FakeUser>(e, _serializer));
-            pendingEventEntities.ForEach(batchOperation.Insert);
-            await s_eventTable.ExecuteBatchAsync(batchOperation);
+            await InsertPendingEvents(pendingEvents);
 
-            batchOperation.Clear();
-            envelopes
-                .Select(e => EventTableEntity.FromEnvelope<FakeUser>(e, _serializer))
-                .ForEach(batchOperation.Insert);
-            await s_eventTable.ExecuteBatchAsync(batchOperation);
+            await InsertPersistentEvents(envelopes);
 
             var completionSource = new TaskCompletionSource<bool>();
             IMessageBus messageBus = new AwaitingMessageBus(completionSource.Task);
@@ -349,60 +294,33 @@
             Func<Task> action = async () =>
             {
                 Task flushTask = sut.FlushPendingEvents<FakeUser>(userId, CancellationToken.None);
-
-                batchOperation.Clear();
-                pendingEventEntities
-                    .OrderBy(e => e.GetHashCode())
-                    .Take(1)
-                    .ForEach(batchOperation.Delete);
-                await s_eventTable.ExecuteBatchAsync(batchOperation);
-
+                await DeletePendingEvents(pendingEvents.OrderBy(e => e.GetHashCode()).Take(1));
                 completionSource.SetResult(true);
                 await flushTask;
             };
 
             // Assert
             action.ShouldNotThrow();
-            string partitionKey = PendingEventTableEntity.GetPartitionKey(typeof(FakeUser), userId);
-            var query = new TableQuery<PendingEventTableEntity>().Where($"PartitionKey eq '{partitionKey}'");
-            List<PendingEventTableEntity> actual = s_eventTable.ExecuteQuery(query).ToList();
+            IEnumerable<PendingEventTableEntity> actual = QueryPendingEventEntities<FakeUser>(userId);
             actual.Should().BeEmpty();
         }
 
         [TestMethod]
-        public async Task FlushAllPendingEvents_sends_pending_events()
+        public async Task FlushAllPendingEvents_sends_all_pending_events()
         {
             // Arrange
             var domainEvents = new List<DomainEvent>();
-
-            List<Guid> users = _fixture.CreateMany<Guid>().ToList();
-
-            foreach (Guid userId in users)
+            var userIds = new List<Guid> { Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid() };
+            foreach (Guid userId in userIds)
             {
-                var userCreated = _fixture.Create<FakeUserCreated>();
-                var usernameChanged = _fixture.Create<FakeUsernameChanged>();
-                var events = new DomainEvent[] { userCreated, usernameChanged };
-                RaiseEvents(userId, events);
-
+                IEnumerable<DomainEvent> events = CreateFakeUserDomainEvents(userId);
                 var envelopes = new List<Envelope>(events.Select(e => new Envelope(e)));
-
-                var batchOperation = new TableBatchOperation();
-                envelopes
-                    .Select(e => PendingEventTableEntity.FromEnvelope<FakeUser>(e, _serializer))
-                    .ForEach(batchOperation.Insert);
-                await s_eventTable.ExecuteBatchAsync(batchOperation);
-
-                batchOperation.Clear();
-                envelopes
-                    .Select(e => EventTableEntity.FromEnvelope<FakeUser>(e, _serializer))
-                    .ForEach(batchOperation.Insert);
-                await s_eventTable.ExecuteBatchAsync(batchOperation);
-
+                await InsertPendingEvents(envelopes);
+                await InsertPersistentEvents(envelopes);
                 domainEvents.AddRange(events);
             }
 
             var messages = new List<IDomainEvent>();
-
             Mock.Get(_messageBus)
                 .Setup(
                     x =>
@@ -414,14 +332,13 @@
                     messages.AddRange(batch
                         .Select(b => b.Message)
                         .OfType<IDomainEvent>()
-                        .Where(m => users.Contains(m.SourceId))))
+                        .Where(m => userIds.Contains(m.SourceId))))
                 .Returns(Task.FromResult(true));
 
             // Act
             await _sut.FlushAllPendingEvents(CancellationToken.None);
 
             // Assert
-            messages.Should().OnlyContain(e => e is IDomainEvent);
             messages.ShouldAllBeEquivalentTo(domainEvents);
         }
 
