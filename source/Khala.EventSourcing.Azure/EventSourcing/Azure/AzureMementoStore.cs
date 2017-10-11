@@ -60,21 +60,10 @@
                 throw new ArgumentNullException(nameof(memento));
             }
 
-            return SaveMemento<T>(sourceId, memento, cancellationToken);
-        }
-
-        private async Task SaveMemento<T>(
-            Guid sourceId,
-            IMemento memento,
-            CancellationToken cancellationToken)
-            where T : class, IEventSourced
-        {
             string blobName = GetMementoBlobName<T>(sourceId);
             CloudBlockBlob blob = _container.GetBlockBlobReference(blobName);
             blob.Properties.ContentType = "application/json";
-
-            // TODO: CancellationToken을 적용합니다.
-            await blob.UploadTextAsync(_serializer.Serialize(memento)).ConfigureAwait(false);
+            return blob.UploadText(_serializer.Serialize(memento), cancellationToken);
         }
 
         public Task<IMemento> Find<T>(
@@ -98,15 +87,12 @@
         {
             string blobName = GetMementoBlobName<T>(sourceId);
             CloudBlockBlob blob = _container.GetBlockBlobReference(blobName);
-
-            // TODO: CancellationToken을 적용합니다.
-            if (await blob.ExistsAsync().ConfigureAwait(false) == false)
+            if (await blob.Exists(cancellationToken).ConfigureAwait(false) == false)
             {
                 return null;
             }
 
-            // TODO: CancellationToken을 적용합니다.
-            using (Stream stream = await blob.OpenReadAsync().ConfigureAwait(false))
+            using (Stream stream = await blob.OpenRead(cancellationToken).ConfigureAwait(false))
             using (var reader = new StreamReader(stream))
             {
                 string content = await reader.ReadToEndAsync().ConfigureAwait(false);
@@ -125,19 +111,9 @@
                     $"{nameof(sourceId)} cannot be empty.", nameof(sourceId));
             }
 
-            return DeleteMemento<T>(sourceId, cancellationToken);
-        }
-
-        private async Task DeleteMemento<T>(
-            Guid sourceId,
-            CancellationToken cancellationToken)
-            where T : class, IEventSourced
-        {
             string blobName = GetMementoBlobName<T>(sourceId);
             CloudBlockBlob blob = _container.GetBlockBlobReference(blobName);
-
-            // TODO: CancellationToken을 적용합니다.
-            await blob.DeleteIfExistsAsync();
+            return blob.DeleteIfExists(cancellationToken);
         }
     }
 }

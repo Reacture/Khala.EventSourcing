@@ -27,8 +27,4 @@
     <ProjectReference Include="..\Khala.EventSourcing.Contracts\Khala.EventSourcing.Contracts.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="EventSourcing\Azure\" />
-  </ItemGroup>
-
 </Project>

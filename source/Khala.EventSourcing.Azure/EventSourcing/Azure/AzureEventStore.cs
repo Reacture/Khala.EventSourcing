@@ -8,6 +8,7 @@
     using Messaging;
     using Microsoft.WindowsAzure.Storage;
     using Microsoft.WindowsAzure.Storage.Table;
+
     using static Microsoft.WindowsAzure.Storage.Table.QueryComparisons;
     using static Microsoft.WindowsAzure.Storage.Table.TableOperators;
     using static Microsoft.WindowsAzure.Storage.Table.TableQuery;
@@ -82,8 +83,7 @@
                 batch.Insert(PendingEventTableEntity.FromEnvelope<T>(envelope, _serializer));
             }
 
-            // TODO: CancellationToken을 적용합니다.
-            return _eventTable.ExecuteBatchAsync(batch);
+            return _eventTable.ExecuteBatch(batch, cancellationToken);
         }
 
         private async Task InsertEventsAndCorrelation<T>(
@@ -109,8 +109,7 @@
 
             try
             {
-                // TODO: CancellationToken을 적용합니다.
-                await _eventTable.ExecuteBatchAsync(batch).ConfigureAwait(false);
+                await _eventTable.ExecuteBatch(batch, cancellationToken).ConfigureAwait(false);
             }
             catch (StorageException exception) when (correlationId.HasValue)
             {

@@ -128,9 +128,7 @@
                 try
                 {
                     var operation = TableOperation.Delete(pendingEvent);
-
-                    // TODO: CancellationToken을 적용합니다.
-                    await _eventTable.ExecuteAsync(operation).ConfigureAwait(false);
+                    await _eventTable.Execute(operation, cancellationToken).ConfigureAwait(false);
                 }
                 catch (StorageException exception) when (ReasonIsNotFound(exception))
                 {
@@ -160,15 +158,14 @@
         [EditorBrowsable(EditorBrowsableState.Never)]
         public async Task FlushAllPendingEvents(CancellationToken cancellationToken)
         {
-            var query = new TableQuery<PendingEventTableEntity>();
             var filter = PendingEventTableEntity.ScanFilter;
+            var query = new TableQuery<PendingEventTableEntity>().Where(filter);
             TableContinuationToken continuation = null;
 
             do
             {
-                // TODO: CancellationToken을 적용합니다.
                 TableQuerySegment<PendingEventTableEntity> segment = await _eventTable
-                    .ExecuteQuerySegmentedAsync(query.Where(filter), continuation)
+                    .ExecuteQuerySegmented(query, continuation, cancellationToken)
                     .ConfigureAwait(false);
 
                 foreach (string partition in segment.Select(e => e.PartitionKey).Distinct())
