@@ -67,12 +67,16 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\Khala.EventSourcing.SqlCore\EventSourcing\Sql\ISqlEventPublisher.cs">
+      <Link>EventSourcing\Sql\ISqlEventPublisher.cs</Link>
+    </Compile>
+    <Compile Include="..\Khala.EventSourcing.SqlCore\EventSourcing\Sql\ISqlEventStore.cs">
+      <Link>EventSourcing\Sql\ISqlEventStore.cs</Link>
+    </Compile>
     <Compile Include="EventSourcing\Sql\Aggregate.cs" />
     <Compile Include="EventSourcing\Sql\Correlation.cs" />
     <Compile Include="EventSourcing\Sql\EventStoreDbContext.cs" />
     <Compile Include="EventSourcing\Sql\IMementoStoreDbContext.cs" />
-    <Compile Include="EventSourcing\Sql\ISqlEventPublisher.cs" />
-    <Compile Include="EventSourcing\Sql\ISqlEventStore.cs" />
     <Compile Include="EventSourcing\Sql\Memento.cs" />
     <Compile Include="EventSourcing\Sql\MementoStoreDbContext.cs" />
     <Compile Include="EventSourcing\Sql\PendingEvent.cs" />
