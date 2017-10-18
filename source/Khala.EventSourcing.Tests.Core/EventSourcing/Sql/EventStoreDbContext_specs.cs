@@ -41,5 +41,27 @@
             actual.Should().NotBeNull();
             actual.IsUnique.Should().BeTrue();
         }
+
+        [TestMethod]
+        public void model_has_PersistentEvent_entity()
+        {
+            var sut = new EventStoreDbContext(_dbContextOptions);
+            IEntityType actual = sut.Model.FindEntityType(typeof(PersistentEvent));
+            actual.Should().NotBeNull();
+        }
+
+        [TestMethod]
+        public void PersistentEvent_entity_has_index_for_AggregateId_Version()
+        {
+            var context = new EventStoreDbContext(_dbContextOptions);
+            IEntityType sut = context.Model.FindEntityType(typeof(PersistentEvent));
+            IIndex actual = sut.FindIndex(new[]
+            {
+                sut.FindProperty("AggregateId"),
+                sut.FindProperty("Version")
+            });
+            actual.Should().NotBeNull();
+            actual.IsUnique.Should().BeTrue();
+        }
     }
 }
