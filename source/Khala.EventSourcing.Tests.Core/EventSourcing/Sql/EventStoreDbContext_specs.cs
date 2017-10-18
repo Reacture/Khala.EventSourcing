@@ -3,26 +3,28 @@
     using FluentAssertions;
     using Microsoft.EntityFrameworkCore;
     using Microsoft.EntityFrameworkCore.Metadata;
-    using Xunit;
+    using Microsoft.VisualStudio.TestTools.UnitTesting;
 
+    [TestClass]
     public class EventStoreDbContext_specs
     {
-        private readonly DbContextOptions _dbContextOptions;
+        private DbContextOptions _dbContextOptions;
 
-        public EventStoreDbContext_specs()
+        [TestInitialize]
+        public void TestInitialize()
         {
             _dbContextOptions = new DbContextOptionsBuilder()
                 .UseInMemoryDatabase(nameof(EventStoreDbContext_specs))
                 .Options;
         }
 
-        [Fact]
+        [TestMethod]
         public void sut_inherits_DbContext()
         {
             typeof(EventStoreDbContext).BaseType.Should().Be(typeof(DbContext));
         }
 
-        [Fact]
+        [TestMethod]
         public void model_has_Aggregate_entity()
         {
             var sut = new EventStoreDbContext(_dbContextOptions);
@@ -30,12 +32,12 @@
             actual.Should().NotBeNull();
         }
 
-        [Fact]
+        [TestMethod]
         public void Aggregate_entity_has_index_for_AggregateId()
         {
-            var sut = new EventStoreDbContext(_dbContextOptions);
-            IEntityType entity = sut.Model.FindEntityType(typeof(Aggregate));
-            IIndex actual = entity.FindIndex(entity.FindProperty("AggregateId"));
+            var context = new EventStoreDbContext(_dbContextOptions);
+            IEntityType sut = context.Model.FindEntityType(typeof(Aggregate));
+            IIndex actual = sut.FindIndex(sut.FindProperty("AggregateId"));
             actual.Should().NotBeNull();
             actual.IsUnique.Should().BeTrue();
         }
