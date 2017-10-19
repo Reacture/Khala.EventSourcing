@@ -2,7 +2,7 @@ version: 0.15.{build}
 image: Visual Studio 2017
 configuration: Release
 before_build:
-- cmd: nuget restore source\Khala.EventSourcing.sln
+- cmd: .\nuget\nuget.exe restore source\Khala.EventSourcing.sln
 build:
   verbosity: minimal
   project: source\Khala.EventSourcing.sln
