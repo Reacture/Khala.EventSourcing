@@ -61,5 +61,26 @@
             actual.Should().NotBeNull();
             actual.IsUnique.Should().BeTrue();
         }
+
+        [Fact]
+        public void model_has_PendingEvent_entity()
+        {
+            var sut = new EventStoreDbContext(_dbContextOptions);
+            IEntityType actual = sut.Model.FindEntityType(typeof(PendingEvent));
+            actual.Should().NotBeNull();
+        }
+
+        [Fact]
+        public void PendingEvent_entity_has_key_for_AggregateId_Version()
+        {
+            var context = new EventStoreDbContext(_dbContextOptions);
+            IEntityType sut = context.Model.FindEntityType(typeof(PendingEvent));
+            IKey actual = sut.FindKey(new[]
+            {
+                sut.FindProperty("AggregateId"),
+                sut.FindProperty("Version")
+            });
+            actual.Should().NotBeNull();
+        }
     }
 }

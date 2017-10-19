@@ -7,97 +7,85 @@
     using Khala.Messaging;
     using Xunit;
 
-    public class PersistentEvent_specs
+    public class PendingEvent_specs
     {
         [Fact]
-        public void sut_has_SeqeunceId_property()
+        public void sut_has_AggregateId_property()
         {
-            typeof(PersistentEvent)
-                .Should()
-                .HaveProperty<long>("SequenceId")
-                .Which.SetMethod.IsPrivate.Should().BeTrue();
+            typeof(PendingEvent).Should().HaveProperty<Guid>("AggregateId");
         }
 
         [Fact]
-        public void SequenceId_is_decorated_with_Key()
+        public void AggregateId_is_decorated_with_Key()
         {
-            typeof(PersistentEvent)
-                .GetProperty("SequenceId")
+            typeof(PendingEvent)
+                .GetProperty("AggregateId")
                 .Should()
                 .BeDecoratedWith<KeyAttribute>();
         }
 
         [Fact]
-        public void SequenceId_is_decorated_with_DatebaseGenerated()
+        public void AggregateId_is_decorated_with_Column()
         {
-            typeof(PersistentEvent)
-                .GetProperty("SequenceId")
+            typeof(PendingEvent)
+                .GetProperty("AggregateId")
                 .Should()
-                .BeDecoratedWith<DatabaseGeneratedAttribute>(a => a.DatabaseGeneratedOption == DatabaseGeneratedOption.Identity);
-        }
-
-        [Fact]
-        public void sut_has_AggregateId_property()
-        {
-            typeof(PersistentEvent).Should().HaveProperty<Guid>("AggregateId");
+                .BeDecoratedWith<ColumnAttribute>(a => a.Order == 0);
         }
 
         [Fact]
         public void sut_has_Version_property()
         {
-            typeof(PersistentEvent).Should().HaveProperty<int>("Version");
+            typeof(PendingEvent).Should().HaveProperty<int>("Version");
         }
 
         [Fact]
-        public void sut_has_EventType_property()
+        public void Version_is_decorated_with_Key()
         {
-            typeof(PersistentEvent).Should().HaveProperty<string>("EventType");
-        }
-
-        [Fact]
-        public void EventType_is_decorated_with_Required()
-        {
-            typeof(PersistentEvent)
-                .GetProperty("EventType")
+            typeof(PendingEvent)
+                .GetProperty("Version")
                 .Should()
-                .BeDecoratedWith<RequiredAttribute>(a => a.AllowEmptyStrings == false);
+                .BeDecoratedWith<KeyAttribute>();
+        }
+
+        [Fact]
+        public void Version_is_decorated_with_Column()
+        {
+            typeof(PendingEvent)
+                .GetProperty("Version")
+                .Should()
+                .BeDecoratedWith<ColumnAttribute>(a => a.Order == 1);
         }
 
         [Fact]
         public void sut_has_MessageId_property()
         {
-            typeof(PersistentEvent).Should().HaveProperty<Guid>("MessageId");
+            typeof(PendingEvent).Should().HaveProperty<Guid>("MessageId");
         }
 
         [Fact]
         public void sut_has_CorrelationId_property()
         {
-            typeof(PersistentEvent).Should().HaveProperty<Guid?>("CorrelationId");
+            typeof(PendingEvent).Should().HaveProperty<Guid?>("CorrelationId");
         }
 
         [Fact]
         public void sut_has_EventJson_property()
         {
-            typeof(PersistentEvent).Should().HaveProperty<string>("EventJson");
+            typeof(PendingEvent).Should().HaveProperty<string>("EventJson");
         }
 
         [Fact]
         public void EventJson_is_decorated_with_Required()
         {
-            typeof(PersistentEvent)
+            typeof(PendingEvent)
                 .GetProperty("EventJson")
                 .Should()
                 .BeDecoratedWith<RequiredAttribute>(a => a.AllowEmptyStrings == false);
         }
 
         [Fact]
-        public void sut_has_RaisedAt_property()
-        {
-            typeof(PersistentEvent).Should().HaveProperty<DateTimeOffset>("RaisedAt");
-        }
-
-        [Fact]
-        public void FromEnvelope_generates_PersistentEvent_correctly()
+        public void FromEnvelope_generates_PendingEvent_correctly()
         {
             var domainEvent = new SomeDomainEvent();
             var messageId = Guid.NewGuid();
@@ -105,22 +93,20 @@
             var envelope = new Envelope(messageId, correlationId, domainEvent);
             IMessageSerializer serializer = new JsonMessageSerializer();
 
-            var actual = PersistentEvent.FromEnvelope(envelope, serializer);
+            var actual = PendingEvent.FromEnvelope(envelope, serializer);
 
             actual.AggregateId.Should().Be(domainEvent.SourceId);
             actual.Version.Should().Be(domainEvent.Version);
-            actual.EventType.Should().Be(typeof(SomeDomainEvent).FullName);
             actual.MessageId.Should().Be(messageId);
             actual.CorrelationId.Should().Be(correlationId);
             actual.EventJson.Should().Be(serializer.Serialize(domainEvent));
-            actual.RaisedAt.Should().Be(domainEvent.RaisedAt);
         }
 
         [Fact]
         public void FromEnvelope_has_guard_clause_for_invalid_message()
         {
             var envelope = new Envelope(new object());
-            Action action = () => PersistentEvent.FromEnvelope(envelope, new JsonMessageSerializer());
+            Action action = () => PendingEvent.FromEnvelope(envelope, new JsonMessageSerializer());
             action.ShouldThrow<ArgumentException>().Where(x => x.ParamName == "envelope");
         }
 
