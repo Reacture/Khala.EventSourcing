@@ -3,28 +3,26 @@
     using FluentAssertions;
     using Microsoft.EntityFrameworkCore;
     using Microsoft.EntityFrameworkCore.Metadata;
-    using Microsoft.VisualStudio.TestTools.UnitTesting;
+    using Xunit;
 
-    [TestClass]
     public class EventStoreDbContext_specs
     {
-        private DbContextOptions _dbContextOptions;
+        private readonly DbContextOptions _dbContextOptions;
 
-        [TestInitialize]
-        public void TestInitialize()
+        public EventStoreDbContext_specs()
         {
             _dbContextOptions = new DbContextOptionsBuilder()
                 .UseInMemoryDatabase(nameof(EventStoreDbContext_specs))
                 .Options;
         }
 
-        [TestMethod]
+        [Fact]
         public void sut_inherits_DbContext()
         {
             typeof(EventStoreDbContext).BaseType.Should().Be(typeof(DbContext));
         }
 
-        [TestMethod]
+        [Fact]
         public void model_has_Aggregate_entity()
         {
             var sut = new EventStoreDbContext(_dbContextOptions);
@@ -32,7 +30,7 @@
             actual.Should().NotBeNull();
         }
 
-        [TestMethod]
+        [Fact]
         public void Aggregate_entity_has_index_for_AggregateId()
         {
             var context = new EventStoreDbContext(_dbContextOptions);
@@ -42,7 +40,7 @@
             actual.IsUnique.Should().BeTrue();
         }
 
-        [TestMethod]
+        [Fact]
         public void model_has_PersistentEvent_entity()
         {
             var sut = new EventStoreDbContext(_dbContextOptions);
@@ -50,7 +48,7 @@
             actual.Should().NotBeNull();
         }
 
-        [TestMethod]
+        [Fact]
         public void PersistentEvent_entity_has_index_for_AggregateId_Version()
         {
             var context = new EventStoreDbContext(_dbContextOptions);

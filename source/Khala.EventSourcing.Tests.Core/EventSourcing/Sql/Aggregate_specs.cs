@@ -4,12 +4,11 @@
     using System.ComponentModel.DataAnnotations;
     using System.ComponentModel.DataAnnotations.Schema;
     using FluentAssertions;
-    using Microsoft.VisualStudio.TestTools.UnitTesting;
+    using Xunit;
 
-    [TestClass]
     public class Aggregate_specs
     {
-        [TestMethod]
+        [Fact]
         public void sut_has_SequenceId_property()
         {
             typeof(Aggregate)
@@ -18,7 +17,7 @@
                 .Which.SetMethod.IsPrivate.Should().BeTrue();
         }
 
-        [TestMethod]
+        [Fact]
         public void SequenceId_is_decorated_with_Key()
         {
             typeof(Aggregate)
@@ -27,7 +26,7 @@
                 .BeDecoratedWith<KeyAttribute>();
         }
 
-        [TestMethod]
+        [Fact]
         public void SequenceId_is_decorated_with_DatabaseGenerated()
         {
             typeof(Aggregate)
@@ -36,19 +35,19 @@
                 .BeDecoratedWith<DatabaseGeneratedAttribute>(a => a.DatabaseGeneratedOption == DatabaseGeneratedOption.Identity);
         }
 
-        [TestMethod]
+        [Fact]
         public void sut_has_AggregateId_property()
         {
             typeof(Aggregate).Should().HaveProperty<Guid>("AggregateId");
         }
 
-        [TestMethod]
+        [Fact]
         public void sut_has_AggregateType_property()
         {
             typeof(Aggregate).Should().HaveProperty<string>("AggregateType");
         }
 
-        [TestMethod]
+        [Fact]
         public void AggregateType_is_decorated_with_Required()
         {
             typeof(Aggregate)
@@ -57,7 +56,7 @@
                 .BeDecoratedWith<RequiredAttribute>();
         }
 
-        [TestMethod]
+        [Fact]
         public void AggregateType_is_decorated_with_StringLength()
         {
             typeof(Aggregate)
@@ -66,13 +65,13 @@
                 .BeDecoratedWith<StringLengthAttribute>(a => a.MaximumLength == 128);
         }
 
-        [TestMethod]
+        [Fact]
         public void sut_has_Version_property()
         {
             typeof(Aggregate).Should().HaveProperty<int>("Version");
         }
 
-        [TestMethod]
+        [Fact]
         public void Version_is_decorated_with_ConcurrencyCheck()
         {
             typeof(Aggregate)
