@@ -9,11 +9,11 @@
 
     public class SqlMementoStore : IMementoStore
     {
-        private readonly Func<IMementoStoreDbContext> _dbContextFactory;
+        private readonly Func<MementoStoreDbContext> _dbContextFactory;
         private readonly IMessageSerializer _serializer;
 
         public SqlMementoStore(
-            Func<IMementoStoreDbContext> dbContextFactory,
+            Func<MementoStoreDbContext> dbContextFactory,
             IMessageSerializer serializer)
         {
             _dbContextFactory = dbContextFactory ?? throw new ArgumentNullException(nameof(dbContextFactory));
@@ -45,7 +45,7 @@
             IMemento memento,
             CancellationToken cancellationToken)
         {
-            using (IMementoStoreDbContext context = _dbContextFactory.Invoke())
+            using (MementoStoreDbContext context = _dbContextFactory.Invoke())
             {
                 Memento entity = await context
                     .Mementoes
@@ -82,7 +82,7 @@
             Guid sourceId,
             CancellationToken cancellationToken)
         {
-            using (IMementoStoreDbContext context = _dbContextFactory.Invoke())
+            using (MementoStoreDbContext context = _dbContextFactory.Invoke())
             {
                 Memento entity = await context
                     .Mementoes
@@ -119,7 +119,7 @@
             Guid sourceId,
             CancellationToken cancellationToken)
         {
-            using (IMementoStoreDbContext context = _dbContextFactory.Invoke())
+            using (MementoStoreDbContext context = _dbContextFactory.Invoke())
             {
                 Memento entity = await context
                     .Mementoes

@@ -91,7 +91,6 @@
     <Compile Include="..\Khala.EventSourcing.SqlCore\EventSourcing\Sql\UniqueIndexedProperty.cs">
       <Link>EventSourcing\Sql\UniqueIndexedProperty.cs</Link>
     </Compile>
-    <Compile Include="EventSourcing\Sql\IMementoStoreDbContext.cs" />
     <Compile Include="EventSourcing\Sql\Memento.cs" />
     <Compile Include="EventSourcing\Sql\MementoStoreDbContext.cs" />
     <Compile Include="EventSourcing\Sql\SqlEventPublisher.cs" />

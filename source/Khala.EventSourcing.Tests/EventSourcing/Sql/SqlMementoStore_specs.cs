@@ -30,7 +30,7 @@
         public void TestInitialize()
         {
             _fixture = new Fixture().Customize(new AutoMoqCustomization());
-            _fixture.Inject<Func<IMementoStoreDbContext>>(() => new DataContext());
+            _fixture.Inject<Func<MementoStoreDbContext>>(() => new DataContext());
 
             _serializer = new JsonMessageSerializer();
             _fixture.Inject(_serializer);
