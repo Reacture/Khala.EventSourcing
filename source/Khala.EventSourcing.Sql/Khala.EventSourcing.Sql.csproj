@@ -70,6 +70,9 @@
     <Compile Include="..\Khala.EventSourcing.SqlCore\EventSourcing\Sql\Aggregate.cs">
       <Link>EventSourcing\Sql\Aggregate.cs</Link>
     </Compile>
+    <Compile Include="..\Khala.EventSourcing.SqlCore\EventSourcing\Sql\Correlation.cs">
+      <Link>EventSourcing\Sql\Correlation.cs</Link>
+    </Compile>
     <Compile Include="..\Khala.EventSourcing.SqlCore\EventSourcing\Sql\ISqlEventPublisher.cs">
       <Link>EventSourcing\Sql\ISqlEventPublisher.cs</Link>
     </Compile>
@@ -85,7 +88,6 @@
     <Compile Include="..\Khala.EventSourcing.SqlCore\EventSourcing\Sql\UniqueIndexedProperty.cs">
       <Link>EventSourcing\Sql\UniqueIndexedProperty.cs</Link>
     </Compile>
-    <Compile Include="EventSourcing\Sql\Correlation.cs" />
     <Compile Include="EventSourcing\Sql\EventStoreDbContext.cs" />
     <Compile Include="EventSourcing\Sql\IMementoStoreDbContext.cs" />
     <Compile Include="EventSourcing\Sql\Memento.cs" />

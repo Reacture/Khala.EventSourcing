@@ -118,5 +118,26 @@
             actual.Should().NotBeNull();
             actual.IsUnique.Should().BeTrue();
         }
+
+        [Fact]
+        public void model_has_Correlation_entity()
+        {
+            var sut = new EventStoreDbContext(_dbContextOptions);
+            IEntityType actual = sut.Model.FindEntityType(typeof(Correlation));
+            actual.Should().NotBeNull();
+        }
+
+        [Fact]
+        public void Correlation_entity_has_key_with_AggregateId_CorrelationId()
+        {
+            var context = new EventStoreDbContext(_dbContextOptions);
+            IEntityType sut = context.Model.FindEntityType(typeof(Correlation));
+            IKey actual = sut.FindKey(new[]
+            {
+                sut.FindProperty("AggregateId"),
+                sut.FindProperty("CorrelationId")
+            });
+            actual.Should().NotBeNull();
+        }
     }
 }
