@@ -31,7 +31,7 @@
         }
 
         [Fact]
-        public void Aggregate_entity_has_index_for_AggregateId()
+        public void Aggregate_entity_has_index_with_AggregateId()
         {
             var context = new EventStoreDbContext(_dbContextOptions);
             IEntityType sut = context.Model.FindEntityType(typeof(Aggregate));
@@ -49,7 +49,7 @@
         }
 
         [Fact]
-        public void PersistentEvent_entity_has_index_for_AggregateId_Version()
+        public void PersistentEvent_entity_has_index_with_AggregateId_Version()
         {
             var context = new EventStoreDbContext(_dbContextOptions);
             IEntityType sut = context.Model.FindEntityType(typeof(PersistentEvent));
@@ -71,7 +71,7 @@
         }
 
         [Fact]
-        public void PendingEvent_entity_has_key_for_AggregateId_Version()
+        public void PendingEvent_entity_has_key_with_AggregateId_Version()
         {
             var context = new EventStoreDbContext(_dbContextOptions);
             IEntityType sut = context.Model.FindEntityType(typeof(PendingEvent));
@@ -81,6 +81,42 @@
                 sut.FindProperty("Version")
             });
             actual.Should().NotBeNull();
+        }
+
+        [Fact]
+        public void model_has_UniqueIndexedProperty_entity()
+        {
+            var sut = new EventStoreDbContext(_dbContextOptions);
+            IEntityType actual = sut.Model.FindEntityType(typeof(UniqueIndexedProperty));
+            actual.Should().NotBeNull();
+        }
+
+        [Fact]
+        public void UniqueIndexedProperty_entity_has_key_with_AggregateType_PropertyName_PropertyValue()
+        {
+            var context = new EventStoreDbContext(_dbContextOptions);
+            IEntityType sut = context.Model.FindEntityType(typeof(UniqueIndexedProperty));
+            IKey actual = sut.FindKey(new[]
+            {
+                sut.FindProperty("AggregateType"),
+                sut.FindProperty("PropertyName"),
+                sut.FindProperty("PropertyValue")
+            });
+            actual.Should().NotBeNull();
+        }
+
+        [Fact]
+        public void UniqueIndexedProperty_entity_has_index_with_AggregateId_PropertyName()
+        {
+            var context = new EventStoreDbContext(_dbContextOptions);
+            IEntityType sut = context.Model.FindEntityType(typeof(UniqueIndexedProperty));
+            IIndex actual = sut.FindIndex(new[]
+            {
+                sut.FindProperty("AggregateId"),
+                sut.FindProperty("PropertyName")
+            });
+            actual.Should().NotBeNull();
+            actual.IsUnique.Should().BeTrue();
         }
     }
 }

@@ -16,7 +16,10 @@
         [Key]
         [Column(Order = 1)]
         [StringLength(128)]
+#if NETSTANDARD2_0
+#else
         [Index(IndexName, IsUnique = true, Order = 1)]
+#endif
         public string PropertyName { get; set; }
 
         [Key]
@@ -24,7 +27,10 @@
         [StringLength(128)]
         public string PropertyValue { get; set; }
 
+#if NETSTANDARD2_0
+#else
         [Index(IndexName, IsUnique = true, Order = 0)]
+#endif
         public Guid AggregateId { get; set; }
 
         [ConcurrencyCheck]
