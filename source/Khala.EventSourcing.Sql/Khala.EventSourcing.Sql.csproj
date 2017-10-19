@@ -82,6 +82,12 @@
     <Compile Include="..\Khala.EventSourcing.SqlCore\EventSourcing\Sql\ISqlEventStore.cs">
       <Link>EventSourcing\Sql\ISqlEventStore.cs</Link>
     </Compile>
+    <Compile Include="..\Khala.EventSourcing.SqlCore\EventSourcing\Sql\Memento.cs">
+      <Link>EventSourcing\Sql\Memento.cs</Link>
+    </Compile>
+    <Compile Include="..\Khala.EventSourcing.SqlCore\EventSourcing\Sql\MementoStoreDbContext.cs">
+      <Link>EventSourcing\Sql\MementoStoreDbContext.cs</Link>
+    </Compile>
     <Compile Include="..\Khala.EventSourcing.SqlCore\EventSourcing\Sql\PendingEvent.cs">
       <Link>EventSourcing\Sql\PendingEvent.cs</Link>
     </Compile>
@@ -91,8 +97,6 @@
     <Compile Include="..\Khala.EventSourcing.SqlCore\EventSourcing\Sql\UniqueIndexedProperty.cs">
       <Link>EventSourcing\Sql\UniqueIndexedProperty.cs</Link>
     </Compile>
-    <Compile Include="EventSourcing\Sql\Memento.cs" />
-    <Compile Include="EventSourcing\Sql\MementoStoreDbContext.cs" />
     <Compile Include="EventSourcing\Sql\SqlEventPublisher.cs" />
     <Compile Include="EventSourcing\Sql\SqlEventSourcedRepository.cs" />
     <Compile Include="EventSourcing\Sql\SqlEventSourcingExtensions.cs" />
