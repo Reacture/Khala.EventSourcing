@@ -1,13 +1,28 @@
 ﻿namespace Khala.EventSourcing.Sql
 {
+#if NETSTANDARD2_0
     using Microsoft.EntityFrameworkCore;
+#else
+    using System.Data.Entity;
+#endif
 
     public class EventStoreDbContext : DbContext
     {
+#if NETSTANDARD2_0
         public EventStoreDbContext(DbContextOptions options)
             : base(options)
         {
         }
+#else
+        public EventStoreDbContext()
+        {
+        }
+
+        public EventStoreDbContext(string nameOrConnectionString)
+            : base(nameOrConnectionString)
+        {
+        }
+#endif
 
         public DbSet<Aggregate> Aggregates { get; set; }
 
@@ -19,6 +34,7 @@
 
         public DbSet<Correlation> Correlations { get; set; }
 
+#if NETSTANDARD2_0
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -30,5 +46,6 @@
             modelBuilder.Entity<UniqueIndexedProperty>().HasIndex(nameof(UniqueIndexedProperty.AggregateId), nameof(UniqueIndexedProperty.PropertyName)).IsUnique();
             modelBuilder.Entity<Correlation>().HasKey(nameof(Correlation.AggregateId), nameof(Correlation.CorrelationId));
         }
+#endif
     }
 }
