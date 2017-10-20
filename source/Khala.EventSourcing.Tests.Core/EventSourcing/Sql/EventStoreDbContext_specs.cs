@@ -92,17 +92,18 @@
         }
 
         [Fact]
-        public void UniqueIndexedProperty_entity_has_key_with_AggregateType_PropertyName_PropertyValue()
+        public void UniqueIndexedProperty_entity_has_primary_key_with_AggregateType_PropertyName_PropertyValue()
         {
             var context = new EventStoreDbContext(_dbContextOptions);
             IEntityType sut = context.Model.FindEntityType(typeof(UniqueIndexedProperty));
-            IKey actual = sut.FindKey(new[]
+            IKey actual = sut.FindPrimaryKey();
+            actual.Should().NotBeNull();
+            actual.Properties.Should().Equal(new[]
             {
                 sut.FindProperty("AggregateType"),
                 sut.FindProperty("PropertyName"),
                 sut.FindProperty("PropertyValue")
             });
-            actual.Should().NotBeNull();
         }
 
         [Fact]
