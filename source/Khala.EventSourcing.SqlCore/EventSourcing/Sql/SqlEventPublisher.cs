@@ -3,13 +3,18 @@
     using System;
     using System.Collections.Generic;
     using System.ComponentModel;
-    using System.Data.Entity;
-    using System.Data.Entity.Core;
-    using System.Data.Entity.Infrastructure;
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
     using Messaging;
+
+#if NETSTANDARD2_0
+    using Microsoft.EntityFrameworkCore;
+#else
+    using System.Data.Entity;
+    using System.Data.Entity.Core;
+    using System.Data.Entity.Infrastructure;
+#endif
 
     public class SqlEventPublisher : ISqlEventPublisher
     {
@@ -94,8 +99,12 @@
                     context.PendingEvents.Remove(pendingEvent);
                     await context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
                 }
+#if NETSTANDARD2_0
+                catch (DbUpdateConcurrencyException)
+#else
                 catch (DbUpdateConcurrencyException exception)
                 when (exception.InnerException is OptimisticConcurrencyException)
+#endif
                 {
                     context.Entry(pendingEvent).State = EntityState.Detached;
                 }

@@ -96,6 +96,9 @@
     <Compile Include="..\Khala.EventSourcing.SqlCore\EventSourcing\Sql\PersistentEvent.cs">
       <Link>EventSourcing\Sql\PersistentEvent.cs</Link>
     </Compile>
+    <Compile Include="..\Khala.EventSourcing.SqlCore\EventSourcing\Sql\SqlEventPublisher.cs">
+      <Link>EventSourcing\Sql\SqlEventPublisher.cs</Link>
+    </Compile>
     <Compile Include="..\Khala.EventSourcing.SqlCore\EventSourcing\Sql\SqlEventSourcingExtensions.cs">
       <Link>EventSourcing\Sql\SqlEventSourcingExtensions.cs</Link>
     </Compile>
@@ -105,7 +108,6 @@
     <Compile Include="..\Khala.EventSourcing.SqlCore\EventSourcing\Sql\UniqueIndexedProperty.cs">
       <Link>EventSourcing\Sql\UniqueIndexedProperty.cs</Link>
     </Compile>
-    <Compile Include="EventSourcing\Sql\SqlEventPublisher.cs" />
     <Compile Include="EventSourcing\Sql\SqlEventSourcedRepository.cs" />
     <Compile Include="EventSourcing\Sql\SqlMementoStore.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

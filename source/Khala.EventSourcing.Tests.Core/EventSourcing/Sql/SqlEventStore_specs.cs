@@ -43,6 +43,10 @@
             using (var context = new FakeEventStoreDbContext(_dbContextOptions))
             {
                 context.Database.Migrate();
+                context.Database.ExecuteSqlCommand("DELETE FROM Aggregates");
+                context.Database.ExecuteSqlCommand("DELETE FROM PersistentEvents");
+                context.Database.ExecuteSqlCommand("DELETE FROM PendingEvents");
+                context.Database.ExecuteSqlCommand("DELETE FROM UniqueIndexedProperties");
             }
         }
 

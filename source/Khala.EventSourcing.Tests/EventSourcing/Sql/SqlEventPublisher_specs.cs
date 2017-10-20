@@ -125,7 +125,7 @@
         }
 
         [TestMethod]
-        public async Task FlushPendingEvents_does_not_invoke_SendBatch_if_pending_event_not_found()
+        public async Task FlushPendingEvents_does_not_invoke_Send_if_pending_event_not_found()
         {
             var sourceId = Guid.NewGuid();
             await _sut.FlushPendingEvents(sourceId, CancellationToken.None);
