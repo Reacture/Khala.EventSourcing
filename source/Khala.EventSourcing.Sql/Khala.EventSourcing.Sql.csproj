@@ -23,6 +23,7 @@
     <WarningLevel>4</WarningLevel>
     <CodeAnalysisRuleSet>..\Rules\Khala.EventSourcing.ruleset</CodeAnalysisRuleSet>
     <RunCodeAnalysis>true</RunCodeAnalysis>
+    <LangVersion>latest</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -33,6 +34,7 @@
     <WarningLevel>4</WarningLevel>
     <CodeAnalysisRuleSet>..\Rules\Khala.EventSourcing.ruleset</CodeAnalysisRuleSet>
     <RunCodeAnalysis>true</RunCodeAnalysis>
+    <LangVersion>latest</LangVersion>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="EntityFramework, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
@@ -94,13 +96,17 @@
     <Compile Include="..\Khala.EventSourcing.SqlCore\EventSourcing\Sql\PersistentEvent.cs">
       <Link>EventSourcing\Sql\PersistentEvent.cs</Link>
     </Compile>
+    <Compile Include="..\Khala.EventSourcing.SqlCore\EventSourcing\Sql\SqlEventSourcingExtensions.cs">
+      <Link>EventSourcing\Sql\SqlEventSourcingExtensions.cs</Link>
+    </Compile>
+    <Compile Include="..\Khala.EventSourcing.SqlCore\EventSourcing\Sql\SqlEventStore.cs">
+      <Link>EventSourcing\Sql\SqlEventStore.cs</Link>
+    </Compile>
     <Compile Include="..\Khala.EventSourcing.SqlCore\EventSourcing\Sql\UniqueIndexedProperty.cs">
       <Link>EventSourcing\Sql\UniqueIndexedProperty.cs</Link>
     </Compile>
     <Compile Include="EventSourcing\Sql\SqlEventPublisher.cs" />
     <Compile Include="EventSourcing\Sql\SqlEventSourcedRepository.cs" />
-    <Compile Include="EventSourcing\Sql\SqlEventSourcingExtensions.cs" />
-    <Compile Include="EventSourcing\Sql\SqlEventStore.cs" />
     <Compile Include="EventSourcing\Sql\SqlMementoStore.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

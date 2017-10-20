@@ -2,14 +2,19 @@
 {
     using System;
     using System.Collections.Generic;
-    using System.Data.Entity;
-    using System.Data.Entity.Core;
-    using System.Data.Entity.Infrastructure;
     using System.Linq;
     using System.Runtime.CompilerServices;
     using System.Threading;
     using System.Threading.Tasks;
     using Messaging;
+
+#if NETSTANDARD2_0
+    using Microsoft.EntityFrameworkCore;
+#else
+    using System.Data.Entity;
+    using System.Data.Entity.Core;
+    using System.Data.Entity.Infrastructure;
+#endif
 
     public class SqlEventStore : ISqlEventStore
     {
@@ -85,7 +90,7 @@
                 await UpdateUniqueIndexedProperties<T>(context, sourceId, events, cancellationToken).ConfigureAwait(false);
                 InsertCorrelation(sourceId, correlationId, context);
 
-                await SaveChanges<T>(context, sourceId, cancellationToken);
+                await SaveChanges<T>(context, sourceId, correlationId, cancellationToken);
             }
         }
 
@@ -231,6 +236,7 @@
         private async Task SaveChanges<T>(
             EventStoreDbContext context,
             Guid sourceId,
+            Guid? correlationId,
             CancellationToken cancellationToken)
             where T : class, IEventSourced
         {
@@ -238,6 +244,24 @@
             {
                 await context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
             }
+#if NETSTANDARD2_0
+            catch (DbUpdateException exception) when (correlationId.HasValue)
+            {
+                IQueryable<Correlation> query = from c in context.Correlations
+                                                where c.AggregateId == sourceId && c.CorrelationId == correlationId
+                                                select c;
+                if (await query.AnyAsync())
+                {
+                    throw new DuplicateCorrelationException(
+                        typeof(T),
+                        sourceId,
+                        correlationId.Value,
+                        exception);
+                }
+
+                throw;
+            }
+#else
             catch (DbUpdateException exception)
             when (exception.InnerException is UpdateException)
             {
@@ -260,6 +284,7 @@
 
                 throw;
             }
+#endif
         }
 
         public Task<IEnumerable<IDomainEvent>> LoadEvents<T>(
