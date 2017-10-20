@@ -71,16 +71,17 @@
         }
 
         [Fact]
-        public void PendingEvent_entity_has_key_with_AggregateId_Version()
+        public void PendingEvent_entity_has_primary_key_with_AggregateId_Version()
         {
             var context = new EventStoreDbContext(_dbContextOptions);
             IEntityType sut = context.Model.FindEntityType(typeof(PendingEvent));
-            IKey actual = sut.FindKey(new[]
+            IKey actual = sut.FindPrimaryKey();
+            actual.Should().NotBeNull();
+            actual.Properties.Should().Equal(new[]
             {
                 sut.FindProperty("AggregateId"),
                 sut.FindProperty("Version")
             });
-            actual.Should().NotBeNull();
         }
 
         [Fact]
@@ -129,16 +130,17 @@
         }
 
         [Fact]
-        public void Correlation_entity_has_key_with_AggregateId_CorrelationId()
+        public void Correlation_entity_has_primary_key_with_AggregateId_CorrelationId()
         {
             var context = new EventStoreDbContext(_dbContextOptions);
             IEntityType sut = context.Model.FindEntityType(typeof(Correlation));
-            IKey actual = sut.FindKey(new[]
+            IKey actual = sut.FindPrimaryKey();
+            actual.Should().NotBeNull();
+            actual.Properties.Should().Equal(new[]
             {
                 sut.FindProperty("AggregateId"),
                 sut.FindProperty("CorrelationId")
             });
-            actual.Should().NotBeNull();
         }
     }
 }
