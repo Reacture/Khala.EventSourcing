@@ -1,4 +1,4 @@
-version: 0.15.{build}
+version: 0.16.{build}
 image: Visual Studio 2017
 configuration: Release
 before_build:
@@ -19,6 +19,8 @@ after_build:
     nuget pack nuget\Khala.EventSourcing.Owin.nuspec -Symbols
 
     nuget pack nuget\Khala.EventSourcing.Sql.nuspec -Symbols
+
+    nuget pack nuget\Khala.EventSourcing.SqlCore.nuspec -Symbols
 test:
   assemblies: '**\*.tests.dll'
 artifacts:

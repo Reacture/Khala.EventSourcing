@@ -2,7 +2,7 @@
 <package >
   <metadata>
     <id>Khala.EventSourcing.Owin</id>
-    <version>0.15.0</version>
+    <version>0.16.0</version>
     <title>Khala.EventSourcing.Owin</title>
     <authors>Gyuwon</authors>
     <owners>Gyuwon</owners>
@@ -15,7 +15,7 @@
     <tags>CQRS EventSourcing OWIN Reactive</tags>
     <dependencies>
       <group targetFramework="net461">
-        <dependency id="Khala.EventSourcing.Abstraction" version="0.15.0" exclude="build,analyzers" />
+        <dependency id="Khala.EventSourcing.Abstraction" version="0.16.0" exclude="build,analyzers" />
         <dependency id="Microsoft.Owin" version="3.1.0" exclude="build,analyzers" />
       </group>
     </dependencies>

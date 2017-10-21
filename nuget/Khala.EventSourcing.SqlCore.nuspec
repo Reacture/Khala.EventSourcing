@@ -1,31 +1,31 @@
 <?xml version="1.0"?>
 <package >
   <metadata>
-    <id>Khala.EventSourcing.Azure</id>
+    <id>Khala.EventSourcing.SqlCore</id>
     <version>0.16.0</version>
-    <title>Khala.EventSourcing.Azure</title>
+    <title>Khala.EventSourcing.SqlCore</title>
     <authors>Gyuwon</authors>
     <owners>Gyuwon</owners>
     <licenseUrl>https://github.com/Reacture/Khala.EventSourcing/blob/master/LICENSE</licenseUrl>
     <projectUrl>https://github.com/Reacture/Khala.EventSourcing</projectUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
-    <description>Microsoft Azure Table storage based event store implementation</description>
+    <description>Relational databases based event store implementation for .NET Core</description>
     <releaseNotes></releaseNotes>
     <copyright>Copyright Gyuwon 2017</copyright>
-    <tags>CQRS EventSourcing Azure TableStorage Cloud Reactive</tags>
+    <tags>CQRS EventSourcing SQL EntityFrameworkCore Relational Reactive</tags>
     <dependencies>
       <group targetFramework="net461">
         <dependency id="Khala.EventSourcing.Abstraction" version="0.16.0" exclude="build,analyzers" />
-        <dependency id="WindowsAzure.Storage" version="8.5.0" exclude="build,analyzers" />
+        <dependency id="Microsoft.EntityFrameworkCore" version="2.0.0" exclude="build,analyzers" />
       </group>
-      <group targetFramework="netstandard1.3">
+      <group targetFramework="netstandard2.0">
         <dependency id="Khala.EventSourcing.Abstraction" version="0.16.0" exclude="build,analyzers" />
-        <dependency id="WindowsAzure.Storage" version="8.5.0" exclude="build,analyzers" />
-        <dependency id="NETStandard.Library" version="1.6.1" exclude="build,analyzers" />
+        <dependency id="Microsoft.EntityFrameworkCore" version="2.0.0" exclude="build,analyzers" />
+        <dependency id="NETStandard.Library" version="2.0.0" exclude="build,analyzers" />
       </group>
     </dependencies>
   </metadata>
   <files>
-    <file src="..\source\Khala.EventSourcing.Azure\bin\Release\netstandard1.3\Khala.EventSourcing.Azure.dll" target="lib\netstandard1.3\Khala.EventSourcing.Azure.dll" />
+    <file src="..\source\Khala.EventSourcing.SqlCore\bin\Release\netstandard2.0\Khala.EventSourcing.SqlCore.dll" target="lib\netstandard2.0\Khala.EventSourcing.SqlCore.dll" />
   </files>
 </package>
