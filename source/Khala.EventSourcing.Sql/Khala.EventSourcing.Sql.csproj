@@ -23,6 +23,7 @@
     <WarningLevel>4</WarningLevel>
     <CodeAnalysisRuleSet>..\Rules\Khala.EventSourcing.ruleset</CodeAnalysisRuleSet>
     <RunCodeAnalysis>true</RunCodeAnalysis>
+    <LangVersion>latest</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -33,6 +34,7 @@
     <WarningLevel>4</WarningLevel>
     <CodeAnalysisRuleSet>..\Rules\Khala.EventSourcing.ruleset</CodeAnalysisRuleSet>
     <RunCodeAnalysis>true</RunCodeAnalysis>
+    <LangVersion>latest</LangVersion>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="EntityFramework, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
@@ -67,22 +69,51 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="EventSourcing\Sql\Aggregate.cs" />
-    <Compile Include="EventSourcing\Sql\Correlation.cs" />
-    <Compile Include="EventSourcing\Sql\EventStoreDbContext.cs" />
-    <Compile Include="EventSourcing\Sql\IMementoStoreDbContext.cs" />
-    <Compile Include="EventSourcing\Sql\ISqlEventPublisher.cs" />
-    <Compile Include="EventSourcing\Sql\ISqlEventStore.cs" />
-    <Compile Include="EventSourcing\Sql\Memento.cs" />
-    <Compile Include="EventSourcing\Sql\MementoStoreDbContext.cs" />
-    <Compile Include="EventSourcing\Sql\PendingEvent.cs" />
-    <Compile Include="EventSourcing\Sql\PersistentEvent.cs" />
-    <Compile Include="EventSourcing\Sql\SqlEventPublisher.cs" />
-    <Compile Include="EventSourcing\Sql\SqlEventSourcedRepository.cs" />
-    <Compile Include="EventSourcing\Sql\SqlEventSourcingExtensions.cs" />
-    <Compile Include="EventSourcing\Sql\SqlEventStore.cs" />
-    <Compile Include="EventSourcing\Sql\SqlMementoStore.cs" />
-    <Compile Include="EventSourcing\Sql\UniqueIndexedProperty.cs" />
+    <Compile Include="..\Khala.EventSourcing.SqlCore\EventSourcing\Sql\Aggregate.cs">
+      <Link>EventSourcing\Sql\Aggregate.cs</Link>
+    </Compile>
+    <Compile Include="..\Khala.EventSourcing.SqlCore\EventSourcing\Sql\Correlation.cs">
+      <Link>EventSourcing\Sql\Correlation.cs</Link>
+    </Compile>
+    <Compile Include="..\Khala.EventSourcing.SqlCore\EventSourcing\Sql\EventStoreDbContext.cs">
+      <Link>EventSourcing\Sql\EventStoreDbContext.cs</Link>
+    </Compile>
+    <Compile Include="..\Khala.EventSourcing.SqlCore\EventSourcing\Sql\ISqlEventPublisher.cs">
+      <Link>EventSourcing\Sql\ISqlEventPublisher.cs</Link>
+    </Compile>
+    <Compile Include="..\Khala.EventSourcing.SqlCore\EventSourcing\Sql\ISqlEventStore.cs">
+      <Link>EventSourcing\Sql\ISqlEventStore.cs</Link>
+    </Compile>
+    <Compile Include="..\Khala.EventSourcing.SqlCore\EventSourcing\Sql\Memento.cs">
+      <Link>EventSourcing\Sql\Memento.cs</Link>
+    </Compile>
+    <Compile Include="..\Khala.EventSourcing.SqlCore\EventSourcing\Sql\MementoStoreDbContext.cs">
+      <Link>EventSourcing\Sql\MementoStoreDbContext.cs</Link>
+    </Compile>
+    <Compile Include="..\Khala.EventSourcing.SqlCore\EventSourcing\Sql\PendingEvent.cs">
+      <Link>EventSourcing\Sql\PendingEvent.cs</Link>
+    </Compile>
+    <Compile Include="..\Khala.EventSourcing.SqlCore\EventSourcing\Sql\PersistentEvent.cs">
+      <Link>EventSourcing\Sql\PersistentEvent.cs</Link>
+    </Compile>
+    <Compile Include="..\Khala.EventSourcing.SqlCore\EventSourcing\Sql\SqlEventPublisher.cs">
+      <Link>EventSourcing\Sql\SqlEventPublisher.cs</Link>
+    </Compile>
+    <Compile Include="..\Khala.EventSourcing.SqlCore\EventSourcing\Sql\SqlEventSourcedRepository.cs">
+      <Link>EventSourcing\Sql\SqlEventSourcedRepository.cs</Link>
+    </Compile>
+    <Compile Include="..\Khala.EventSourcing.SqlCore\EventSourcing\Sql\SqlEventSourcingExtensions.cs">
+      <Link>EventSourcing\Sql\SqlEventSourcingExtensions.cs</Link>
+    </Compile>
+    <Compile Include="..\Khala.EventSourcing.SqlCore\EventSourcing\Sql\SqlEventStore.cs">
+      <Link>EventSourcing\Sql\SqlEventStore.cs</Link>
+    </Compile>
+    <Compile Include="..\Khala.EventSourcing.SqlCore\EventSourcing\Sql\SqlMementoStore.cs">
+      <Link>EventSourcing\Sql\SqlMementoStore.cs</Link>
+    </Compile>
+    <Compile Include="..\Khala.EventSourcing.SqlCore\EventSourcing\Sql\UniqueIndexedProperty.cs">
+      <Link>EventSourcing\Sql\UniqueIndexedProperty.cs</Link>
+    </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

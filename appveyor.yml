@@ -2,12 +2,14 @@ version: 0.15.{build}
 image: Visual Studio 2017
 configuration: Release
 before_build:
-- cmd: nuget restore source\Khala.EventSourcing.sln
+- cmd: .\nuget\nuget.exe restore source\Khala.EventSourcing.sln
 build:
   verbosity: minimal
   project: source\Khala.EventSourcing.sln
 after_build:
 - cmd: >-
+    dotnet test .\source\Khala.EventSourcing.Tests.Core\
+
     nuget pack nuget\Khala.EventSourcing.Contracts.nuspec -Symbols
 
     nuget pack nuget\Khala.EventSourcing.Abstraction.nuspec -Symbols
