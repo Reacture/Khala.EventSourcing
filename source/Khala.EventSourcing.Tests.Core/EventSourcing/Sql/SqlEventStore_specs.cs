@@ -10,6 +10,7 @@
     using Khala.FakeDomain.Events;
     using Khala.Messaging;
     using Microsoft.EntityFrameworkCore;
+    using Microsoft.EntityFrameworkCore.Diagnostics;
     using Xunit;
 
     public class SqlEventStore_specs
@@ -628,6 +629,49 @@
                 x.SourceId == userId &&
                 x.CorrelationId == correlationId &&
                 x.InnerException is DbUpdateException);
+        }
+
+        [Fact]
+        public void SaveEvents_fails_if_db_context_does_not_support_transaction()
+        {
+            // Arrange
+            var created = new FakeUserCreated { Version = 1 };
+
+            string databaseName = nameof(SaveEvents_fails_if_db_context_does_not_support_transaction);
+            DbContextOptions options = new DbContextOptionsBuilder()
+                .UseInMemoryDatabase(databaseName)
+                .Options;
+            var sut = new SqlEventStore(
+                () => new FakeEventStoreDbContext(options),
+                new JsonMessageSerializer());
+
+            // Act
+            Func<Task> action = () => sut.SaveEvents<FakeUser>(new[] { created });
+
+            // Assert
+            action.ShouldThrow<InvalidOperationException>();
+        }
+
+        [Fact]
+        public void SaveEvents_succeeds_if_db_context_support_transaction()
+        {
+            // Arrange
+            var created = new FakeUserCreated { Version = 1 };
+
+            string databaseName = nameof(SaveEvents_succeeds_if_db_context_support_transaction);
+            DbContextOptions options = new DbContextOptionsBuilder()
+                .UseInMemoryDatabase(databaseName)
+                .ConfigureWarnings(builder => builder.Ignore(InMemoryEventId.TransactionIgnoredWarning))
+                .Options;
+            var sut = new SqlEventStore(
+                () => new FakeEventStoreDbContext(_dbContextOptions),
+                new JsonMessageSerializer());
+
+            // Act
+            Func<Task> action = () => sut.SaveEvents<FakeUser>(new[] { created });
+
+            // Assert
+            action.ShouldNotThrow();
         }
 
         [Fact]

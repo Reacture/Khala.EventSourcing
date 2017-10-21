@@ -10,6 +10,7 @@
 
 #if NETSTANDARD2_0
     using Microsoft.EntityFrameworkCore;
+    using Microsoft.EntityFrameworkCore.Storage;
 #else
     using System.Data.Entity;
     using System.Data.Entity.Core;
@@ -240,11 +241,16 @@
             CancellationToken cancellationToken)
             where T : class, IEventSourced
         {
+#if NETSTANDARD2_0
             try
             {
-                await context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+                using (IDbContextTransaction transaction = await
+                       context.Database.BeginTransactionAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    await context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+                    transaction.Commit();
+                }
             }
-#if NETSTANDARD2_0
             catch (DbUpdateException exception) when (correlationId.HasValue)
             {
                 IQueryable<Correlation> query = from c in context.Correlations
@@ -262,6 +268,10 @@
                 throw;
             }
 #else
+            try
+            {
+                await context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+            }
             catch (DbUpdateException exception)
             when (exception.InnerException is UpdateException)
             {
