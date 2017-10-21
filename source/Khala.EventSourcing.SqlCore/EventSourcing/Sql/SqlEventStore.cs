@@ -234,6 +234,7 @@
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1822:MarkMembersAsStatic", Justification = "This method is extracted.")]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA1801:ReviewUnusedParameters", MessageId = "correlationId", Justification = "The parameter 'correlationId' is used on .NET Standard 2.0.")]
         private async Task SaveChanges<T>(
             EventStoreDbContext context,
             Guid sourceId,
