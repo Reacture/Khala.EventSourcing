@@ -105,11 +105,13 @@
     <Compile Include="..\Khala.EventSourcing.SqlCore\EventSourcing\Sql\SqlEventStore.cs">
       <Link>EventSourcing\Sql\SqlEventStore.cs</Link>
     </Compile>
+    <Compile Include="..\Khala.EventSourcing.SqlCore\EventSourcing\Sql\SqlMementoStore.cs">
+      <Link>EventSourcing\Sql\SqlMementoStore.cs</Link>
+    </Compile>
     <Compile Include="..\Khala.EventSourcing.SqlCore\EventSourcing\Sql\UniqueIndexedProperty.cs">
       <Link>EventSourcing\Sql\UniqueIndexedProperty.cs</Link>
     </Compile>
     <Compile Include="EventSourcing\Sql\SqlEventSourcedRepository.cs" />
-    <Compile Include="EventSourcing\Sql\SqlMementoStore.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

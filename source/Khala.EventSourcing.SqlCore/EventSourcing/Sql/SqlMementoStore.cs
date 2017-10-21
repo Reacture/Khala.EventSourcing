@@ -1,11 +1,16 @@
 ﻿namespace Khala.EventSourcing.Sql
 {
     using System;
-    using System.Data.Entity;
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
     using Messaging;
+
+#if NETSTANDARD2_0
+    using Microsoft.EntityFrameworkCore;
+#else
+    using System.Data.Entity;
+#endif
 
     public class SqlMementoStore : IMementoStore
     {
