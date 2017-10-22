@@ -653,12 +653,12 @@
         }
 
         [Fact]
-        public void SaveEvents_succeeds_if_db_context_support_transaction()
+        public void SaveEvents_succeeds_if_db_context_supports_transaction()
         {
             // Arrange
             var created = new FakeUserCreated { Version = 1 };
 
-            string databaseName = nameof(SaveEvents_succeeds_if_db_context_support_transaction);
+            string databaseName = nameof(SaveEvents_succeeds_if_db_context_supports_transaction);
             DbContextOptions options = new DbContextOptionsBuilder()
                 .UseInMemoryDatabase(databaseName)
                 .ConfigureWarnings(builder => builder.Ignore(InMemoryEventId.TransactionIgnoredWarning))
