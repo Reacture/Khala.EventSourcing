@@ -257,7 +257,7 @@
                 IQueryable<Correlation> query = from c in context.Correlations
                                                 where c.AggregateId == sourceId && c.CorrelationId == correlationId
                                                 select c;
-                if (await query.AnyAsync())
+                if (await query.AnyAsync().ConfigureAwait(false))
                 {
                     throw new DuplicateCorrelationException(
                         typeof(T),
