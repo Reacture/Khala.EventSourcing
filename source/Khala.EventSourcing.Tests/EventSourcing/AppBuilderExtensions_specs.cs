@@ -3,53 +3,19 @@
     using System;
     using System.Collections.Generic;
     using System.Threading;
-    using System.Threading.Tasks;
-    using FluentAssertions;
     using Microsoft.Owin.BuilderProperties;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
     using Moq;
     using Owin;
+    using Ploeh.AutoFixture;
+    using Ploeh.AutoFixture.AutoMoq;
+    using Ploeh.AutoFixture.Idioms;
 
     [TestClass]
     public class AppBuilderExtensions_specs
     {
-        private class FooAppBuilder : IAppBuilder
-        {
-            public IDictionary<string, object> Properties => throw new NotImplementedException();
-
-            public object Build(Type returnType)
-            {
-                throw new NotImplementedException();
-            }
-
-            public IAppBuilder New()
-            {
-                throw new NotImplementedException();
-            }
-
-            public IAppBuilder Use(object middleware, params object[] args)
-            {
-                throw new NotImplementedException();
-            }
-        }
-
-        private class FooRepository : IEventSourcedRepository<IEventSourced>
-        {
-            public IEventPublisher EventPublisher => throw new NotImplementedException();
-
-            public Task<IEventSourced> Find(Guid sourceId, CancellationToken cancellationToken)
-            {
-                throw new NotImplementedException();
-            }
-
-            public Task SaveAndPublish(IEventSourced source, Guid? correlationId, CancellationToken cancellationToken)
-            {
-                throw new NotImplementedException();
-            }
-        }
-
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1034:NestedTypesShouldNotBeVisible", Justification = "Should be mockable.")]
-        public class FooEventSourced : IEventSourced
+        public class FakeEventSourced : IEventSourced
         {
             public IEnumerable<IDomainEvent> FlushPendingEvents() => throw new NotImplementedException();
 
@@ -59,42 +25,10 @@
         }
 
         [TestMethod]
-        public void EnqueuePendingEvents_has_guard_clause_against_null_app_argument()
+        public void sut_has_guard_clauses()
         {
-            // Arrange
-            IAppBuilder app = null;
-            IEventSourcedRepository<IEventSourced> repository = new FooRepository();
-
-            // Act
-            object exception = null;
-            try
-            {
-                AppBuilderExtensions.EnqueuePendingEvents(app, repository);
-            }
-            catch (Exception thrown)
-            {
-                exception = thrown;
-            }
-
-            // Assert
-            exception.Should().NotBeNull()
-                .And.BeOfType<ArgumentNullException>()
-                .Which.ParamName.Should().Be("app");
-        }
-
-        [TestMethod]
-        public void EnqueuePendingEvents_has_guard_clause_against_null_repository_argument()
-        {
-            // Arrange
-            IAppBuilder app = new FooAppBuilder();
-            IEventSourcedRepository<IEventSourced> repository = null;
-
-            // Act
-            Action action = () =>
-            AppBuilderExtensions.EnqueuePendingEvents(app, repository);
-
-            // Assert
-            action.ShouldThrow<ArgumentNullException>().Where(x => x.ParamName == "repository");
+            var builder = new Fixture().Customize(new AutoMoqCustomization());
+            new GuardClauseAssertion(builder).Verify(typeof(AppBuilderExtensions));
         }
 
         [TestMethod]
@@ -107,22 +41,15 @@
                 x => x.Properties == new Dictionary<string, object>());
 
             IEventPublisher eventPublisher = Mock.Of<IEventPublisher>();
-            IEventSourcedRepository<FooEventSourced> repository =
-                Mock.Of<IEventSourcedRepository<FooEventSourced>>(
-                    x => x.EventPublisher == eventPublisher);
 
             var cancellationToken = new CancellationToken(canceled);
-#pragma warning disable IDE0017 // Simplify object initialization
-            var appProperties = new AppProperties(app.Properties);
-            appProperties.OnAppDisposing = cancellationToken;
-#pragma warning restore IDE0017 // Simplify object initialization
+            new AppProperties(app.Properties) { OnAppDisposing = cancellationToken };
 
             // Act
-            app.EnqueuePendingEvents(repository);
+            app.EnqueuePendingEvents(eventPublisher);
 
             // Assert
-            Mock.Get(eventPublisher)
-                .Verify(x => x.EnqueueAll(cancellationToken), Times.Once());
+            Mock.Get(eventPublisher).Verify(x => x.EnqueueAll(cancellationToken), Times.Once());
         }
     }
 }

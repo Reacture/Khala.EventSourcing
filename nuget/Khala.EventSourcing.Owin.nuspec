@@ -2,7 +2,7 @@
 <package >
   <metadata>
     <id>Khala.EventSourcing.Owin</id>
-    <version>0.16.0</version>
+    <version>0.16.1</version>
     <title>Khala.EventSourcing.Owin</title>
     <authors>Gyuwon</authors>
     <owners>Gyuwon</owners>
