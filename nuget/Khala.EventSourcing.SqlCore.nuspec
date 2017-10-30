@@ -2,7 +2,7 @@
 <package >
   <metadata>
     <id>Khala.EventSourcing.SqlCore</id>
-    <version>0.16.0</version>
+    <version>0.16.1</version>
     <title>Khala.EventSourcing.SqlCore</title>
     <authors>Gyuwon</authors>
     <owners>Gyuwon</owners>
@@ -16,10 +16,12 @@
     <dependencies>
       <group targetFramework="net461">
         <dependency id="Khala.EventSourcing.Abstraction" version="0.16.0" exclude="build,analyzers" />
+        <dependency id="Khala.Messaging.Abstraction" version="0.16.0" exclude="build,analyzers" />
         <dependency id="Microsoft.EntityFrameworkCore" version="2.0.0" exclude="build,analyzers" />
       </group>
       <group targetFramework="netstandard2.0">
         <dependency id="Khala.EventSourcing.Abstraction" version="0.16.0" exclude="build,analyzers" />
+        <dependency id="Khala.Messaging.Abstraction" version="0.16.0" exclude="build,analyzers" />
         <dependency id="Microsoft.EntityFrameworkCore" version="2.0.0" exclude="build,analyzers" />
         <dependency id="NETStandard.Library" version="2.0.0" exclude="build,analyzers" />
       </group>
