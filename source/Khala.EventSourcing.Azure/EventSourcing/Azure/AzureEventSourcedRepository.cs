@@ -111,7 +111,7 @@
                 memento == null
                 ? domainEvents.Any()
                     ? _entityFactory.Invoke(sourceId, domainEvents)
-                    : default(T)
+                    : default
                 : _mementoEntityFactory.Invoke(sourceId, memento, domainEvents);
         }
     }

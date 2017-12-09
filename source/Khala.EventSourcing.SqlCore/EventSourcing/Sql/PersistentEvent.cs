@@ -35,6 +35,9 @@
         [Required]
         public string EventJson { get; set; }
 
+        [StringLength(128)]
+        public string Contributor { get; set; }
+
         public DateTimeOffset RaisedAt { get; set; }
 
         public static PersistentEvent FromEnvelope(
