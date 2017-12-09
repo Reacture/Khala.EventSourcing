@@ -11,9 +11,10 @@ using System;
 namespace Khala.FakeDomain.Migrations
 {
     [DbContext(typeof(FakeEventStoreDbContext))]
-    partial class FakeEventStoreDbContextModelSnapshot : ModelSnapshot
+    [Migration("20171209175953_AddContributorPropertyToPendingEvent")]
+    partial class AddContributorPropertyToPendingEvent
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

@@ -22,6 +22,8 @@
         [Required]
         public string EventJson { get; set; }
 
+        public string Contributor { get; set; }
+
         public static PendingEvent FromEnvelope(
             Envelope envelope,
             IMessageSerializer serializer)
