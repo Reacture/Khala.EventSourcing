@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>netstandard1.3</TargetFramework>
     <RootNamespace>Khala</RootNamespace>
-    <Version>0.16.0</Version>
+    <Version>0.16.2</Version>
     <Authors>Gyuwon</Authors>
   </PropertyGroup>
 
