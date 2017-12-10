@@ -14,6 +14,8 @@
 
         public Guid? CorrelationId { get; set; }
 
+        public string Contributor { get; set; }
+
         public string EventJson { get; set; }
 
         public DateTimeOffset RaisedAt { get; set; }
