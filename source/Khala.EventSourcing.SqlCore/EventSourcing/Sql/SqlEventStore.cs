@@ -74,20 +74,64 @@
                 }
             }
 
-            return Save<T>(firstEvent.SourceId, domainEvents, correlationId, cancellationToken);
+            return Save<T>(firstEvent.SourceId, domainEvents, correlationId, null, cancellationToken);
+        }
+
+        public Task SaveEvents<T>(
+            IEnumerable<IDomainEvent> events,
+            Guid? correlationId,
+            string contributor,
+            CancellationToken cancellationToken)
+            where T : class, IEventSourced
+        {
+            List<IDomainEvent> domainEvents = events.ToList();
+
+            if (domainEvents.Count == 0)
+            {
+                return Task.FromResult(true);
+            }
+
+            IDomainEvent firstEvent = domainEvents.First();
+
+            for (int i = 0; i < domainEvents.Count; i++)
+            {
+                if (domainEvents[i] == null)
+                {
+                    throw new ArgumentException(
+                        $"{nameof(events)} cannot contain null.",
+                        nameof(events));
+                }
+
+                if (domainEvents[i].Version != firstEvent.Version + i)
+                {
+                    throw new ArgumentException(
+                        $"Versions of {nameof(events)} must be sequential.",
+                        nameof(events));
+                }
+
+                if (domainEvents[i].SourceId != firstEvent.SourceId)
+                {
+                    throw new ArgumentException(
+                        $"All events must have the same source id.",
+                        nameof(events));
+                }
+            }
+
+            return Save<T>(firstEvent.SourceId, domainEvents, correlationId, contributor, cancellationToken);
         }
 
         private async Task Save<T>(
             Guid sourceId,
             List<IDomainEvent> events,
             Guid? correlationId,
+            string contributor,
             CancellationToken cancellationToken)
             where T : class, IEventSourced
         {
             using (EventStoreDbContext context = _dbContextFactory.Invoke())
             {
                 await UpsertAggregate<T>(context, sourceId, events, cancellationToken).ConfigureAwait(false);
-                InsertEvents(context, events, correlationId);
+                InsertEvents(context, events, correlationId, contributor);
                 await UpdateUniqueIndexedProperties<T>(context, sourceId, events, cancellationToken).ConfigureAwait(false);
                 InsertCorrelation(sourceId, correlationId, context);
 
@@ -134,27 +178,24 @@
         private void InsertEvents(
             EventStoreDbContext context,
             List<IDomainEvent> events,
-            Guid? correlationId)
+            Guid? correlationId,
+            string contributor)
         {
             foreach (IDomainEvent domainEvent in events)
             {
-                InsertEvent(context, domainEvent, correlationId);
+                InsertEvent(context, domainEvent, correlationId, contributor);
             }
         }
 
         private void InsertEvent(
-            EventStoreDbContext context, IDomainEvent domainEvent, Guid? correlationId)
+            EventStoreDbContext context,
+            IDomainEvent domainEvent,
+            Guid? correlationId,
+            string contributor)
         {
-            Envelope envelope = Envelop(domainEvent, correlationId);
+            var envelope = new Envelope(Guid.NewGuid(), correlationId, contributor, domainEvent);
             context.PersistentEvents.Add(PersistentEvent.FromEnvelope(envelope, _serializer));
             context.PendingEvents.Add(PendingEvent.FromEnvelope(envelope, _serializer));
-        }
-
-        private static Envelope Envelop(IDomainEvent domainEvent, Guid? correlationId)
-        {
-            return correlationId == null
-                ? new Envelope(domainEvent)
-                : new Envelope(correlationId.Value, domainEvent);
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1822:MarkMembersAsStatic", Justification = "This method is extracted.")]

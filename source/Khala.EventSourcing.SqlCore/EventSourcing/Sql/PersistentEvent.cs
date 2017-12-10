@@ -70,6 +70,7 @@
                 EventType = domainEvent.GetType().FullName,
                 MessageId = envelope.MessageId,
                 CorrelationId = envelope.CorrelationId,
+                Contributor = envelope.Contributor,
                 EventJson = serializer.Serialize(domainEvent),
                 RaisedAt = domainEvent.RaisedAt
             };

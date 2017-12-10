@@ -25,6 +25,14 @@
             CancellationToken cancellationToken)
             where T : class, IEventSourced;
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1004:GenericMethodsShouldProvideTypeParameter", Justification = "As designed.")]
+        Task SaveEvents<T>(
+            IEnumerable<IDomainEvent> events,
+            Guid? correlationId,
+            string contributor,
+            CancellationToken cancellationToken)
+            where T : class, IEventSourced;
+
         /// <summary>
         /// Loads domain events for an event sourcing applied aggregates after the specified versiion.
         /// </summary>

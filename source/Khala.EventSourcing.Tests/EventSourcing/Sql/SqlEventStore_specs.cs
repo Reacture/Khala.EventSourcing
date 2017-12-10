@@ -15,7 +15,6 @@
     using Moq;
     using Ploeh.AutoFixture;
     using Ploeh.AutoFixture.AutoMoq;
-    using Ploeh.AutoFixture.Idioms;
 
     [TestClass]
     public class SqlEventStore_specs
@@ -68,13 +67,6 @@
                 db.Database.ExecuteSqlCommand("DELETE FROM PendingEvents");
                 db.Database.ExecuteSqlCommand("DELETE FROM UniqueIndexedProperties");
             }
-        }
-
-        [TestMethod]
-        public void SqlEventStore_has_guard_clauses()
-        {
-            var assertion = new GuardClauseAssertion(_fixture);
-            assertion.Verify(typeof(SqlEventStore));
         }
 
         [TestMethod]
