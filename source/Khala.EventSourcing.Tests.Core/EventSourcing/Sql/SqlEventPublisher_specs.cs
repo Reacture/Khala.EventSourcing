@@ -41,7 +41,7 @@
         }
 
         [Fact]
-        public async Task FlushPendingEvents_sends_events()
+        public async Task FlushPendingEvents_sends_events_correctly()
         {
             // Arrange
             var created = new FakeUserCreated();
@@ -58,7 +58,11 @@
                 var serializer = new JsonMessageSerializer();
                 foreach (DomainEvent e in events)
                 {
-                    var envelope = new Envelope(e);
+                    var envelope = new Envelope(
+                        messageId: Guid.NewGuid(),
+                        correlationId: Guid.NewGuid(),
+                        contributor: Guid.NewGuid().ToString(),
+                        message: e);
                     envelopes.Add(envelope);
                     db.PendingEvents.Add(PendingEvent.FromEnvelope(envelope, serializer));
                 }
@@ -144,7 +148,7 @@
         }
 
         [Fact]
-        public async Task FlushAllPendingEvents_sends_app_pending_events()
+        public async Task FlushAllPendingEvents_sends_all_pending_events()
         {
             // Arrange
             IEnumerable<FakeUserCreated> createdEvents = new[]
@@ -161,7 +165,11 @@
             foreach (FakeUserCreated createdEvent in createdEvents)
             {
                 createdEvent.Raise(Guid.NewGuid());
-                await eventStore.SaveEvents<FakeUser>(new[] { createdEvent });
+                await eventStore.SaveEvents<FakeUser>(
+                    new[] { createdEvent },
+                    correlationId: default,
+                    contributor: default,
+                    cancellationToken: default);
             }
 
             var messageBus = new MessageBus();

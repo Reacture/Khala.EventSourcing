@@ -85,6 +85,7 @@
             new Envelope(
                 pendingEvent.MessageId,
                 pendingEvent.CorrelationId,
+                pendingEvent.Contributor,
                 _serializer.Deserialize(pendingEvent.EventJson));
 
         private static async Task RemoveEvents(
