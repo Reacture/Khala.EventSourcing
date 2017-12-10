@@ -85,14 +85,14 @@
             var cancellation = new CancellationTokenSource();
             var cancellationToken = cancellation.Token;
             var eventStore = Mock.Of<ISqlEventStore>(
-                x => x.LoadEvents<FakeUser>(sourceId, default(int), cancellationToken) == task);
+                x => x.LoadEvents<FakeUser>(sourceId, default, cancellationToken) == task);
 
             Task<IEnumerable<IDomainEvent>> result =
                 eventStore.LoadEvents<FakeUser>(sourceId, cancellationToken);
 
             Mock.Get(eventStore).Verify(
                 x =>
-                x.LoadEvents<FakeUser>(sourceId, default(int), cancellationToken),
+                x.LoadEvents<FakeUser>(sourceId, default, cancellationToken),
                 Times.Once());
             result.Should().BeSameAs(task);
         }
@@ -124,14 +124,14 @@
             var task = fixture.Create<Task<IEnumerable<IDomainEvent>>>();
             var sourceId = Guid.NewGuid();
             var eventStore = Mock.Of<ISqlEventStore>(
-                x => x.LoadEvents<FakeUser>(sourceId, default(int), CancellationToken.None) == task);
+                x => x.LoadEvents<FakeUser>(sourceId, default, CancellationToken.None) == task);
 
             Task<IEnumerable<IDomainEvent>> result =
                 eventStore.LoadEvents<FakeUser>(sourceId);
 
             Mock.Get(eventStore).Verify(
                 x =>
-                x.LoadEvents<FakeUser>(sourceId, default(int), CancellationToken.None),
+                x.LoadEvents<FakeUser>(sourceId, default, CancellationToken.None),
                 Times.Once());
             result.Should().BeSameAs(task);
         }

@@ -8,6 +8,28 @@
     {
         public static Task SaveAndPublish<T>(
             this IEventSourcedRepository<T> repository,
+            T source)
+            where T : class, IEventSourced
+        {
+            if (repository == null)
+            {
+                throw new ArgumentNullException(nameof(repository));
+            }
+
+            if (source == null)
+            {
+                throw new ArgumentNullException(nameof(source));
+            }
+
+            return repository.SaveAndPublish(
+                source,
+                correlationId: default,
+                contributor: default,
+                CancellationToken.None);
+        }
+
+        public static Task SaveAndPublish<T>(
+            this IEventSourcedRepository<T> repository,
             T source,
             CancellationToken cancellationToken)
             where T : class, IEventSourced
@@ -22,7 +44,11 @@
                 throw new ArgumentNullException(nameof(source));
             }
 
-            return repository.SaveAndPublish(source, null, cancellationToken);
+            return repository.SaveAndPublish(
+                source,
+                correlationId: default,
+                contributor: default,
+                cancellationToken);
         }
 
         public static Task SaveAndPublish<T>(
@@ -41,12 +67,18 @@
                 throw new ArgumentNullException(nameof(source));
             }
 
-            return repository.SaveAndPublish(source, correlationId, CancellationToken.None);
+            return repository.SaveAndPublish(
+                source,
+                correlationId,
+                contributor: default,
+                CancellationToken.None);
         }
 
         public static Task SaveAndPublish<T>(
             this IEventSourcedRepository<T> repository,
-            T source)
+            T source,
+            Guid? correlationId,
+            CancellationToken cancellationToken)
             where T : class, IEventSourced
         {
             if (repository == null)
@@ -59,7 +91,7 @@
                 throw new ArgumentNullException(nameof(source));
             }
 
-            return repository.SaveAndPublish(source, null, CancellationToken.None);
+            return repository.SaveAndPublish(source, correlationId, default, cancellationToken);
         }
 
         public static Task<T> Find<T>(

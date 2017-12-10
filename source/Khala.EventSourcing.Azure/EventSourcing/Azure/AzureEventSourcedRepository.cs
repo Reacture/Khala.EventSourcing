@@ -42,26 +42,6 @@
         public Task SaveAndPublish(
             T source,
             Guid? correlationId,
-            CancellationToken cancellationToken)
-        {
-            if (source == null)
-            {
-                throw new ArgumentNullException(nameof(source));
-            }
-
-            async Task Run()
-            {
-                await SaveEvents(source, correlationId, default, cancellationToken).ConfigureAwait(false);
-                await FlushEvents(source, cancellationToken).ConfigureAwait(false);
-                await SaveMementoIfPossible(source, cancellationToken).ConfigureAwait(false);
-            }
-
-            return Run();
-        }
-
-        public Task SaveAndPublish(
-            T source,
-            Guid? correlationId,
             string contributor,
             CancellationToken cancellationToken)
         {

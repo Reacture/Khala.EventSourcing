@@ -24,11 +24,13 @@
         /// </summary>
         /// <param name="source">An event sourcing applied aggregate.</param>
         /// <param name="correlationId">The identifier of the correlation.</param>
+        /// <param name="contributor">Information of the contributor to domain events, or <c>null</c>.</param>
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
         /// <returns>A task representing the asynchronous operation.</returns>
         Task SaveAndPublish(
             T source,
             Guid? correlationId,
+            string contributor,
             CancellationToken cancellationToken);
 
         /// <summary>

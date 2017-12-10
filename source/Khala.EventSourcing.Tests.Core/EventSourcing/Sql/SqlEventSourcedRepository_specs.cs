@@ -30,6 +30,7 @@
             // Arrange
             var user = new FakeUser(id: Guid.NewGuid(), username: Guid.NewGuid().ToString());
             var correlationId = Guid.NewGuid();
+            string contributor = Guid.NewGuid().ToString();
             user.ChangeUsername(username: Guid.NewGuid().ToString());
             var pendingEvents = new List<IDomainEvent>(user.PendingEvents);
 
@@ -41,12 +42,12 @@
                 FakeUser.Factory);
 
             // Act
-            await sut.SaveAndPublish(user, correlationId, default);
+            await sut.SaveAndPublish(user, correlationId, contributor, cancellationToken: default);
 
             // Assert
             Mock.Get(eventStore).Verify(
                 x =>
-                x.SaveEvents<FakeUser>(pendingEvents, correlationId, default),
+                x.SaveEvents<FakeUser>(pendingEvents, correlationId, contributor, default),
                 Times.Once());
         }
 
@@ -56,6 +57,7 @@
             // Arrange
             var user = new FakeUser(id: Guid.NewGuid(), username: Guid.NewGuid().ToString());
             var correlationId = Guid.NewGuid();
+            string contributor = Guid.NewGuid().ToString();
             user.ChangeUsername(username: Guid.NewGuid().ToString());
 
             var eventPublisher = Mock.Of<ISqlEventPublisher>();
@@ -66,7 +68,7 @@
                 FakeUser.Factory);
 
             // Act
-            await sut.SaveAndPublish(user, correlationId, default);
+            await sut.SaveAndPublish(user, correlationId, contributor, cancellationToken: default);
 
             // Assert
             Mock.Get(eventPublisher).Verify(
@@ -81,6 +83,7 @@
             // Arrange
             var user = new FakeUser(id: Guid.NewGuid(), username: Guid.NewGuid().ToString());
             var correlationId = Guid.NewGuid();
+            string contributor = Guid.NewGuid().ToString();
             user.ChangeUsername(username: Guid.NewGuid().ToString());
 
             var eventStore = Mock.Of<ISqlEventStore>();
@@ -90,6 +93,7 @@
                     x.SaveEvents<FakeUser>(
                         It.IsAny<IEnumerable<IDomainEvent>>(),
                         correlationId,
+                        contributor,
                         default))
                 .Throws<InvalidOperationException>();
 
@@ -101,7 +105,7 @@
                 FakeUser.Factory);
 
             // Act
-            Func<Task> action = () => sut.SaveAndPublish(user, correlationId, default);
+            Func<Task> action = () => sut.SaveAndPublish(user, correlationId, contributor, cancellationToken: default);
 
             // Assert
             action.ShouldThrow<InvalidOperationException>();
@@ -117,6 +121,7 @@
             // Arrange
             var user = new FakeUser(id: Guid.NewGuid(), username: Guid.NewGuid().ToString());
             var correlationId = Guid.NewGuid();
+            string contributor = Guid.NewGuid().ToString();
 
             var mementoStore = Mock.Of<IMementoStore>();
 
@@ -128,7 +133,7 @@
                 FakeUser.Factory);
 
             // Act
-            await sut.SaveAndPublish(user, correlationId, default);
+            await sut.SaveAndPublish(user, correlationId, contributor, cancellationToken: default);
 
             // Assert
             Mock.Get(mementoStore).Verify(
@@ -149,6 +154,7 @@
             // Arrange
             var user = new FakeUser(id: Guid.NewGuid(), username: Guid.NewGuid().ToString());
             var correlationId = Guid.NewGuid();
+            string contributor = Guid.NewGuid().ToString();
 
             var eventStore = Mock.Of<ISqlEventStore>();
             var mementoStore = Mock.Of<IMementoStore>();
@@ -159,6 +165,7 @@
                     x.SaveEvents<FakeUser>(
                         It.IsAny<IEnumerable<IDomainEvent>>(),
                         correlationId,
+                        contributor,
                         default))
                 .Throws<InvalidOperationException>();
 
@@ -170,7 +177,7 @@
                 FakeUser.Factory);
 
             // Act
-            Func<Task> action = () => sut.SaveAndPublish(user, correlationId, default);
+            Func<Task> action = () => sut.SaveAndPublish(user, correlationId, contributor, cancellationToken: default);
 
             // Assert
             action.ShouldThrow<InvalidOperationException>();

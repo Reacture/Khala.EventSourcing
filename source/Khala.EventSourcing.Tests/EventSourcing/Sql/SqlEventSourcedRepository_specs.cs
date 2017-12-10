@@ -11,7 +11,6 @@
     using Moq;
     using Ploeh.AutoFixture;
     using Ploeh.AutoFixture.AutoMoq;
-    using Ploeh.AutoFixture.Idioms;
 
     [TestClass]
     public class SqlEventSourcedRepository_specs
@@ -38,13 +37,6 @@
         }
 
         [TestMethod]
-        public void sut_implements_ISqlEventSourcedRepository()
-        {
-            _sut.Should().BeAssignableTo
-                <ISqlEventSourcedRepository<FakeUser>>();
-        }
-
-        [TestMethod]
         public void sut_implements_IEventSourcedRepositoryT()
         {
             _sut.Should().BeAssignableTo
@@ -52,11 +44,10 @@
         }
 
         [TestMethod]
-        public void class_has_guard_clauses()
+        public void sut_implements_ISqlEventSourcedRepository()
         {
-            var assertion = new GuardClauseAssertion(_fixture);
-            _fixture.Inject<Func<EventStoreDbContext>>(() => new EventStoreDbContext());
-            assertion.Verify(typeof(SqlEventSourcedRepository<>));
+            _sut.Should().BeAssignableTo
+                <ISqlEventSourcedRepository<FakeUser>>();
         }
 
         [TestMethod]
@@ -64,16 +55,18 @@
         {
             var user = _fixture.Create<FakeUser>();
             var correlationId = Guid.NewGuid();
+            string contributor = Guid.NewGuid().ToString();
             user.ChangeUsername(_fixture.Create("username"));
             var pendingEvents = new List<IDomainEvent>(user.PendingEvents);
 
-            await _sut.SaveAndPublish(user, correlationId, CancellationToken.None);
+            await _sut.SaveAndPublish(user, correlationId, contributor, CancellationToken.None);
 
             Mock.Get(_eventStore).Verify(
                 x =>
                 x.SaveEvents<FakeUser>(
                     pendingEvents,
                     correlationId,
+                    contributor,
                     CancellationToken.None),
                 Times.Once());
         }
@@ -83,9 +76,10 @@
         {
             var user = _fixture.Create<FakeUser>();
             var correlationId = Guid.NewGuid();
+            string contributor = Guid.NewGuid().ToString();
             user.ChangeUsername(_fixture.Create("username"));
 
-            await _sut.SaveAndPublish(user, correlationId, CancellationToken.None);
+            await _sut.SaveAndPublish(user, correlationId, contributor, CancellationToken.None);
 
             Mock.Get(_eventPublisher).Verify(
                 x =>
@@ -98,6 +92,7 @@
         {
             var user = _fixture.Create<FakeUser>();
             var correlationId = Guid.NewGuid();
+            string contributor = Guid.NewGuid().ToString();
             user.ChangeUsername(_fixture.Create("username"));
             Mock.Get(_eventStore)
                 .Setup(
@@ -105,10 +100,11 @@
                     x.SaveEvents<FakeUser>(
                         It.IsAny<IEnumerable<IDomainEvent>>(),
                         correlationId,
+                        contributor,
                         CancellationToken.None))
                 .Throws<InvalidOperationException>();
 
-            Func<Task> action = () => _sut.SaveAndPublish(user, correlationId, CancellationToken.None);
+            Func<Task> action = () => _sut.SaveAndPublish(user, correlationId, contributor, CancellationToken.None);
 
             action.ShouldThrow<InvalidOperationException>();
             Mock.Get(_eventPublisher).Verify(
@@ -122,8 +118,9 @@
         {
             var user = _fixture.Create<FakeUser>();
             var correlationId = Guid.NewGuid();
+            string contributor = Guid.NewGuid().ToString();
 
-            await _sut.SaveAndPublish(user, correlationId, CancellationToken.None);
+            await _sut.SaveAndPublish(user, correlationId, contributor, CancellationToken.None);
 
             Mock.Get(_mementoStore).Verify(
                 x =>
@@ -143,17 +140,19 @@
             // Arrange
             var user = _fixture.Create<FakeUser>();
             var correlationId = Guid.NewGuid();
+            string contributor = Guid.NewGuid().ToString();
             Mock.Get(_eventStore)
                 .Setup(
                     x =>
                     x.SaveEvents<FakeUser>(
                         It.IsAny<IEnumerable<IDomainEvent>>(),
                         correlationId,
+                        contributor,
                         CancellationToken.None))
                 .Throws<InvalidOperationException>();
 
             // Act
-            Func<Task> action = () => _sut.SaveAndPublish(user, correlationId, CancellationToken.None);
+            Func<Task> action = () => _sut.SaveAndPublish(user, correlationId, contributor, CancellationToken.None);
 
             // Assert
             action.ShouldThrow<InvalidOperationException>();

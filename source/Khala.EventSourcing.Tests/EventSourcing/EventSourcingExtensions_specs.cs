@@ -8,22 +8,29 @@
     using Microsoft.VisualStudio.TestTools.UnitTesting;
     using Moq;
     using Ploeh.AutoFixture;
-    using Ploeh.AutoFixture.AutoMoq;
-    using Ploeh.AutoFixture.Idioms;
 
     [TestClass]
     public class EventSourcingExtensions_specs
     {
         [TestMethod]
-        public void class_has_guard_clauses()
+        public void SaveAndPublish_relays_with_null_correlation_and_null_contributor_and_none_cancellation_token()
         {
-            var fixture = new Fixture().Customize(new AutoMoqCustomization());
-            var assertion = new GuardClauseAssertion(fixture);
-            assertion.Verify(typeof(EventSourcingExtensions));
+            var task = Task.FromResult(true);
+            var source = new FakeUser(Guid.NewGuid(), "foo");
+            var repository = Mock.Of<IEventSourcedRepository<FakeUser>>(
+                x => x.SaveAndPublish(source, default, default, CancellationToken.None) == task);
+
+            Task result = repository.SaveAndPublish(source);
+
+            Mock.Get(repository).Verify(
+                x =>
+                x.SaveAndPublish(source, default, default, CancellationToken.None),
+                Times.Once());
+            result.Should().BeSameAs(task);
         }
 
         [TestMethod]
-        public void SaveAndPublish_relays_with_null_correlation()
+        public void SaveAndPublish_relays_with_null_correlation_and_null_contributor()
         {
             var fixture = new Fixture();
             var repository = Mock.Of<IEventSourcedRepository<FakeUser>>();
@@ -33,41 +40,44 @@
 
             Mock.Get(repository).Verify(
                 x =>
-                x.SaveAndPublish(source, null, CancellationToken.None),
+                x.SaveAndPublish(source, default, default, CancellationToken.None),
                 Times.Once());
         }
 
         [TestMethod]
-        public void SaveAndPublish_relays_with_none_cancellation_token()
+        public void SaveAndPublish_relays_with_null_contributor_and_none_cancellation_token()
         {
             var task = Task.FromResult(true);
             var source = new FakeUser(Guid.NewGuid(), "foo");
             var correlationId = Guid.NewGuid();
             var repository = Mock.Of<IEventSourcedRepository<FakeUser>>(
-                x => x.SaveAndPublish(source, correlationId, CancellationToken.None) == task);
+                x => x.SaveAndPublish(source, correlationId, default, CancellationToken.None) == task);
 
             Task result = repository.SaveAndPublish(source, correlationId);
 
             Mock.Get(repository).Verify(
                 x =>
-                x.SaveAndPublish(source, correlationId, CancellationToken.None),
+                x.SaveAndPublish(source, correlationId, default, CancellationToken.None),
                 Times.Once());
             result.Should().BeSameAs(task);
         }
 
         [TestMethod]
-        public void SaveAndPublish_relays_with_null_correlation_and_none_cancellation_token()
+        public void SaveAndPublish_relays_with_null_contributor()
         {
             var task = Task.FromResult(true);
             var source = new FakeUser(Guid.NewGuid(), "foo");
+            var correlationId = Guid.NewGuid();
+            var cancellation = new CancellationTokenSource();
+            var cancellationToken = cancellation.Token;
             var repository = Mock.Of<IEventSourcedRepository<FakeUser>>(
-                x => x.SaveAndPublish(source, null, CancellationToken.None) == task);
+                x => x.SaveAndPublish(source, correlationId, default, cancellationToken) == task);
 
-            Task result = repository.SaveAndPublish(source);
+            Task result = repository.SaveAndPublish(source, correlationId, cancellationToken);
 
             Mock.Get(repository).Verify(
                 x =>
-                x.SaveAndPublish(source, null, CancellationToken.None),
+                x.SaveAndPublish(source, correlationId, default, cancellationToken),
                 Times.Once());
             result.Should().BeSameAs(task);
         }
