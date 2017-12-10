@@ -48,12 +48,40 @@
                 }
             }
 
-            return Save<T>(domainEvents, correlationId, cancellationToken);
+            return Save<T>(domainEvents, correlationId, default, cancellationToken);
+        }
+
+        public Task SaveEvents<T>(
+            IEnumerable<IDomainEvent> events,
+            Guid? correlationId,
+            string contributor,
+            CancellationToken cancellationToken)
+            where T : class, IEventSourced
+        {
+            if (events == null)
+            {
+                throw new ArgumentNullException(nameof(events));
+            }
+
+            List<IDomainEvent> domainEvents = events.ToList();
+
+            for (int i = 0; i < domainEvents.Count; i++)
+            {
+                if (domainEvents[i] == null)
+                {
+                    throw new ArgumentException(
+                        $"{nameof(events)} cannot contain null.",
+                        nameof(events));
+                }
+            }
+
+            return Save<T>(domainEvents, correlationId, contributor, cancellationToken);
         }
 
         private async Task Save<T>(
             List<IDomainEvent> domainEvents,
             Guid? correlationId,
+            string contributor,
             CancellationToken cancellationToken)
             where T : class, IEventSourced
         {
@@ -63,9 +91,8 @@
             }
 
             var envelopes = new List<Envelope>(
-                correlationId == null
-                ? domainEvents.Select(e => new Envelope(e))
-                : domainEvents.Select(e => new Envelope(correlationId.Value, e)));
+                from e in domainEvents
+                select new Envelope(Guid.NewGuid(), correlationId, contributor, e));
 
             await InsertPendingEvents<T>(envelopes, cancellationToken).ConfigureAwait(false);
             await InsertEventsAndCorrelation<T>(envelopes, correlationId, cancellationToken).ConfigureAwait(false);

@@ -4,7 +4,6 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Net;
-    using System.Threading;
     using System.Threading.Tasks;
     using FluentAssertions;
     using Khala.FakeDomain;
@@ -16,7 +15,6 @@
     using Microsoft.WindowsAzure.Storage.Table;
     using Ploeh.AutoFixture;
     using Ploeh.AutoFixture.AutoMoq;
-    using Ploeh.AutoFixture.Idioms;
 
     [TestClass]
     public class AzureEventStore_specs
@@ -72,12 +70,6 @@
         }
 
         [TestMethod]
-        public void class_has_guard_clauses()
-        {
-            new GuardClauseAssertion(_fixture).Verify(typeof(AzureEventStore));
-        }
-
-        [TestMethod]
         public void SaveEvents_fails_if_events_contains_null()
         {
             var fixture = new Fixture().Customize(new AutoMoqCustomization());
@@ -87,7 +79,11 @@
                 .Concat(new[] { default(IDomainEvent) })
                 .OrderBy(_ => random.Next());
 
-            Func<Task> action = () => _sut.SaveEvents<FakeUser>(events, null, CancellationToken.None);
+            Func<Task> action = () => _sut.SaveEvents<FakeUser>(
+                events,
+                correlationId: default,
+                contributor: default,
+                cancellationToken: default);
 
             action.ShouldThrow<ArgumentException>().Where(x => x.ParamName == "events");
         }
@@ -100,15 +96,17 @@
             var usernameChanged = _fixture.Create<FakeUsernameChanged>();
             var events = new DomainEvent[] { created, usernameChanged };
             var correlationId = Guid.NewGuid();
+            string contributor = Guid.NewGuid().ToString();
             RaiseEvents(_userId, events);
 
             // Act
-            await _sut.SaveEvents<FakeUser>(events, correlationId);
+            await _sut.SaveEvents<FakeUser>(events, correlationId, contributor, cancellationToken: default);
 
             // Assert
             string partitionKey = PendingEventTableEntity.GetPartitionKey(typeof(FakeUser), _userId);
             var query = new TableQuery<PendingEventTableEntity>().Where($"PartitionKey eq '{partitionKey}'");
             IEnumerable<PendingEventTableEntity> pendingEvents = s_eventTable.ExecuteQuery(query);
+            pendingEvents.Should().HaveCount(events.Length);
             foreach (var t in pendingEvents.Zip(events, (pending, source) =>
                               new { Pending = pending, Source = source }))
             {
@@ -118,6 +116,7 @@
                     t.Pending.PersistentPartition,
                     t.Pending.Version,
                     t.Pending.CorrelationId,
+                    t.Pending.Contributor,
                     Message = _serializer.Deserialize(t.Pending.EventJson)
                 };
                 actual.ShouldBeEquivalentTo(new
@@ -126,6 +125,7 @@
                     PersistentPartition = EventTableEntity.GetPartitionKey(typeof(FakeUser), _userId),
                     t.Source.Version,
                     CorrelationId = correlationId,
+                    Contributor = contributor,
                     Message = t.Source
                 },
                 opts => opts.RespectingRuntimeTypes());
@@ -140,15 +140,22 @@
             var usernameChanged = _fixture.Create<FakeUsernameChanged>();
             var events = new DomainEvent[] { created, usernameChanged };
             var correlationId = Guid.NewGuid();
+            string contributor = Guid.NewGuid().ToString();
             RaiseEvents(_userId, events);
 
             // Act
-            await _sut.SaveEvents<FakeUser>(events, correlationId);
+            await _sut.SaveEvents<FakeUser>(
+                events,
+                correlationId,
+                contributor,
+                cancellationToken: default);
 
             // Assert
             string partitionKey = EventTableEntity.GetPartitionKey(typeof(FakeUser), _userId);
-            var query = new TableQuery<EventTableEntity>().Where($"PartitionKey eq '{partitionKey}'");
+            string filter = $"(PartitionKey eq '{partitionKey}') and (RowKey lt 'Correlation')";
+            var query = new TableQuery<EventTableEntity>().Where(filter);
             IEnumerable<EventTableEntity> persistentEvents = s_eventTable.ExecuteQuery(query);
+            persistentEvents.Should().HaveCount(events.Length);
             foreach (var t in persistentEvents.Zip(events, (persistent, source)
                            => new { Persistent = persistent, Source = source }))
             {
@@ -158,6 +165,7 @@
                     t.Persistent.Version,
                     t.Persistent.EventType,
                     t.Persistent.CorrelationId,
+                    t.Persistent.Contributor,
                     Event = (DomainEvent)_serializer.Deserialize(t.Persistent.EventJson),
                     t.Persistent.RaisedAt
                 };
@@ -167,6 +175,7 @@
                     t.Source.Version,
                     EventType = t.Source.GetType().FullName,
                     CorrelationId = correlationId,
+                    Contributor = contributor,
                     Event = t.Source,
                     t.Source.RaisedAt
                 });
@@ -174,7 +183,7 @@
         }
 
         [TestMethod]
-        public async Task SaveEvents_does_not_insert_event_entities_if_fails_to_insert_pending_events()
+        public async Task SaveEvents_does_not_insert_event_entities_if_fails_to_insert_pending_event_entities()
         {
             // Arrange
             DomainEvent domainEvent = _fixture.Create<FakeUserCreated>();
@@ -186,7 +195,11 @@
             }));
 
             // Act
-            Func<Task> action = () => _sut.SaveEvents<FakeUser>(new[] { domainEvent });
+            Func<Task> action = () => _sut.SaveEvents<FakeUser>(
+                new[] { domainEvent },
+                correlationId: default,
+                contributor: default,
+                cancellationToken: default);
 
             // Assert
             action.ShouldThrow<Exception>();
@@ -198,7 +211,11 @@
         public void SaveEvents_does_not_fail_even_if_events_empty()
         {
             var events = new DomainEvent[] { };
-            Func<Task> action = () => _sut.SaveEvents<FakeUser>(events);
+            Func<Task> action = () => _sut.SaveEvents<FakeUser>(
+                events,
+                correlationId: default,
+                contributor: default,
+                cancellationToken: default);
             action.ShouldNotThrow();
         }
 
@@ -213,7 +230,11 @@
 
             // Act
             var now = DateTimeOffset.Now;
-            await _sut.SaveEvents<FakeUser>(events, correlationId);
+            await _sut.SaveEvents<FakeUser>(
+                events,
+                correlationId,
+                contributor: default,
+                cancellationToken: default);
 
             // Assert
             string partitionKey = CorrelationTableEntity.GetPartitionKey(typeof(FakeUser), _userId);
@@ -226,18 +247,6 @@
         }
 
         [TestMethod]
-        public void SaveEvents_does_not_fail_even_if_no_correlation()
-        {
-            var created = _fixture.Create<FakeUserCreated>();
-            var events = new DomainEvent[] { created };
-            RaiseEvents(_userId, events);
-
-            Func<Task> action = () => _sut.SaveEvents<FakeUser>(events);
-
-            action.ShouldNotThrow();
-        }
-
-        [TestMethod]
         public async Task SaveEvents_throws_DuplicateCorrelationException_if_correlation_duplicate()
         {
             var created = _fixture.Create<FakeUserCreated>();
@@ -246,7 +255,11 @@
             var correlationId = Guid.NewGuid();
             await _sut.SaveEvents<FakeUser>(new[] { created }, correlationId);
 
-            Func<Task> action = () => _sut.SaveEvents<FakeUser>(new[] { usernameChanged }, correlationId);
+            Func<Task> action = () => _sut.SaveEvents<FakeUser>(
+                new[] { usernameChanged },
+                correlationId,
+                contributor: default,
+                cancellationToken: default);
 
             action.ShouldThrow<DuplicateCorrelationException>().Where(
                 x =>

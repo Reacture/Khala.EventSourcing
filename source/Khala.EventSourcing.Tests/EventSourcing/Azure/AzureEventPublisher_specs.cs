@@ -134,7 +134,11 @@
             // Arrange
             var userId = Guid.NewGuid();
             IEnumerable<DomainEvent> domainEvents = CreateFakeUserDomainEvents(userId);
-            var envelopes = new List<Envelope>(domainEvents.Select(e => new Envelope(e)));
+            var correlationId = Guid.NewGuid();
+            string contributor = Guid.NewGuid().ToString();
+            var envelopes = new List<Envelope>(
+                from e in domainEvents
+                select new Envelope(Guid.NewGuid(), correlationId, contributor, message: e));
             await InsertPendingEvents(envelopes);
             await InsertPersistentEvents(envelopes);
 

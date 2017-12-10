@@ -8,11 +8,9 @@
     using FluentAssertions;
     using Khala.FakeDomain;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
-    using Microsoft.WindowsAzure.Storage;
     using Moq;
     using Ploeh.AutoFixture;
     using Ploeh.AutoFixture.AutoMoq;
-    using Ploeh.AutoFixture.Idioms;
 
     [TestClass]
     public class AzureEventSourcedRepository_specs
@@ -45,14 +43,6 @@
         }
 
         [TestMethod]
-        public void class_has_guard_clauses()
-        {
-            var assertion = new GuardClauseAssertion(_fixture);
-            _fixture.Inject(CloudStorageAccount.DevelopmentStorageAccount.CreateCloudTableClient().GetTableReference("foo"));
-            assertion.Verify(typeof(AzureEventSourcedRepository<>));
-        }
-
-        [TestMethod]
         public void constructor_sets_EventPublisher_correctly()
         {
             var eventPublisher = Mock.Of<IAzureEventPublisher>();
@@ -71,11 +61,16 @@
             // Arrange
             var user = _fixture.Create<FakeUser>();
             var correlationId = Guid.NewGuid();
+            string contributor = Guid.NewGuid().ToString();
             user.ChangeUsername("foo");
             var pendingEvents = new List<IDomainEvent>(user.PendingEvents);
 
             // Act
-            await _sut.SaveAndPublish(user, correlationId, CancellationToken.None);
+            await _sut.SaveAndPublish(
+                user,
+                correlationId,
+                contributor,
+                cancellationToken: default);
 
             // Assert
             Mock.Get(_eventStore).Verify(
@@ -83,6 +78,7 @@
                 x.SaveEvents<FakeUser>(
                     pendingEvents,
                     correlationId,
+                    contributor,
                     CancellationToken.None),
                 Times.Once());
         }
@@ -92,9 +88,10 @@
         {
             var user = _fixture.Create<FakeUser>();
             var correlationId = Guid.NewGuid();
+            string contributor = Guid.NewGuid().ToString();
             user.ChangeUsername("foo");
 
-            await _sut.SaveAndPublish(user, correlationId, CancellationToken.None);
+            await _sut.SaveAndPublish(user, correlationId, contributor, CancellationToken.None);
 
             Mock.Get(_eventPublisher).Verify(
                 x =>
@@ -110,6 +107,7 @@
             // Arrange
             var user = _fixture.Create<FakeUser>();
             var correlationId = Guid.NewGuid();
+            string contributor = Guid.NewGuid().ToString();
             user.ChangeUsername("foo");
             Mock.Get(_eventStore)
                 .Setup(
@@ -117,11 +115,12 @@
                     x.SaveEvents<FakeUser>(
                         It.IsAny<IEnumerable<IDomainEvent>>(),
                         It.IsAny<Guid?>(),
+                        It.IsAny<string>(),
                         CancellationToken.None))
                 .Throws<InvalidOperationException>();
 
             // Act
-            Func<Task> action = () => _sut.SaveAndPublish(user, correlationId, CancellationToken.None);
+            Func<Task> action = () => _sut.SaveAndPublish(user, correlationId, contributor, CancellationToken.None);
 
             // Assert
             action.ShouldThrow<InvalidOperationException>();
@@ -138,9 +137,10 @@
         {
             var user = _fixture.Create<FakeUser>();
             var correlationId = Guid.NewGuid();
+            string contributor = Guid.NewGuid().ToString();
             user.ChangeUsername("foo");
 
-            await _sut.SaveAndPublish(user, correlationId, CancellationToken.None);
+            await _sut.SaveAndPublish(user, correlationId, contributor, CancellationToken.None);
 
             Mock.Get(_mementoStore).Verify(
                 x =>
@@ -160,6 +160,7 @@
             // Arrange
             var user = _fixture.Create<FakeUser>();
             var correlationId = Guid.NewGuid();
+            string contributor = Guid.NewGuid().ToString();
             user.ChangeUsername("foo");
             Mock.Get(_eventStore)
                 .Setup(
@@ -167,11 +168,12 @@
                     x.SaveEvents<FakeUser>(
                         It.IsAny<IEnumerable<IDomainEvent>>(),
                         It.IsAny<Guid?>(),
+                        It.IsAny<string>(),
                         CancellationToken.None))
                 .Throws<InvalidOperationException>();
 
             // Act
-            Func<Task> action = () => _sut.SaveAndPublish(user, correlationId, CancellationToken.None);
+            Func<Task> action = () => _sut.SaveAndPublish(user, correlationId, contributor, CancellationToken.None);
 
             // Assert
             action.ShouldThrow<InvalidOperationException>();

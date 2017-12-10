@@ -88,6 +88,7 @@
                 Version = domainEvent.Version,
                 MessageId = envelope.MessageId,
                 CorrelationId = envelope.CorrelationId,
+                Contributor = envelope.Contributor,
                 EventJson = serializer.Serialize(domainEvent)
             };
         }

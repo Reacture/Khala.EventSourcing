@@ -14,6 +14,13 @@
             CancellationToken cancellationToken)
             where T : class, IEventSourced;
 
+        Task SaveEvents<T>(
+            IEnumerable<IDomainEvent> events,
+            Guid? correlationId,
+            string contributor,
+            CancellationToken cancellationToken)
+            where T : class, IEventSourced;
+
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1004:GenericMethodsShouldProvideTypeParameter", Justification = "As designed.")]
         Task<IEnumerable<IDomainEvent>> LoadEvents<T>(
             Guid sourceId,
