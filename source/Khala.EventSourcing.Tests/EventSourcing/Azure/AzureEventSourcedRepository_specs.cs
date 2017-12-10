@@ -1,13 +1,19 @@
 ﻿namespace Khala.EventSourcing.Azure
 {
     using System;
+    using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Net;
     using System.Threading;
     using System.Threading.Tasks;
     using FluentAssertions;
     using Khala.FakeDomain;
+    using Khala.Messaging;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
+    using Microsoft.WindowsAzure.Storage;
+    using Microsoft.WindowsAzure.Storage.RetryPolicies;
+    using Microsoft.WindowsAzure.Storage.Table;
     using Moq;
     using Ploeh.AutoFixture;
     using Ploeh.AutoFixture.AutoMoq;
@@ -20,6 +26,8 @@
         private IAzureEventPublisher _eventPublisher;
         private IMementoStore _mementoStore;
         private AzureEventSourcedRepository<FakeUser> _sut;
+
+        public TestContext TestContext { get; set; }
 
         [TestInitialize]
         public void TestInitialize()
@@ -284,6 +292,94 @@
             // Assert
             Mock.Get(_eventStore).Verify();
             actual.ShouldBeEquivalentTo(user);
+        }
+
+        [TestMethod]
+        public async Task SaveAndPublish_is_concurrency_safe()
+        {
+            // Arrange
+            CloudTable eventTable = InitializeEventTable("AzureEventSourcedRepositoryConcurrencyTest");
+            var serializer = new JsonMessageSerializer();
+            var messageBus = new MessageBus();
+            var eventStore = new AzureEventStore(eventTable, serializer);
+            var eventPublisher = new AzureEventPublisher(eventTable, serializer, messageBus);
+            var sut = new AzureEventSourcedRepository<FakeUser>(eventStore, eventPublisher, FakeUser.Factory);
+            var userId = Guid.NewGuid();
+            await sut.SaveAndPublish(new FakeUser(userId, Guid.NewGuid().ToString()));
+
+            // Act
+            async Task Process()
+            {
+                for (int i = 0; i < 10; i++)
+                {
+                    try
+                    {
+                        FakeUser user = await sut.Find(userId);
+                        user.ChangeUsername(Guid.NewGuid().ToString());
+                        user.ChangeUsername(Guid.NewGuid().ToString());
+                        user.ChangeUsername(Guid.NewGuid().ToString());
+                        await sut.SaveAndPublish(user);
+                    }
+                    catch
+                    {
+                    }
+                }
+            }
+
+            await Task.WhenAll(Enumerable.Range(0, 3).Select(_ => Process()));
+            await Task.Delay(millisecondsDelay: 100);
+
+            // Assert
+            IEnumerable<IDomainEvent> expected = await eventStore.LoadEvents<FakeUser>(userId);
+            List<IDomainEvent> actual = messageBus.Log.Select(e => (IDomainEvent)e.Message).Distinct(e => e.Version).OrderBy(e => e.Version).ToList();
+            actual.ShouldAllBeEquivalentTo(expected, opts => opts.WithStrictOrdering().Excluding(e => e.RaisedAt));
+        }
+
+        private CloudTable InitializeEventTable(string eventTableName)
+        {
+            CloudTable eventTable = default;
+
+            try
+            {
+                var storageAccount = CloudStorageAccount.DevelopmentStorageAccount;
+                CloudTableClient tableClient = storageAccount.CreateCloudTableClient();
+                eventTable = tableClient.GetTableReference(eventTableName);
+                eventTable.DeleteIfExists(new TableRequestOptions { RetryPolicy = new NoRetry() });
+                eventTable.Create();
+            }
+            catch (StorageException exception)
+            when (exception.InnerException is WebException)
+            {
+                TestContext.WriteLine("{0}", exception);
+                Assert.Inconclusive("Could not connect to Azure Storage Emulator. See the output for details. Refer to the following URL for more information: http://go.microsoft.com/fwlink/?LinkId=392237");
+            }
+
+            return eventTable;
+        }
+
+        private class MessageBus : IMessageBus
+        {
+            private ConcurrentQueue<Envelope> _log = new ConcurrentQueue<Envelope>();
+
+            public IEnumerable<Envelope> Log => _log;
+
+            public Task Send(Envelope envelope, CancellationToken cancellationToken)
+            {
+                Task.Factory.StartNew(() => _log.Enqueue(envelope));
+                return Task.CompletedTask;
+            }
+
+            public Task Send(IEnumerable<Envelope> envelopes, CancellationToken cancellationToken)
+            {
+                Task.Factory.StartNew(() =>
+                {
+                    foreach (Envelope envelope in envelopes)
+                    {
+                        _log.Enqueue(envelope);
+                    }
+                });
+                return Task.CompletedTask;
+            }
         }
     }
 }
