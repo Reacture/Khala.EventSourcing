@@ -138,7 +138,7 @@
             string contributor = Guid.NewGuid().ToString();
             var envelopes = new List<Envelope>(
                 from e in domainEvents
-                select new Envelope(Guid.NewGuid(), correlationId, contributor, message: e));
+                select new Envelope(Guid.NewGuid(), e, correlationId: correlationId, contributor: contributor));
             await InsertPendingEvents(envelopes);
             await InsertPersistentEvents(envelopes);
 

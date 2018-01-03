@@ -102,7 +102,7 @@
             var domainEvent = new SomeDomainEvent();
             var messageId = Guid.NewGuid();
             var correlationId = Guid.NewGuid();
-            var envelope = new Envelope(messageId, correlationId, domainEvent);
+            var envelope = new Envelope(messageId, domainEvent, correlationId: correlationId);
             IMessageSerializer serializer = new JsonMessageSerializer();
 
             var actual = PersistentEvent.FromEnvelope(envelope, serializer);

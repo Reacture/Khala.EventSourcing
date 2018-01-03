@@ -120,7 +120,7 @@
         {
             var domainEvent = _fixture.Create<FakeUserCreated>();
             var correlationId = Guid.NewGuid();
-            var envelope = new Envelope(correlationId, domainEvent);
+            var envelope = new Envelope(Guid.NewGuid(), domainEvent, correlationId: correlationId);
 
             EventTableEntity entity =
                 FromEnvelope<FakeUser>(envelope, _serializer);

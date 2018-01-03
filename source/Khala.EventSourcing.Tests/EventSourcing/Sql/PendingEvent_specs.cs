@@ -61,7 +61,7 @@
         {
             var domainEvent = _fixture.Create<FakeUserCreated>();
             var correlationId = Guid.NewGuid();
-            var envelope = new Envelope(correlationId, domainEvent);
+            var envelope = new Envelope(Guid.NewGuid(), domainEvent, correlationId: correlationId);
             var actual = PendingEvent.FromEnvelope(envelope, _serializer);
             actual.CorrelationId.Should().Be(correlationId);
         }

@@ -114,7 +114,7 @@
         {
             var domainEvent = _fixture.Create<FakeUserCreated>();
             var correlationId = GuidGenerator.Create();
-            var envelope = new Envelope(correlationId, domainEvent);
+            var envelope = new Envelope(GuidGenerator.Create(), domainEvent, correlationId: correlationId);
 
             PendingEventTableEntity actual =
                 FromEnvelope<FakeUser>(envelope, _serializer);

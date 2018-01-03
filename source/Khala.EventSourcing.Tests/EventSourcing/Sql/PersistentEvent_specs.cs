@@ -85,7 +85,7 @@
         {
             var domainEvent = _fixture.Create<FakeDomainEvent>();
             var correlationId = Guid.NewGuid();
-            var envelope = new Envelope(correlationId, domainEvent);
+            var envelope = new Envelope(Guid.NewGuid(), domainEvent, correlationId: correlationId);
             var actual = PersistentEvent.FromEnvelope(
                 envelope, new JsonMessageSerializer());
             actual.CorrelationId.Should().Be(correlationId);

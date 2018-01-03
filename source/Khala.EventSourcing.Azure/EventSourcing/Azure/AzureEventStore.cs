@@ -91,8 +91,8 @@
             }
 
             var envelopes = new List<Envelope>(
-                from e in domainEvents
-                select new Envelope(Guid.NewGuid(), correlationId, contributor, e));
+                from domainEvent in domainEvents
+                select new Envelope(Guid.NewGuid(), domainEvent, correlationId: correlationId, contributor: contributor));
 
             await InsertPendingEvents<T>(envelopes, cancellationToken).ConfigureAwait(false);
             await InsertEventsAndCorrelation<T>(envelopes, correlationId, cancellationToken).ConfigureAwait(false);

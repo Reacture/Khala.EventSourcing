@@ -43,11 +43,11 @@
     <Reference Include="EntityFramework.SqlServer, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
       <HintPath>..\packages\EntityFramework.6.1.0\lib\net45\EntityFramework.SqlServer.dll</HintPath>
     </Reference>
-    <Reference Include="Khala.Messaging.Abstraction, Version=0.16.4.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Khala.Messaging.Abstraction.0.16.4\lib\netstandard1.3\Khala.Messaging.Abstraction.dll</HintPath>
+    <Reference Include="Khala.Messaging.Abstraction, Version=0.17.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Khala.Messaging.Abstraction.0.17.0\lib\netstandard1.3\Khala.Messaging.Abstraction.dll</HintPath>
     </Reference>
-    <Reference Include="Khala.Messaging.Contracts, Version=0.16.4.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Khala.Messaging.Contracts.0.16.4\lib\netstandard1.3\Khala.Messaging.Contracts.dll</HintPath>
+    <Reference Include="Khala.Messaging.Contracts, Version=0.17.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Khala.Messaging.Contracts.0.17.0\lib\netstandard1.3\Khala.Messaging.Contracts.dll</HintPath>
     </Reference>
     <Reference Include="Khala.TransientFaultHandling, Version=0.12.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Khala.TransientFaultHandling.0.12.0\lib\netstandard1.3\Khala.TransientFaultHandling.dll</HintPath>

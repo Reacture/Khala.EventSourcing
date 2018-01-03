@@ -84,9 +84,9 @@
         private Envelope RestoreEnvelope(PendingEvent pendingEvent) =>
             new Envelope(
                 pendingEvent.MessageId,
-                pendingEvent.CorrelationId,
-                pendingEvent.Contributor,
-                _serializer.Deserialize(pendingEvent.EventJson));
+                _serializer.Deserialize(pendingEvent.EventJson),
+                correlationId: pendingEvent.CorrelationId,
+                contributor: pendingEvent.Contributor);
 
         private static async Task RemoveEvents(
             EventStoreDbContext context,

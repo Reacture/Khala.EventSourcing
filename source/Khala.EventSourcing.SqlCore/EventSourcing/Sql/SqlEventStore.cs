@@ -193,7 +193,7 @@
             Guid? correlationId,
             string contributor)
         {
-            var envelope = new Envelope(Guid.NewGuid(), correlationId, contributor, domainEvent);
+            var envelope = new Envelope(Guid.NewGuid(), domainEvent, correlationId: correlationId, contributor: contributor);
             context.PersistentEvents.Add(PersistentEvent.FromEnvelope(envelope, _serializer));
             context.PendingEvents.Add(PendingEvent.FromEnvelope(envelope, _serializer));
         }
