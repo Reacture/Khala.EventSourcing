@@ -6,10 +6,9 @@
 
     public interface IAzureEventPublisher : IEventPublisher
     {
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1004:GenericMethodsShouldProvideTypeParameter", Justification = "As designed.")]
         Task FlushPendingEvents<T>(
             Guid sourceId,
-            CancellationToken cancellationToken)
+            CancellationToken cancellationToken = default)
             where T : class, IEventSourced;
     }
 }

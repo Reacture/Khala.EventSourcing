@@ -7,25 +7,17 @@
 
     public interface IAzureEventStore
     {
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1004:GenericMethodsShouldProvideTypeParameter", Justification = "As designed.")]
         Task SaveEvents<T>(
             IEnumerable<IDomainEvent> events,
-            Guid? correlationId,
-            CancellationToken cancellationToken)
+            Guid? correlationId = default,
+            string contributor = default,
+            CancellationToken cancellationToken = default)
             where T : class, IEventSourced;
 
-        Task SaveEvents<T>(
-            IEnumerable<IDomainEvent> events,
-            Guid? correlationId,
-            string contributor,
-            CancellationToken cancellationToken)
-            where T : class, IEventSourced;
-
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1004:GenericMethodsShouldProvideTypeParameter", Justification = "As designed.")]
         Task<IEnumerable<IDomainEvent>> LoadEvents<T>(
             Guid sourceId,
-            int afterVersion,
-            CancellationToken cancellationToken)
+            int afterVersion = default,
+            CancellationToken cancellationToken = default)
             where T : class, IEventSourced;
     }
 }

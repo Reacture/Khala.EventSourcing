@@ -102,9 +102,6 @@
     <Compile Include="..\Khala.EventSourcing.SqlCore\EventSourcing\Sql\SqlEventSourcedRepository.cs">
       <Link>EventSourcing\Sql\SqlEventSourcedRepository.cs</Link>
     </Compile>
-    <Compile Include="..\Khala.EventSourcing.SqlCore\EventSourcing\Sql\SqlEventSourcingExtensions.cs">
-      <Link>EventSourcing\Sql\SqlEventSourcingExtensions.cs</Link>
-    </Compile>
     <Compile Include="..\Khala.EventSourcing.SqlCore\EventSourcing\Sql\SqlEventStore.cs">
       <Link>EventSourcing\Sql\SqlEventStore.cs</Link>
     </Compile>

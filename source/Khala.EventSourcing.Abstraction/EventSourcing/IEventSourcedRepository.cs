@@ -29,9 +29,9 @@
         /// <returns>A task representing the asynchronous operation.</returns>
         Task SaveAndPublish(
             T source,
-            Guid? correlationId,
-            string contributor,
-            CancellationToken cancellationToken);
+            Guid? correlationId = default,
+            string contributor = default,
+            CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Finds an event sourcing applied aggregate with the given identifier asynchronously.
@@ -39,6 +39,6 @@
         /// <param name="sourceId">The identifier of the entity to be found.</param>
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
         /// <returns>A task representing the asynchronous find operation. The task result contains the aggregate found, or <c>null</c>.</returns>
-        Task<T> Find(Guid sourceId, CancellationToken cancellationToken);
+        Task<T> Find(Guid sourceId, CancellationToken cancellationToken = default);
     }
 }

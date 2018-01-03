@@ -61,9 +61,9 @@
 
         public Task SaveAndPublish(
             T source,
-            Guid? correlationId,
-            string contributor,
-            CancellationToken cancellationToken)
+            Guid? correlationId = default,
+            string contributor = default,
+            CancellationToken cancellationToken = default)
         {
             if (source == null)
             {
@@ -99,7 +99,7 @@
             return Task.FromResult(true);
         }
 
-        public Task<T> Find(Guid sourceId, CancellationToken cancellationToken)
+        public Task<T> Find(Guid sourceId, CancellationToken cancellationToken = default)
         {
             if (sourceId == Guid.Empty)
             {
@@ -140,12 +140,12 @@
             Guid sourceId, CancellationToken cancellationToken)
         {
             IEnumerable<IDomainEvent> domainEvents = await
-                _eventStore.LoadEvents<T>(sourceId, cancellationToken).ConfigureAwait(false);
+                _eventStore.LoadEvents<T>(sourceId, default, cancellationToken).ConfigureAwait(false);
             return domainEvents.Any() ? _entityFactory.Invoke(sourceId, domainEvents) : null;
         }
 
         public Task<Guid?> FindIdByUniqueIndexedProperty(
-            string name, string value, CancellationToken cancellationToken)
+            string name, string value, CancellationToken cancellationToken = default)
         {
             if (name == null)
             {

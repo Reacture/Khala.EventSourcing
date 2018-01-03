@@ -27,35 +27,9 @@
 
         public Task SaveEvents<T>(
             IEnumerable<IDomainEvent> events,
-            Guid? correlationId,
-            CancellationToken cancellationToken)
-            where T : class, IEventSourced
-        {
-            if (events == null)
-            {
-                throw new ArgumentNullException(nameof(events));
-            }
-
-            List<IDomainEvent> domainEvents = events.ToList();
-
-            for (int i = 0; i < domainEvents.Count; i++)
-            {
-                if (domainEvents[i] == null)
-                {
-                    throw new ArgumentException(
-                        $"{nameof(events)} cannot contain null.",
-                        nameof(events));
-                }
-            }
-
-            return Save<T>(domainEvents, correlationId, default, cancellationToken);
-        }
-
-        public Task SaveEvents<T>(
-            IEnumerable<IDomainEvent> events,
-            Guid? correlationId,
-            string contributor,
-            CancellationToken cancellationToken)
+            Guid? correlationId = default,
+            string contributor = default,
+            CancellationToken cancellationToken = default)
             where T : class, IEventSourced
         {
             if (events == null)
@@ -157,8 +131,8 @@
 
         public Task<IEnumerable<IDomainEvent>> LoadEvents<T>(
             Guid sourceId,
-            int afterVersion,
-            CancellationToken cancellationToken)
+            int afterVersion = default,
+            CancellationToken cancellationToken = default)
             where T : class, IEventSourced
         {
             if (sourceId == Guid.Empty)

@@ -46,7 +46,7 @@
         public Task Save<T>(
             Guid sourceId,
             IMemento memento,
-            CancellationToken cancellationToken)
+            CancellationToken cancellationToken = default)
             where T : class, IEventSourced
         {
             if (sourceId == Guid.Empty)
@@ -68,7 +68,7 @@
 
         public Task<IMemento> Find<T>(
             Guid sourceId,
-            CancellationToken cancellationToken)
+            CancellationToken cancellationToken = default)
             where T : class, IEventSourced
         {
             if (sourceId == Guid.Empty)
@@ -102,7 +102,7 @@
 
         public Task Delete<T>(
             Guid sourceId,
-            CancellationToken cancellationToken)
+            CancellationToken cancellationToken = default)
             where T : class, IEventSourced
         {
             if (sourceId == Guid.Empty)

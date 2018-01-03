@@ -41,9 +41,9 @@
 
         public Task SaveAndPublish(
             T source,
-            Guid? correlationId,
-            string contributor,
-            CancellationToken cancellationToken)
+            Guid? correlationId = default,
+            string contributor = default,
+            CancellationToken cancellationToken = default)
         {
             if (source == null)
             {
@@ -82,7 +82,7 @@
             return Task.FromResult(true);
         }
 
-        public Task<T> Find(Guid sourceId, CancellationToken cancellationToken)
+        public Task<T> Find(Guid sourceId, CancellationToken cancellationToken = default)
         {
             if (sourceId == Guid.Empty)
             {

@@ -8,6 +8,6 @@
         where T : class, IEventSourced
     {
         Task<Guid?> FindIdByUniqueIndexedProperty(
-            string name, string value, CancellationToken cancellationToken);
+            string name, string value, CancellationToken cancellationToken = default);
     }
 }

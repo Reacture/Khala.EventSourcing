@@ -149,7 +149,6 @@
     <Compile Include="EventSourcing\AppBuilderExtensions_specs.cs" />
     <Compile Include="EventSourcing\Azure\AzureEventPublisher_specs.cs" />
     <Compile Include="EventSourcing\Azure\AzureEventSourcedRepository_specs.cs" />
-    <Compile Include="EventSourcing\Azure\AzureEventSourcingExtensions_specs.cs" />
     <Compile Include="EventSourcing\Azure\AzureEventStore_specs.cs" />
     <Compile Include="EventSourcing\Azure\AzureMementoStore_specs.cs" />
     <Compile Include="EventSourcing\Azure\CorrelationTableEntity_specs.cs" />
@@ -158,13 +157,10 @@
     <Compile Include="EventSourcing\DomainEvent_specs.cs" />
     <Compile Include="EventSourcing\DuplicateCorrelationException_specs.cs" />
     <Compile Include="EventSourcing\EventSourced_specs.cs" />
-    <Compile Include="EventSourcing\EventSourcingExtensions_specs.cs" />
     <Compile Include="EventSourcing\Sql\PendingEvent_specs.cs" />
     <Compile Include="EventSourcing\Sql\PersistentEvent_specs.cs" />
     <Compile Include="EventSourcing\Sql\SqlEventPublisher_specs.cs" />
     <Compile Include="EventSourcing\Sql\SqlEventSourcedRepository_specs.cs" />
-    <Compile Include="EventSourcing\Sql\SqlEventSourcingAbstractionExtensions_specs.cs" />
-    <Compile Include="EventSourcing\Sql\SqlEventSourcingExtensions_specs.cs" />
     <Compile Include="EventSourcing\Sql\SqlEventStore_specs.cs" />
     <Compile Include="EventSourcing\Sql\SqlMementoStore_specs.cs" />
     <Compile Include="FakeDomain\Events\FakeUserCreated.cs" />

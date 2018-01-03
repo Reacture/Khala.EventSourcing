@@ -32,56 +32,9 @@
 
         public Task SaveEvents<T>(
             IEnumerable<IDomainEvent> events,
-            Guid? correlationId,
-            CancellationToken cancellationToken)
-            where T : class, IEventSourced
-        {
-            if (events == null)
-            {
-                throw new ArgumentNullException(nameof(events));
-            }
-
-            List<IDomainEvent> domainEvents = events.ToList();
-
-            if (domainEvents.Count == 0)
-            {
-                return Task.FromResult(true);
-            }
-
-            IDomainEvent firstEvent = domainEvents.First();
-
-            for (int i = 0; i < domainEvents.Count; i++)
-            {
-                if (domainEvents[i] == null)
-                {
-                    throw new ArgumentException(
-                        $"{nameof(events)} cannot contain null.",
-                        nameof(events));
-                }
-
-                if (domainEvents[i].Version != firstEvent.Version + i)
-                {
-                    throw new ArgumentException(
-                        $"Versions of {nameof(events)} must be sequential.",
-                        nameof(events));
-                }
-
-                if (domainEvents[i].SourceId != firstEvent.SourceId)
-                {
-                    throw new ArgumentException(
-                        $"All events must have the same source id.",
-                        nameof(events));
-                }
-            }
-
-            return Save<T>(firstEvent.SourceId, domainEvents, correlationId, null, cancellationToken);
-        }
-
-        public Task SaveEvents<T>(
-            IEnumerable<IDomainEvent> events,
-            Guid? correlationId,
-            string contributor,
-            CancellationToken cancellationToken)
+            Guid? correlationId = default,
+            string contributor = default,
+            CancellationToken cancellationToken = default)
             where T : class, IEventSourced
         {
             List<IDomainEvent> domainEvents = events.ToList();
@@ -341,8 +294,8 @@
 
         public Task<IEnumerable<IDomainEvent>> LoadEvents<T>(
             Guid sourceId,
-            int afterVersion,
-            CancellationToken cancellationToken)
+            int afterVersion = default,
+            CancellationToken cancellationToken = default)
             where T : class, IEventSourced
         {
             if (sourceId == Guid.Empty)
@@ -383,7 +336,7 @@
         public Task<Guid?> FindIdByUniqueIndexedProperty<T>(
             string name,
             string value,
-            CancellationToken cancellationToken)
+            CancellationToken cancellationToken = default)
             where T : class, IEventSourced
         {
             if (name == null)

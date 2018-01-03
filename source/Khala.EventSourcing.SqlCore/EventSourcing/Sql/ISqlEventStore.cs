@@ -16,21 +16,14 @@
         /// <typeparam name="T">The type of the event sourcing applied aggregate.</typeparam>
         /// <param name="events">A seqeuence that contains domain events.</param>
         /// <param name="correlationId">The identifier of the correlation.</param>
+        /// <param name="contributor">Information of the contributor to domain events.</param>
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
         /// <returns>A task representing the asynchronous operation.</returns>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1004:GenericMethodsShouldProvideTypeParameter", Justification = "As designed.")]
         Task SaveEvents<T>(
             IEnumerable<IDomainEvent> events,
-            Guid? correlationId,
-            CancellationToken cancellationToken)
-            where T : class, IEventSourced;
-
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1004:GenericMethodsShouldProvideTypeParameter", Justification = "As designed.")]
-        Task SaveEvents<T>(
-            IEnumerable<IDomainEvent> events,
-            Guid? correlationId,
-            string contributor,
-            CancellationToken cancellationToken)
+            Guid? correlationId = default,
+            string contributor = default,
+            CancellationToken cancellationToken = default)
             where T : class, IEventSourced;
 
         /// <summary>
@@ -41,11 +34,10 @@
         /// <param name="afterVersion">Domain events with a version greater than this parameter are loaded. To load all domain events from the aggregate, set this parameter to zero.</param>
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
         /// <returns>A task representing the asychronous operation. The task result contains domain events.</returns>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1004:GenericMethodsShouldProvideTypeParameter", Justification = "As designed.")]
         Task<IEnumerable<IDomainEvent>> LoadEvents<T>(
             Guid sourceId,
-            int afterVersion,
-            CancellationToken cancellationToken)
+            int afterVersion = default,
+            CancellationToken cancellationToken = default)
             where T : class, IEventSourced;
 
         /// <summary>
@@ -56,11 +48,10 @@
         /// <param name="value">The value of the property.</param>
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
         /// <returns>A task representing asynchronous operation. The task contains the identifier found, or <c>null</c>.</returns>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1004:GenericMethodsShouldProvideTypeParameter", Justification = "As designed.")]
         Task<Guid?> FindIdByUniqueIndexedProperty<T>(
             string name,
             string value,
-            CancellationToken cancellationToken)
+            CancellationToken cancellationToken = default)
             where T : class, IEventSourced;
     }
 }

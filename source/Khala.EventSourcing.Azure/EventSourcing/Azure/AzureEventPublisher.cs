@@ -32,7 +32,7 @@
 
         public Task FlushPendingEvents<T>(
             Guid sourceId,
-            CancellationToken cancellationToken)
+            CancellationToken cancellationToken = default)
             where T : class, IEventSourced
         {
             if (sourceId == Guid.Empty)
