@@ -110,16 +110,39 @@
         }
 
         [TestMethod]
-        public void FromEnvelope_sets_CorrelationId_correctly()
+        public void FromEnvelope_sets_OperationId_correctly()
         {
             var domainEvent = _fixture.Create<FakeUserCreated>();
-            var correlationId = GuidGenerator.Create();
-            var envelope = new Envelope(GuidGenerator.Create(), domainEvent, correlationId: correlationId);
+            var envelope = new Envelope(GuidGenerator.Create(), domainEvent, operationId: GuidGenerator.Create());
 
             PendingEventTableEntity actual =
                 FromEnvelope<FakeUser>(envelope, _serializer);
 
-            actual.CorrelationId.Should().Be(correlationId);
+            actual.OperationId.Should().Be(envelope.OperationId);
+        }
+
+        [TestMethod]
+        public void FromEnvelope_sets_CorrelationId_correctly()
+        {
+            var domainEvent = _fixture.Create<FakeUserCreated>();
+            var envelope = new Envelope(GuidGenerator.Create(), domainEvent, correlationId: GuidGenerator.Create());
+
+            PendingEventTableEntity actual =
+                FromEnvelope<FakeUser>(envelope, _serializer);
+
+            actual.CorrelationId.Should().Be(envelope.CorrelationId);
+        }
+
+        [TestMethod]
+        public void FromEnvelope_sets_Contributor_correctly()
+        {
+            var domainEvent = _fixture.Create<FakeUserCreated>();
+            var envelope = new Envelope(GuidGenerator.Create(), domainEvent, contributor: new Fixture().Create<string>());
+
+            PendingEventTableEntity actual =
+                FromEnvelope<FakeUser>(envelope, _serializer);
+
+            actual.Contributor.Should().Be(envelope.Contributor);
         }
 
         [TestMethod]

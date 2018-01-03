@@ -17,6 +17,8 @@
 
         public Guid MessageId { get; set; }
 
+        public Guid? OperationId { get; set; }
+
         public Guid? CorrelationId { get; set; }
 
         public string Contributor { get; set; }
@@ -87,6 +89,7 @@
                 PersistentPartition = persistentPartition,
                 Version = domainEvent.Version,
                 MessageId = envelope.MessageId,
+                OperationId = envelope.OperationId,
                 CorrelationId = envelope.CorrelationId,
                 Contributor = envelope.Contributor,
                 EventJson = serializer.Serialize(domainEvent)
