@@ -61,6 +61,7 @@
 
         public Task SaveAndPublish(
             T source,
+            Guid? operationId = default,
             Guid? correlationId = default,
             string contributor = default,
             CancellationToken cancellationToken = default)

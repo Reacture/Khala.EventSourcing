@@ -68,17 +68,14 @@
         {
             // Arrange
             var user = _fixture.Create<FakeUser>();
+            var operationId = Guid.NewGuid();
             var correlationId = Guid.NewGuid();
             string contributor = Guid.NewGuid().ToString();
             user.ChangeUsername("foo");
             var pendingEvents = new List<IDomainEvent>(user.PendingEvents);
 
             // Act
-            await _sut.SaveAndPublish(
-                user,
-                correlationId,
-                contributor,
-                cancellationToken: default);
+            await _sut.SaveAndPublish(user, operationId, correlationId, contributor);
 
             // Assert
             Mock.Get(_eventStore).Verify(
@@ -95,11 +92,12 @@
         public async Task SaveAndPublish_publishes_events()
         {
             var user = _fixture.Create<FakeUser>();
+            var operationId = Guid.NewGuid();
             var correlationId = Guid.NewGuid();
             string contributor = Guid.NewGuid().ToString();
             user.ChangeUsername("foo");
 
-            await _sut.SaveAndPublish(user, correlationId, contributor, CancellationToken.None);
+            await _sut.SaveAndPublish(user, operationId, correlationId, contributor);
 
             Mock.Get(_eventPublisher).Verify(
                 x =>
@@ -114,6 +112,7 @@
         {
             // Arrange
             var user = _fixture.Create<FakeUser>();
+            var operationId = Guid.NewGuid();
             var correlationId = Guid.NewGuid();
             string contributor = Guid.NewGuid().ToString();
             user.ChangeUsername("foo");
@@ -128,7 +127,7 @@
                 .Throws<InvalidOperationException>();
 
             // Act
-            Func<Task> action = () => _sut.SaveAndPublish(user, correlationId, contributor, CancellationToken.None);
+            Func<Task> action = () => _sut.SaveAndPublish(user, operationId, correlationId, contributor);
 
             // Assert
             action.ShouldThrow<InvalidOperationException>();
@@ -144,11 +143,12 @@
         public async Task SaveAndPublish_saves_memento()
         {
             var user = _fixture.Create<FakeUser>();
+            var operationId = Guid.NewGuid();
             var correlationId = Guid.NewGuid();
             string contributor = Guid.NewGuid().ToString();
             user.ChangeUsername("foo");
 
-            await _sut.SaveAndPublish(user, correlationId, contributor, CancellationToken.None);
+            await _sut.SaveAndPublish(user, operationId, correlationId, contributor);
 
             Mock.Get(_mementoStore).Verify(
                 x =>
@@ -167,6 +167,7 @@
         {
             // Arrange
             var user = _fixture.Create<FakeUser>();
+            var operationId = Guid.NewGuid();
             var correlationId = Guid.NewGuid();
             string contributor = Guid.NewGuid().ToString();
             user.ChangeUsername("foo");
@@ -181,7 +182,7 @@
                 .Throws<InvalidOperationException>();
 
             // Act
-            Func<Task> action = () => _sut.SaveAndPublish(user, correlationId, contributor, CancellationToken.None);
+            Func<Task> action = () => _sut.SaveAndPublish(user, operationId, correlationId, contributor);
 
             // Assert
             action.ShouldThrow<InvalidOperationException>();

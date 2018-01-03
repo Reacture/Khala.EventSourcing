@@ -29,6 +29,7 @@
         {
             // Arrange
             var user = new FakeUser(id: Guid.NewGuid(), username: Guid.NewGuid().ToString());
+            var operationId = Guid.NewGuid();
             var correlationId = Guid.NewGuid();
             string contributor = Guid.NewGuid().ToString();
             user.ChangeUsername(username: Guid.NewGuid().ToString());
@@ -42,7 +43,7 @@
                 FakeUser.Factory);
 
             // Act
-            await sut.SaveAndPublish(user, correlationId, contributor, cancellationToken: default);
+            await sut.SaveAndPublish(user, operationId, correlationId, contributor);
 
             // Assert
             Mock.Get(eventStore).Verify(
@@ -56,6 +57,7 @@
         {
             // Arrange
             var user = new FakeUser(id: Guid.NewGuid(), username: Guid.NewGuid().ToString());
+            var operationId = Guid.NewGuid();
             var correlationId = Guid.NewGuid();
             string contributor = Guid.NewGuid().ToString();
             user.ChangeUsername(username: Guid.NewGuid().ToString());
@@ -68,7 +70,7 @@
                 FakeUser.Factory);
 
             // Act
-            await sut.SaveAndPublish(user, correlationId, contributor, cancellationToken: default);
+            await sut.SaveAndPublish(user, operationId, correlationId, contributor);
 
             // Assert
             Mock.Get(eventPublisher).Verify(
@@ -82,6 +84,7 @@
         {
             // Arrange
             var user = new FakeUser(id: Guid.NewGuid(), username: Guid.NewGuid().ToString());
+            var operationId = Guid.NewGuid();
             var correlationId = Guid.NewGuid();
             string contributor = Guid.NewGuid().ToString();
             user.ChangeUsername(username: Guid.NewGuid().ToString());
@@ -105,7 +108,7 @@
                 FakeUser.Factory);
 
             // Act
-            Func<Task> action = () => sut.SaveAndPublish(user, correlationId, contributor, cancellationToken: default);
+            Func<Task> action = () => sut.SaveAndPublish(user, operationId, correlationId, contributor);
 
             // Assert
             action.ShouldThrow<InvalidOperationException>();
@@ -120,6 +123,7 @@
         {
             // Arrange
             var user = new FakeUser(id: Guid.NewGuid(), username: Guid.NewGuid().ToString());
+            var operationId = Guid.NewGuid();
             var correlationId = Guid.NewGuid();
             string contributor = Guid.NewGuid().ToString();
 
@@ -133,7 +137,7 @@
                 FakeUser.Factory);
 
             // Act
-            await sut.SaveAndPublish(user, correlationId, contributor, cancellationToken: default);
+            await sut.SaveAndPublish(user, operationId, correlationId, contributor);
 
             // Assert
             Mock.Get(mementoStore).Verify(
@@ -153,6 +157,7 @@
         {
             // Arrange
             var user = new FakeUser(id: Guid.NewGuid(), username: Guid.NewGuid().ToString());
+            var operationId = Guid.NewGuid();
             var correlationId = Guid.NewGuid();
             string contributor = Guid.NewGuid().ToString();
 
@@ -177,7 +182,7 @@
                 FakeUser.Factory);
 
             // Act
-            Func<Task> action = () => sut.SaveAndPublish(user, correlationId, contributor, cancellationToken: default);
+            Func<Task> action = () => sut.SaveAndPublish(user, operationId, correlationId, contributor);
 
             // Assert
             action.ShouldThrow<InvalidOperationException>();
