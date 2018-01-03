@@ -60,8 +60,7 @@
             var domainEvent = _fixture.Create<FakeUserCreated>();
             var envelope = new Envelope(domainEvent);
 
-            EventTableEntity entity =
-                FromEnvelope<FakeUser>(envelope, _serializer);
+            EventTableEntity entity = FromEnvelope<FakeUser>(envelope, _serializer);
 
             entity.PartitionKey.Should().Be(
                 GetPartitionKey(typeof(FakeUser), domainEvent.SourceId));
@@ -73,8 +72,7 @@
             var domainEvent = _fixture.Create<FakeUserCreated>();
             var envelope = new Envelope(domainEvent);
 
-            EventTableEntity entity =
-                FromEnvelope<FakeUser>(envelope, _serializer);
+            EventTableEntity entity = FromEnvelope<FakeUser>(envelope, _serializer);
 
             entity.RowKey.Should().Be(GetRowKey(domainEvent.Version));
         }
@@ -85,8 +83,7 @@
             var domainEvent = _fixture.Create<FakeUserCreated>();
             var envelope = new Envelope(domainEvent);
 
-            EventTableEntity entity =
-                FromEnvelope<FakeUser>(envelope, _serializer);
+            EventTableEntity entity = FromEnvelope<FakeUser>(envelope, _serializer);
 
             entity.Version.Should().Be(domainEvent.Version);
         }
@@ -97,8 +94,7 @@
             var domainEvent = _fixture.Create<FakeUserCreated>();
             var envelope = new Envelope(domainEvent);
 
-            EventTableEntity entity =
-                FromEnvelope<FakeUser>(envelope, _serializer);
+            EventTableEntity entity = FromEnvelope<FakeUser>(envelope, _serializer);
 
             entity.EventType.Should().Be(typeof(FakeUserCreated).FullName);
         }
@@ -109,23 +105,42 @@
             var domainEvent = _fixture.Create<FakeUserCreated>();
             var envelope = new Envelope(domainEvent);
 
-            EventTableEntity entity =
-                FromEnvelope<FakeUser>(envelope, _serializer);
+            EventTableEntity entity = FromEnvelope<FakeUser>(envelope, _serializer);
 
             entity.MessageId.Should().Be(envelope.MessageId);
+        }
+
+        [TestMethod]
+        public void FromEnvelope_sets_OperationId_correctly()
+        {
+            var domainEvent = _fixture.Create<FakeUserCreated>();
+            var envelope = new Envelope(Guid.NewGuid(), domainEvent, operationId: Guid.NewGuid());
+
+            EventTableEntity entity = FromEnvelope<FakeUser>(envelope, _serializer);
+
+            entity.OperationId.Should().Be(envelope.OperationId);
         }
 
         [TestMethod]
         public void FromEnvelope_sets_CorrelationId_correctly()
         {
             var domainEvent = _fixture.Create<FakeUserCreated>();
-            var correlationId = Guid.NewGuid();
-            var envelope = new Envelope(Guid.NewGuid(), domainEvent, correlationId: correlationId);
+            var envelope = new Envelope(Guid.NewGuid(), domainEvent, correlationId: Guid.NewGuid());
 
-            EventTableEntity entity =
-                FromEnvelope<FakeUser>(envelope, _serializer);
+            EventTableEntity entity = FromEnvelope<FakeUser>(envelope, _serializer);
 
-            entity.CorrelationId.Should().Be(correlationId);
+            entity.CorrelationId.Should().Be(envelope.CorrelationId);
+        }
+
+        [TestMethod]
+        public void FromEnvelope_sets_Contributor_correctly()
+        {
+            var domainEvent = _fixture.Create<FakeUserCreated>();
+            var envelope = new Envelope(Guid.NewGuid(), domainEvent, contributor: new Fixture().Create<string>());
+
+            EventTableEntity entity = FromEnvelope<FakeUser>(envelope, _serializer);
+
+            entity.Contributor.Should().Be(envelope.Contributor);
         }
 
         [TestMethod]
@@ -148,8 +163,7 @@
             var domainEvent = _fixture.Create<FakeUserCreated>();
             var envelope = new Envelope(domainEvent);
 
-            EventTableEntity entity =
-                FromEnvelope<FakeUser>(envelope, _serializer);
+            EventTableEntity entity = FromEnvelope<FakeUser>(envelope, _serializer);
 
             entity.RaisedAt.Should().Be(domainEvent.RaisedAt);
         }
