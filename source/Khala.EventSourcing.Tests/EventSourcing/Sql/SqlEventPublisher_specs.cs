@@ -76,23 +76,26 @@
         }
 
         [TestMethod]
-        public async Task FlushPendingEvents_sends_events()
+        public async Task FlushPendingEvents_sends_events_correctly()
         {
             // Arrange
             var created = _fixture.Create<FakeUserCreated>();
             var usernameChanged = _fixture.Create<FakeUsernameChanged>();
             var sourceId = Guid.NewGuid();
+            var operationId = Guid.NewGuid();
+            var correlationId = Guid.NewGuid();
+            string contributor = _fixture.Create<string>();
 
-            var events = new DomainEvent[] { created, usernameChanged };
-            RaiseEvents(sourceId, events);
+            var domainEvents = new DomainEvent[] { created, usernameChanged };
+            RaiseEvents(sourceId, domainEvents);
 
             var envelopes = new List<Envelope>();
 
             using (var db = new DataContext())
             {
-                foreach (DomainEvent e in events)
+                foreach (DomainEvent domainEvent in domainEvents)
                 {
-                    var envelope = new Envelope(e);
+                    var envelope = new Envelope(Guid.NewGuid(), domainEvent, operationId, correlationId, contributor);
                     envelopes.Add(envelope);
                     db.PendingEvents.Add(PendingEvent.FromEnvelope(envelope, _serializer));
                 }

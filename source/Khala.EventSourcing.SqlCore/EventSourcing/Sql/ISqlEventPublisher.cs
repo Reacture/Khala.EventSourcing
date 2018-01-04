@@ -8,6 +8,6 @@
     {
         Task FlushPendingEvents(
             Guid sourceId,
-            CancellationToken cancellationToken);
+            CancellationToken cancellationToken = default);
     }
 }

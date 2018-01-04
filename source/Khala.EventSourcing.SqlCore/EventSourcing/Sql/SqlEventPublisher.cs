@@ -34,7 +34,7 @@
 
         public Task FlushPendingEvents(
             Guid sourceId,
-            CancellationToken cancellationToken)
+            CancellationToken cancellationToken = default)
         {
             if (sourceId == Guid.Empty)
             {
@@ -85,8 +85,9 @@
             new Envelope(
                 pendingEvent.MessageId,
                 _serializer.Deserialize(pendingEvent.EventJson),
-                correlationId: pendingEvent.CorrelationId,
-                contributor: pendingEvent.Contributor);
+                pendingEvent.OperationId,
+                pendingEvent.CorrelationId,
+                pendingEvent.Contributor);
 
         private static async Task RemoveEvents(
             EventStoreDbContext context,
