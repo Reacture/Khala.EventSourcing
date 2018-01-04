@@ -129,16 +129,17 @@
         }
 
         [TestMethod]
-        public async Task FlushPendingEvents_sends_pending_events()
+        public async Task FlushPendingEvents_sends_pending_events_correctly()
         {
             // Arrange
             var userId = Guid.NewGuid();
             IEnumerable<DomainEvent> domainEvents = CreateFakeUserDomainEvents(userId);
+            var operationId = Guid.NewGuid();
             var correlationId = Guid.NewGuid();
             string contributor = Guid.NewGuid().ToString();
             var envelopes = new List<Envelope>(
-                from e in domainEvents
-                select new Envelope(Guid.NewGuid(), e, correlationId: correlationId, contributor: contributor));
+                from domainEvent in domainEvents
+                select new Envelope(Guid.NewGuid(), domainEvent, operationId, correlationId, contributor));
             await InsertPendingEvents(envelopes);
             await InsertPersistentEvents(envelopes);
 
@@ -366,20 +367,11 @@
         {
             private readonly Task _awaitable;
 
-            public AwaitingMessageBus(Task awaitable)
-            {
-                _awaitable = awaitable;
-            }
+            public AwaitingMessageBus(Task awaitable) => _awaitable = awaitable;
 
-            public Task Send(Envelope envelope, CancellationToken cancellationToken)
-            {
-                return _awaitable;
-            }
+            public Task Send(Envelope envelope, CancellationToken cancellationToken) => _awaitable;
 
-            public Task Send(IEnumerable<Envelope> envelopes, CancellationToken cancellationToken)
-            {
-                return _awaitable;
-            }
+            public Task Send(IEnumerable<Envelope> envelopes, CancellationToken cancellationToken) => _awaitable;
         }
     }
 }

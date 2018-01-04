@@ -91,7 +91,8 @@
             var envelopes =
                 from e in pendingEvents
                 where persistentVersions.Contains(e.Version)
-                select new Envelope(e.MessageId, _serializer.Deserialize(e.EventJson), correlationId: e.CorrelationId, contributor: e.Contributor);
+                let domainEvent = _serializer.Deserialize(e.EventJson)
+                select new Envelope(e.MessageId, domainEvent, e.OperationId, e.CorrelationId, e.Contributor);
 
             await _messageBus.Send(envelopes, cancellationToken).ConfigureAwait(false);
         }
