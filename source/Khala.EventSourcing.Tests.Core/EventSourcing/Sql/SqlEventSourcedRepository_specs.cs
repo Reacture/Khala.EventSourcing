@@ -35,7 +35,7 @@
             user.ChangeUsername(username: Guid.NewGuid().ToString());
             var pendingEvents = new List<IDomainEvent>(user.PendingEvents);
 
-            var eventStore = Mock.Of<ISqlEventStore>();
+            ISqlEventStore eventStore = Mock.Of<ISqlEventStore>();
 
             var sut = new SqlEventSourcedRepository<FakeUser>(
                 eventStore,
@@ -62,7 +62,7 @@
             string contributor = Guid.NewGuid().ToString();
             user.ChangeUsername(username: Guid.NewGuid().ToString());
 
-            var eventPublisher = Mock.Of<ISqlEventPublisher>();
+            ISqlEventPublisher eventPublisher = Mock.Of<ISqlEventPublisher>();
 
             var sut = new SqlEventSourcedRepository<FakeUser>(
                 Mock.Of<ISqlEventStore>(),
@@ -89,7 +89,7 @@
             string contributor = Guid.NewGuid().ToString();
             user.ChangeUsername(username: Guid.NewGuid().ToString());
 
-            var eventStore = Mock.Of<ISqlEventStore>();
+            ISqlEventStore eventStore = Mock.Of<ISqlEventStore>();
             Mock.Get(eventStore)
                 .Setup(
                     x =>
@@ -101,7 +101,7 @@
                         default))
                 .Throws<InvalidOperationException>();
 
-            var eventPublisher = Mock.Of<ISqlEventPublisher>();
+            ISqlEventPublisher eventPublisher = Mock.Of<ISqlEventPublisher>();
 
             var sut = new SqlEventSourcedRepository<FakeUser>(
                 eventStore,
@@ -128,7 +128,7 @@
             var correlationId = Guid.NewGuid();
             string contributor = Guid.NewGuid().ToString();
 
-            var mementoStore = Mock.Of<IMementoStore>();
+            IMementoStore mementoStore = Mock.Of<IMementoStore>();
 
             var sut = new SqlEventSourcedRepository<FakeUser>(
                 Mock.Of<ISqlEventStore>(),
@@ -162,8 +162,8 @@
             var correlationId = Guid.NewGuid();
             string contributor = Guid.NewGuid().ToString();
 
-            var eventStore = Mock.Of<ISqlEventStore>();
-            var mementoStore = Mock.Of<IMementoStore>();
+            ISqlEventStore eventStore = Mock.Of<ISqlEventStore>();
+            IMementoStore mementoStore = Mock.Of<IMementoStore>();
 
             Mock.Get(eventStore)
                 .Setup(
@@ -204,7 +204,7 @@
             var user = new FakeUser(id: Guid.NewGuid(), username: Guid.NewGuid().ToString());
             user.ChangeUsername(username: Guid.NewGuid().ToString());
 
-            var eventStore = Mock.Of<ISqlEventStore>();
+            ISqlEventStore eventStore = Mock.Of<ISqlEventStore>();
 
             Mock.Get(eventStore)
                 .Setup(x => x.LoadEvents<FakeUser>(user.Id, 0, default))
@@ -230,7 +230,7 @@
             var user = new FakeUser(id: Guid.NewGuid(), username: Guid.NewGuid().ToString());
             user.ChangeUsername(username: Guid.NewGuid().ToString());
 
-            var eventStore = Mock.Of<ISqlEventStore>();
+            ISqlEventStore eventStore = Mock.Of<ISqlEventStore>();
 
             Mock.Get(eventStore)
                 .Setup(x => x.LoadEvents<FakeUser>(user.Id, 0, default))
@@ -258,13 +258,13 @@
             IMemento memento = user.SaveToMemento();
             user.ChangeUsername(username: Guid.NewGuid().ToString());
 
-            var mementoStore = Mock.Of<IMementoStore>();
+            IMementoStore mementoStore = Mock.Of<IMementoStore>();
 
             Mock.Get(mementoStore)
                 .Setup(x => x.Find<FakeUser>(user.Id, default))
                 .ReturnsAsync(memento);
 
-            var eventStore = Mock.Of<ISqlEventStore>();
+            ISqlEventStore eventStore = Mock.Of<ISqlEventStore>();
 
             Mock.Get(eventStore)
                 .Setup(x => x.LoadEvents<FakeUser>(user.Id, 1, default))
@@ -292,7 +292,7 @@
             // Arrange
             var userId = Guid.NewGuid();
 
-            var eventStore = Mock.Of<ISqlEventStore>();
+            ISqlEventStore eventStore = Mock.Of<ISqlEventStore>();
 
             Mock.Get(eventStore)
                 .Setup(x => x.LoadEvents<FakeUser>(userId, 0, default))
@@ -318,7 +318,7 @@
             string value = Guid.NewGuid().ToString();
             Guid? expected = Guid.NewGuid();
 
-            var eventStore = Mock.Of<ISqlEventStore>();
+            ISqlEventStore eventStore = Mock.Of<ISqlEventStore>();
 
             Mock.Get(eventStore)
                 .Setup(x => x.FindIdByUniqueIndexedProperty<FakeUser>(name, value, default))

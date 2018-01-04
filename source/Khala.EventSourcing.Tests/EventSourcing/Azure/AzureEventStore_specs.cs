@@ -72,7 +72,7 @@
         [TestMethod]
         public void SaveEvents_fails_if_events_contains_null()
         {
-            var fixture = new Fixture().Customize(new AutoMoqCustomization());
+            IFixture fixture = new Fixture().Customize(new AutoMoqCustomization());
             var random = new Random();
             IEnumerable<IDomainEvent> events = Enumerable
                 .Repeat(fixture.Create<IDomainEvent>(), 10)
@@ -88,9 +88,9 @@
         public async Task SaveEvents_inserts_pending_event_entities_correctly()
         {
             // Arrange
-            var created = _fixture.Create<FakeUserCreated>();
-            var usernameChanged = _fixture.Create<FakeUsernameChanged>();
-            var events = new DomainEvent[] { created, usernameChanged };
+            FakeUserCreated created = _fixture.Create<FakeUserCreated>();
+            FakeUsernameChanged usernameChanged = _fixture.Create<FakeUsernameChanged>();
+            DomainEvent[] events = new DomainEvent[] { created, usernameChanged };
             var operationId = Guid.NewGuid();
             var correlationId = Guid.NewGuid();
             string contributor = Guid.NewGuid().ToString();
@@ -101,7 +101,7 @@
 
             // Assert
             string partitionKey = PendingEventTableEntity.GetPartitionKey(typeof(FakeUser), _userId);
-            var query = new TableQuery<PendingEventTableEntity>().Where($"PartitionKey eq '{partitionKey}'");
+            TableQuery<PendingEventTableEntity> query = new TableQuery<PendingEventTableEntity>().Where($"PartitionKey eq '{partitionKey}'");
             IEnumerable<PendingEventTableEntity> pendingEvents = s_eventTable.ExecuteQuery(query);
             pendingEvents.Should().HaveCount(events.Length);
             foreach (var t in pendingEvents.Zip(events, (pending, source) =>
@@ -135,9 +135,9 @@
         public async Task SaveEvents_inserts_event_entities_correctly()
         {
             // Arrange
-            var created = _fixture.Create<FakeUserCreated>();
-            var usernameChanged = _fixture.Create<FakeUsernameChanged>();
-            var events = new DomainEvent[] { created, usernameChanged };
+            FakeUserCreated created = _fixture.Create<FakeUserCreated>();
+            FakeUsernameChanged usernameChanged = _fixture.Create<FakeUsernameChanged>();
+            DomainEvent[] events = new DomainEvent[] { created, usernameChanged };
             var operationId = Guid.NewGuid();
             var correlationId = Guid.NewGuid();
             string contributor = Guid.NewGuid().ToString();
@@ -149,7 +149,7 @@
             // Assert
             string partitionKey = EventTableEntity.GetPartitionKey(typeof(FakeUser), _userId);
             string filter = $"(PartitionKey eq '{partitionKey}') and (RowKey lt 'Correlation')";
-            var query = new TableQuery<EventTableEntity>().Where(filter);
+            TableQuery<EventTableEntity> query = new TableQuery<EventTableEntity>().Where(filter);
             IEnumerable<EventTableEntity> persistentEvents = s_eventTable.ExecuteQuery(query);
             persistentEvents.Should().HaveCount(events.Length);
             foreach (var t in persistentEvents.Zip(events, (persistent, source)
@@ -204,7 +204,7 @@
         [TestMethod]
         public void SaveEvents_does_not_fail_even_if_events_empty()
         {
-            var events = new DomainEvent[] { };
+            DomainEvent[] events = new DomainEvent[] { };
             Func<Task> action = () => _sut.SaveEvents<FakeUser>(events);
             action.ShouldNotThrow();
         }
@@ -213,19 +213,19 @@
         public async Task SaveEvents_inserts_CorrelationTableEntity_correctly()
         {
             // Arrange
-            var created = _fixture.Create<FakeUserCreated>();
-            var events = new DomainEvent[] { created };
+            FakeUserCreated created = _fixture.Create<FakeUserCreated>();
+            DomainEvent[] events = new DomainEvent[] { created };
             var correlationId = Guid.NewGuid();
             RaiseEvents(_userId, events);
 
             // Act
-            var now = DateTimeOffset.Now;
+            DateTimeOffset now = DateTimeOffset.Now;
             await _sut.SaveEvents<FakeUser>(events, correlationId: correlationId);
 
             // Assert
             string partitionKey = CorrelationTableEntity.GetPartitionKey(typeof(FakeUser), _userId);
             string rowKey = CorrelationTableEntity.GetRowKey(correlationId);
-            var query = new TableQuery<CorrelationTableEntity>().Where($"PartitionKey eq '{partitionKey}' and RowKey eq '{rowKey}'");
+            TableQuery<CorrelationTableEntity> query = new TableQuery<CorrelationTableEntity>().Where($"PartitionKey eq '{partitionKey}' and RowKey eq '{rowKey}'");
             IEnumerable<CorrelationTableEntity> correlations = s_eventTable.ExecuteQuery(query);
             correlations.Should()
                 .ContainSingle(e => e.CorrelationId == correlationId)
@@ -235,8 +235,8 @@
         [TestMethod]
         public async Task SaveEvents_throws_DuplicateCorrelationException_if_correlation_duplicate()
         {
-            var created = _fixture.Create<FakeUserCreated>();
-            var usernameChanged = _fixture.Create<FakeUsernameChanged>();
+            FakeUserCreated created = _fixture.Create<FakeUserCreated>();
+            FakeUsernameChanged usernameChanged = _fixture.Create<FakeUsernameChanged>();
             RaiseEvents(_userId, created, usernameChanged);
             var correlationId = Guid.NewGuid();
             await _sut.SaveEvents<FakeUser>(new[] { created }, correlationId: correlationId);
@@ -256,9 +256,9 @@
         public async Task LoadEvents_restores_domain_events_correctly()
         {
             // Arrange
-            var created = _fixture.Create<FakeUserCreated>();
-            var usernameChanged = _fixture.Create<FakeUsernameChanged>();
-            var events = new DomainEvent[] { created, usernameChanged };
+            FakeUserCreated created = _fixture.Create<FakeUserCreated>();
+            FakeUsernameChanged usernameChanged = _fixture.Create<FakeUsernameChanged>();
+            DomainEvent[] events = new DomainEvent[] { created, usernameChanged };
             RaiseEvents(_userId, events);
             await _sut.SaveEvents<FakeUser>(events);
 
@@ -274,9 +274,9 @@
         public async Task LoadEvents_correctly_restores_domain_events_after_specified_version()
         {
             // Arrange
-            var created = _fixture.Create<FakeUserCreated>();
-            var usernameChanged = _fixture.Create<FakeUsernameChanged>();
-            var events = new DomainEvent[] { created, usernameChanged };
+            FakeUserCreated created = _fixture.Create<FakeUserCreated>();
+            FakeUsernameChanged usernameChanged = _fixture.Create<FakeUsernameChanged>();
+            DomainEvent[] events = new DomainEvent[] { created, usernameChanged };
             RaiseEvents(_userId, events);
             await _sut.SaveEvents<FakeUser>(events);
 

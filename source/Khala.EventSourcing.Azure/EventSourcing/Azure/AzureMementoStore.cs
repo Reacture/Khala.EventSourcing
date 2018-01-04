@@ -32,7 +32,7 @@
 
             string s = sourceId.ToString();
 
-            var fragments = new[]
+            string[] fragments = new[]
             {
                 typeof(T).FullName,
                 s.Substring(0, 2),

@@ -18,7 +18,7 @@
         [TestMethod]
         public void GetPartitionKey_returns_the_same_as_EventTableEntity()
         {
-            var sourceType = typeof(FakeUser);
+            Type sourceType = typeof(FakeUser);
             var sourceId = Guid.NewGuid();
             string actual = CorrelationTableEntity.GetPartitionKey(sourceType, sourceId);
             actual.Should().Be(EventTableEntity.GetPartitionKey(sourceType, sourceId));

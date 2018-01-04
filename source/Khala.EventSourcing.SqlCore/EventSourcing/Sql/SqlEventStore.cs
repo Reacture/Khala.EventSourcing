@@ -38,7 +38,7 @@
             CancellationToken cancellationToken = default)
             where T : class, IEventSourced
         {
-            List<IDomainEvent> domainEvents = events.ToList();
+            var domainEvents = events.ToList();
 
             if (domainEvents.Count == 0)
             {
@@ -175,7 +175,7 @@
 
             var properties = new List<UniqueIndexedProperty>();
 
-            foreach (var indexedEvent in events.OfType<IUniqueIndexedDomainEvent>())
+            foreach (IUniqueIndexedDomainEvent indexedEvent in events.OfType<IUniqueIndexedDomainEvent>())
             {
                 foreach (string name in
                     indexedEvent.UniqueIndexedProperties.Keys)
@@ -327,7 +327,7 @@
                     .ToListAsync(cancellationToken)
                     .ConfigureAwait(false);
 
-                List<IDomainEvent> domainEvents = persistentEvents
+                var domainEvents = persistentEvents
                     .Select(e => e.EventJson)
                     .Select(_serializer.Deserialize)
                     .Cast<IDomainEvent>()

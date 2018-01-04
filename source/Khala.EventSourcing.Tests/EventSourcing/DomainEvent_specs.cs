@@ -51,7 +51,7 @@
         [TestMethod]
         public void PartitionKey_returns_SourceId_as_string()
         {
-            var sut = _fixture.Create<FakeDomainEvent>();
+            FakeDomainEvent sut = _fixture.Create<FakeDomainEvent>();
             string actual = sut.PartitionKey;
             actual.Should().Be(sut.SourceId.ToString());
         }
@@ -68,7 +68,7 @@
         public void Raise_sets_SourceId_correctly()
         {
             var sourceId = Guid.NewGuid();
-            var versionedEntity =
+            IVersionedEntity versionedEntity =
                 Mock.Of<IVersionedEntity>(x => x.Id == sourceId);
             var sut = new FakeDomainEvent();
 
@@ -80,8 +80,8 @@
         [TestMethod]
         public void Raise_sets_version_correctly()
         {
-            var version = _fixture.Create<int>();
-            var versionedEntity =
+            int version = _fixture.Create<int>();
+            IVersionedEntity versionedEntity =
                 Mock.Of<IVersionedEntity>(x => x.Version == version);
             var sut = new FakeDomainEvent();
 
@@ -93,7 +93,7 @@
         [TestMethod]
         public void Raise_sets_RaisedAt_correctly()
         {
-            var versionedEntity = Mock.Of<IVersionedEntity>();
+            IVersionedEntity versionedEntity = Mock.Of<IVersionedEntity>();
             var sut = new FakeDomainEvent();
 
             sut.Raise(versionedEntity);

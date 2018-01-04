@@ -57,7 +57,7 @@
         [TestMethod]
         public void FromEnvelope_sets_PartitionKey_correctly()
         {
-            var domainEvent = _fixture.Create<FakeUserCreated>();
+            FakeUserCreated domainEvent = _fixture.Create<FakeUserCreated>();
             var envelope = new Envelope(domainEvent);
 
             EventTableEntity entity = FromEnvelope<FakeUser>(envelope, _serializer);
@@ -69,7 +69,7 @@
         [TestMethod]
         public void FromEnvelope_sets_RowKey_correctly()
         {
-            var domainEvent = _fixture.Create<FakeUserCreated>();
+            FakeUserCreated domainEvent = _fixture.Create<FakeUserCreated>();
             var envelope = new Envelope(domainEvent);
 
             EventTableEntity entity = FromEnvelope<FakeUser>(envelope, _serializer);
@@ -80,7 +80,7 @@
         [TestMethod]
         public void FromEnvelope_sets_Version_correctly()
         {
-            var domainEvent = _fixture.Create<FakeUserCreated>();
+            FakeUserCreated domainEvent = _fixture.Create<FakeUserCreated>();
             var envelope = new Envelope(domainEvent);
 
             EventTableEntity entity = FromEnvelope<FakeUser>(envelope, _serializer);
@@ -91,7 +91,7 @@
         [TestMethod]
         public void FromEnvelope_sets_EventType_correctly()
         {
-            var domainEvent = _fixture.Create<FakeUserCreated>();
+            FakeUserCreated domainEvent = _fixture.Create<FakeUserCreated>();
             var envelope = new Envelope(domainEvent);
 
             EventTableEntity entity = FromEnvelope<FakeUser>(envelope, _serializer);
@@ -102,7 +102,7 @@
         [TestMethod]
         public void FromEnvelope_sets_MessageId_correctly()
         {
-            var domainEvent = _fixture.Create<FakeUserCreated>();
+            FakeUserCreated domainEvent = _fixture.Create<FakeUserCreated>();
             var envelope = new Envelope(domainEvent);
 
             EventTableEntity entity = FromEnvelope<FakeUser>(envelope, _serializer);
@@ -113,7 +113,7 @@
         [TestMethod]
         public void FromEnvelope_sets_OperationId_correctly()
         {
-            var domainEvent = _fixture.Create<FakeUserCreated>();
+            FakeUserCreated domainEvent = _fixture.Create<FakeUserCreated>();
             var envelope = new Envelope(Guid.NewGuid(), domainEvent, operationId: Guid.NewGuid());
 
             EventTableEntity entity = FromEnvelope<FakeUser>(envelope, _serializer);
@@ -124,7 +124,7 @@
         [TestMethod]
         public void FromEnvelope_sets_CorrelationId_correctly()
         {
-            var domainEvent = _fixture.Create<FakeUserCreated>();
+            FakeUserCreated domainEvent = _fixture.Create<FakeUserCreated>();
             var envelope = new Envelope(Guid.NewGuid(), domainEvent, correlationId: Guid.NewGuid());
 
             EventTableEntity entity = FromEnvelope<FakeUser>(envelope, _serializer);
@@ -135,7 +135,7 @@
         [TestMethod]
         public void FromEnvelope_sets_Contributor_correctly()
         {
-            var domainEvent = _fixture.Create<FakeUserCreated>();
+            FakeUserCreated domainEvent = _fixture.Create<FakeUserCreated>();
             var envelope = new Envelope(Guid.NewGuid(), domainEvent, contributor: new Fixture().Create<string>());
 
             EventTableEntity entity = FromEnvelope<FakeUser>(envelope, _serializer);
@@ -146,7 +146,7 @@
         [TestMethod]
         public void FromEnvelope_sets_EventJson_correctly()
         {
-            var domainEvent = _fixture.Create<FakeUserCreated>();
+            FakeUserCreated domainEvent = _fixture.Create<FakeUserCreated>();
             var envelope = new Envelope(domainEvent);
 
             EventTableEntity entity =
@@ -160,7 +160,7 @@
         [TestMethod]
         public void FromEnvelope_sets_RaisedAt_correctly()
         {
-            var domainEvent = _fixture.Create<FakeUserCreated>();
+            FakeUserCreated domainEvent = _fixture.Create<FakeUserCreated>();
             var envelope = new Envelope(domainEvent);
 
             EventTableEntity entity = FromEnvelope<FakeUser>(envelope, _serializer);

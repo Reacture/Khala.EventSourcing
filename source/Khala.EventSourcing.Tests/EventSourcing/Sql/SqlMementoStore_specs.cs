@@ -56,7 +56,7 @@
         {
             // Arrange
             var sourceId = Guid.NewGuid();
-            var memento = _fixture.Create<FakeUserMemento>();
+            FakeUserMemento memento = _fixture.Create<FakeUserMemento>();
 
             // Act
             await _sut.Save<FakeUser>(sourceId, memento, CancellationToken.None);
@@ -82,8 +82,8 @@
         {
             // Arrange
             var sourceId = Guid.NewGuid();
-            var oldMemento = _fixture.Create<FakeUserMemento>();
-            var newMemento = _fixture.Create<FakeUserMemento>();
+            FakeUserMemento oldMemento = _fixture.Create<FakeUserMemento>();
+            FakeUserMemento newMemento = _fixture.Create<FakeUserMemento>();
 
             long sequence = 0;
             using (var db = new DataContext())
@@ -121,7 +121,7 @@
         public async Task Find_returns_memento_correctly()
         {
             var sourceId = Guid.NewGuid();
-            var memento = _fixture.Create<FakeUserMemento>();
+            FakeUserMemento memento = _fixture.Create<FakeUserMemento>();
             await _sut.Save<FakeUser>(sourceId, memento, CancellationToken.None);
 
             IMemento actual = await
@@ -146,7 +146,7 @@
         public async Task Delete_deletes_Memento_entity()
         {
             var sourceId = Guid.NewGuid();
-            var memento = _fixture.Create<FakeUserMemento>();
+            FakeUserMemento memento = _fixture.Create<FakeUserMemento>();
             await _sut.Save<FakeUser>(sourceId, memento, CancellationToken.None);
 
             await _sut.Delete<FakeUser>(sourceId, CancellationToken.None);

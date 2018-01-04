@@ -79,14 +79,14 @@
         public async Task FlushPendingEvents_sends_events_correctly()
         {
             // Arrange
-            var created = _fixture.Create<FakeUserCreated>();
-            var usernameChanged = _fixture.Create<FakeUsernameChanged>();
+            FakeUserCreated created = _fixture.Create<FakeUserCreated>();
+            FakeUsernameChanged usernameChanged = _fixture.Create<FakeUsernameChanged>();
             var sourceId = Guid.NewGuid();
             var operationId = Guid.NewGuid();
             var correlationId = Guid.NewGuid();
             string contributor = _fixture.Create<string>();
 
-            var domainEvents = new DomainEvent[] { created, usernameChanged };
+            DomainEvent[] domainEvents = new DomainEvent[] { created, usernameChanged };
             RaiseEvents(sourceId, domainEvents);
 
             var envelopes = new List<Envelope>();
@@ -144,11 +144,11 @@
         public async Task FlushPendingEvents_deletes_pending_events()
         {
             // Arrange
-            var created = _fixture.Create<FakeUserCreated>();
-            var usernameChanged = _fixture.Create<FakeUsernameChanged>();
+            FakeUserCreated created = _fixture.Create<FakeUserCreated>();
+            FakeUsernameChanged usernameChanged = _fixture.Create<FakeUsernameChanged>();
             var sourceId = Guid.NewGuid();
 
-            var events = new DomainEvent[] { created, usernameChanged };
+            DomainEvent[] events = new DomainEvent[] { created, usernameChanged };
             RaiseEvents(sourceId, events);
 
             using (var db = new DataContext())
@@ -276,7 +276,7 @@
             var completionSource = new TaskCompletionSource<bool>();
             IMessageBus messageBus = new AwaitingMessageBus(completionSource.Task);
             var fixture = new Fixture();
-            var user = fixture.Create<FakeUser>();
+            FakeUser user = fixture.Create<FakeUser>();
             user.ChangeUsername(fixture.Create(nameof(user.Username)));
             var eventStore = new SqlEventStore(CreateDbContext, _serializer);
             await eventStore.SaveEvents<FakeUser>(user.FlushPendingEvents());

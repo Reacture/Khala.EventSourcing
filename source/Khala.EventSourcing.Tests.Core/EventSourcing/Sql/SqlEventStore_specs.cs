@@ -61,7 +61,7 @@
         public async Task SaveEvents_commits_once()
         {
             var userId = Guid.NewGuid();
-            var events = new DomainEvent[]
+            DomainEvent[] events = new DomainEvent[]
             {
                 new FakeUserCreated(),
                 new FakeUsernameChanged()
@@ -105,7 +105,7 @@
             var userId = Guid.NewGuid();
             var created = new FakeUserCreated();
             created.Raise(userId);
-            var events = new DomainEvent[] { created, null };
+            DomainEvent[] events = new DomainEvent[] { created, null };
 
             var sut = new SqlEventStore(
                 () => new FakeEventStoreDbContext(_dbContextOptions),
@@ -128,7 +128,7 @@
             // Arrange
             var userId = Guid.NewGuid();
             var created = new FakeUserCreated();
-            var events = new DomainEvent[] { created };
+            DomainEvent[] events = new DomainEvent[] { created };
             events.Raise(userId);
 
             var sut = new SqlEventStore(
@@ -202,7 +202,7 @@
         public void SaveEvents_fails_if_versions_not_sequential()
         {
             // Arrange
-            var events = new DomainEvent[]
+            DomainEvent[] events = new DomainEvent[]
             {
                 new FakeUserCreated { Version = 1 },
                 new FakeUsernameChanged { Version = 2 },
@@ -302,7 +302,7 @@
 
             var created = new FakeUserCreated();
             var usernameChanged = new FakeUsernameChanged();
-            var events = new DomainEvent[] { created, usernameChanged };
+            DomainEvent[] events = new DomainEvent[] { created, usernameChanged };
             events.Raise(userId);
 
             var serializer = new JsonMessageSerializer();
@@ -321,7 +321,7 @@
             // Asseert
             using (var db = new FakeEventStoreDbContext(_dbContextOptions))
             {
-                List<PendingEvent> pendingEvents = db
+                var pendingEvents = db
                     .PendingEvents
                     .Where(e => e.AggregateId == userId)
                     .OrderBy(e => e.Version)
@@ -358,7 +358,7 @@
 
             var created = new FakeUserCreated();
             var usernameChanged = new FakeUsernameChanged();
-            var events = new DomainEvent[] { created, usernameChanged };
+            DomainEvent[] events = new DomainEvent[] { created, usernameChanged };
             events.Raise(userId);
 
             var serializer = new JsonMessageSerializer();
@@ -411,7 +411,7 @@
 
             var created = new FakeUserCreated();
             var usernameChanged = new FakeUsernameChanged();
-            var events = new DomainEvent[] { created, usernameChanged };
+            DomainEvent[] events = new DomainEvent[] { created, usernameChanged };
             events.Raise(userId);
 
             var sut = new SqlEventStore(
@@ -493,7 +493,7 @@
 
             var created = new FakeUserCreated();
             var usernameChanged = new FakeUsernameChanged();
-            var events = new DomainEvent[] { created, usernameChanged };
+            DomainEvent[] events = new DomainEvent[] { created, usernameChanged };
             events.Raise(userId);
 
             var sut = new SqlEventStore(
@@ -642,7 +642,7 @@
             var created = new FakeUserCreated();
             var correlationId = Guid.NewGuid();
             created.Raise(userId);
-            var now = DateTimeOffset.Now;
+            DateTimeOffset now = DateTimeOffset.Now;
 
             var sut = new SqlEventStore(
                 () => new FakeEventStoreDbContext(_dbContextOptions),
@@ -756,7 +756,7 @@
 
             var created = new FakeUserCreated();
             var usernameChanged = new FakeUsernameChanged();
-            var events = new DomainEvent[] { created, usernameChanged };
+            DomainEvent[] events = new DomainEvent[] { created, usernameChanged };
             events.Raise(userId);
 
             var sut = new SqlEventStore(
@@ -780,7 +780,7 @@
 
             var created = new FakeUserCreated();
             var usernameChanged = new FakeUsernameChanged();
-            var events = new DomainEvent[] { created, usernameChanged };
+            DomainEvent[] events = new DomainEvent[] { created, usernameChanged };
             events.Raise(userId);
 
             var sut = new SqlEventStore(

@@ -48,7 +48,7 @@
             var usernameChanged = new FakeUsernameChanged();
             var sourceId = Guid.NewGuid();
 
-            var events = new DomainEvent[] { created, usernameChanged };
+            DomainEvent[] events = new DomainEvent[] { created, usernameChanged };
             events.Raise(sourceId);
 
             var envelopes = new List<Envelope>();
@@ -89,7 +89,7 @@
         {
             // Arrange
             var sourceId = Guid.NewGuid();
-            var messageBus = Mock.Of<IMessageBus>();
+            IMessageBus messageBus = Mock.Of<IMessageBus>();
             var sut = new SqlEventPublisher(
                 () => new FakeEventStoreDbContext(_dbContextOptions),
                 new JsonMessageSerializer(),
@@ -113,7 +113,7 @@
 
             var created = new FakeUserCreated();
             var usernameChanged = new FakeUsernameChanged();
-            var events = new DomainEvent[] { created, usernameChanged };
+            DomainEvent[] events = new DomainEvent[] { created, usernameChanged };
             events.Raise(sourceId);
 
             using (var db = new FakeEventStoreDbContext(_dbContextOptions))

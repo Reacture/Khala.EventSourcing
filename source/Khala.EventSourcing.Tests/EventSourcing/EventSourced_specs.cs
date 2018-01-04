@@ -85,7 +85,7 @@
         {
             // Arrange
             var sut = new ConcreteAggregate(Guid.NewGuid());
-            Guid expected = Guid.NewGuid();
+            var expected = Guid.NewGuid();
 
             // Act
             Action action = () => sut.RaiseSomeDomainEvent(expected);
@@ -98,7 +98,7 @@
         [TestMethod]
         public void constructors_has_null_guard_clauses()
         {
-            var fixture = new Fixture().Customize(new AutoMoqCustomization());
+            IFixture fixture = new Fixture().Customize(new AutoMoqCustomization());
             var assertion = new GuardClauseAssertion(fixture);
             assertion.Verify(typeof(EventSourcedProxy).GetConstructors());
         }
@@ -125,7 +125,7 @@
         [TestMethod]
         public void HandlePastEvents_has_null_guard_clause()
         {
-            var fixture = new Fixture().Customize(new AutoMoqCustomization());
+            IFixture fixture = new Fixture().Customize(new AutoMoqCustomization());
             var assertion = new GuardClauseAssertion(fixture);
             assertion.Verify(typeof(EventSourcedProxy).GetMethod("HandlePastEvents"));
         }
@@ -135,7 +135,7 @@
         {
             var sut = new EventSourcedProxy(Guid.NewGuid());
             sut.SetEventHandler<SomeDomainEvent>(e => { });
-            var pastEvents = new IDomainEvent[]
+            IDomainEvent[] pastEvents = new IDomainEvent[]
             {
                 new SomeDomainEvent
                 {
@@ -157,7 +157,7 @@
         {
             var sut = new EventSourcedProxy(Guid.NewGuid());
             sut.SetEventHandler<SomeDomainEvent>(e => { });
-            var pastEvents = new IDomainEvent[]
+            IDomainEvent[] pastEvents = new IDomainEvent[]
             {
                 new SomeDomainEvent
                 {
@@ -178,7 +178,7 @@
         {
             var sut = new EventSourcedProxy(Guid.NewGuid());
             sut.SetEventHandler<SomeDomainEvent>(e => { });
-            var pastEvents = new IDomainEvent[]
+            IDomainEvent[] pastEvents = new IDomainEvent[]
             {
                 new SomeDomainEvent
                 {
@@ -205,7 +205,7 @@
         public void HandlePastEvents_fails_for_unknown_domain_event_type()
         {
             var sut = new EventSourcedProxy(Guid.NewGuid());
-            var pastEvents = new IDomainEvent[]
+            IDomainEvent[] pastEvents = new IDomainEvent[]
             {
                 new SomeDomainEvent
                 {
@@ -226,7 +226,7 @@
         {
             var fixture = new Fixture();
             var sut = new FakeUser(Guid.NewGuid(), fixture.Create(nameof(FakeUser.Username)));
-            List<IDomainEvent> expected = sut.PendingEvents.ToList();
+            var expected = sut.PendingEvents.ToList();
 
             IEnumerable<IDomainEvent> actual = sut.FlushPendingEvents();
 

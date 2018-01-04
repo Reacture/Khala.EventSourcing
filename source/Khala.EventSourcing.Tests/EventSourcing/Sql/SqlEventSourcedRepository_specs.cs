@@ -53,7 +53,7 @@
         [TestMethod]
         public async Task SaveAndPublish_saves_events()
         {
-            var user = _fixture.Create<FakeUser>();
+            FakeUser user = _fixture.Create<FakeUser>();
             var operationId = Guid.NewGuid();
             var correlationId = Guid.NewGuid();
             string contributor = Guid.NewGuid().ToString();
@@ -76,7 +76,7 @@
         [TestMethod]
         public async Task SaveAndPublish_publishes_events()
         {
-            var user = _fixture.Create<FakeUser>();
+            FakeUser user = _fixture.Create<FakeUser>();
             var operationId = Guid.NewGuid();
             var correlationId = Guid.NewGuid();
             string contributor = Guid.NewGuid().ToString();
@@ -93,7 +93,7 @@
         [TestMethod]
         public void SaveAndPublish_does_not_publish_events_if_fails_to_save_events()
         {
-            var user = _fixture.Create<FakeUser>();
+            FakeUser user = _fixture.Create<FakeUser>();
             var operationId = Guid.NewGuid();
             var correlationId = Guid.NewGuid();
             string contributor = Guid.NewGuid().ToString();
@@ -121,7 +121,7 @@
         [TestMethod]
         public async Task SaveAndPublish_saves_memento()
         {
-            var user = _fixture.Create<FakeUser>();
+            FakeUser user = _fixture.Create<FakeUser>();
             var operationId = Guid.NewGuid();
             var correlationId = Guid.NewGuid();
             string contributor = Guid.NewGuid().ToString();
@@ -144,7 +144,7 @@
         public void SaveAndPublish_does_not_saves_memento_if_fails_to_save_events()
         {
             // Arrange
-            var user = _fixture.Create<FakeUser>();
+            FakeUser user = _fixture.Create<FakeUser>();
             var operationId = Guid.NewGuid();
             var correlationId = Guid.NewGuid();
             string contributor = Guid.NewGuid().ToString();
@@ -176,7 +176,7 @@
         [TestMethod]
         public async Task Find_loads_events()
         {
-            var user = _fixture.Create<FakeUser>();
+            FakeUser user = _fixture.Create<FakeUser>();
             user.ChangeUsername(_fixture.Create("username"));
             Mock.Get(_eventStore)
                 .Setup(
@@ -194,7 +194,7 @@
         public async Task Find_restores_aggregate_from_events()
         {
             // Arrange
-            var user = _fixture.Create<FakeUser>();
+            FakeUser user = _fixture.Create<FakeUser>();
             user.ChangeUsername(_fixture.Create("username"));
 
             Mock.Get(_eventStore)
@@ -221,7 +221,7 @@
         public async Task Find_restores_aggregate_using_memento_if_found()
         {
             // Arrange
-            var user = _fixture.Create<FakeUser>();
+            FakeUser user = _fixture.Create<FakeUser>();
             IMemento memento = user.SaveToMemento();
             user.ChangeUsername(_fixture.Create("username"));
 
@@ -263,11 +263,11 @@
         public async Task FindIdByUniqueIndexedProperty_relays_to_event_store()
         {
             // Arrange
-            var name = _fixture.Create<string>();
-            var value = _fixture.Create<string>();
-            var expected = _fixture.Create<Guid?>();
+            string name = _fixture.Create<string>();
+            string value = _fixture.Create<string>();
+            Guid? expected = _fixture.Create<Guid?>();
 
-            var eventStore = Mock.Of<ISqlEventStore>();
+            ISqlEventStore eventStore = Mock.Of<ISqlEventStore>();
             Mock.Get(eventStore)
                 .Setup(
                     x =>

@@ -88,7 +88,7 @@
 
             var persistentVersions = new HashSet<int>(persistentEvents.Select(e => e.Version));
 
-            var envelopes =
+            IEnumerable<Envelope> envelopes =
                 from e in pendingEvents
                 where persistentVersions.Contains(e.Version)
                 let domainEvent = _serializer.Deserialize(e.EventJson)
@@ -159,8 +159,8 @@
         [EditorBrowsable(EditorBrowsableState.Never)]
         public async Task FlushAllPendingEvents(CancellationToken cancellationToken)
         {
-            var filter = PendingEventTableEntity.ScanFilter;
-            var query = new TableQuery<PendingEventTableEntity>().Where(filter);
+            string filter = PendingEventTableEntity.ScanFilter;
+            TableQuery<PendingEventTableEntity> query = new TableQuery<PendingEventTableEntity>().Where(filter);
             TableContinuationToken continuation = null;
 
             do

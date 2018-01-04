@@ -112,14 +112,14 @@
         private static IEnumerable<PendingEventTableEntity> QueryPendingEventEntities<T>(Guid sourceId)
         {
             string partitionKey = PendingEventTableEntity.GetPartitionKey(typeof(T), sourceId);
-            var query = new TableQuery<PendingEventTableEntity>().Where($"PartitionKey eq '{partitionKey}'");
+            TableQuery<PendingEventTableEntity> query = new TableQuery<PendingEventTableEntity>().Where($"PartitionKey eq '{partitionKey}'");
             return s_eventTable.ExecuteQuery(query);
         }
 
         private IReadOnlyCollection<DomainEvent> CreateFakeUserDomainEvents(Guid userId)
         {
             var fixture = new Fixture();
-            var domainEvents = new DomainEvent[]
+            DomainEvent[] domainEvents = new DomainEvent[]
             {
                 fixture.Create<FakeUserCreated>(),
                 fixture.Create<FakeUsernameChanged>()
@@ -251,7 +251,7 @@
 
             // Assert
             string partitionKey = PendingEventTableEntity.GetPartitionKey(typeof(FakeUser), userId);
-            var query = new TableQuery<PendingEventTableEntity>().Where($"PartitionKey eq '{partitionKey}'");
+            TableQuery<PendingEventTableEntity> query = new TableQuery<PendingEventTableEntity>().Where($"PartitionKey eq '{partitionKey}'");
             IEnumerable<string> actual = s_eventTable.ExecuteQuery(query).Select(e => e.RowKey);
             actual.ShouldAllBeEquivalentTo(pendingEvents.Select(e => e.RowKey));
         }

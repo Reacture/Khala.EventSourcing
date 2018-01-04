@@ -83,7 +83,7 @@
                 AzureMementoStore.GetMementoBlobName<FakeUser>(userId);
 
             TestContext.WriteLine("{0}", actual);
-            var fragments = new[]
+            string[] fragments = new[]
             {
                 typeof(FakeUser).FullName,
                 s.Substring(0, 2),

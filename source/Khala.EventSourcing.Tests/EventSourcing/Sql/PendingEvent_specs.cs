@@ -25,14 +25,14 @@
         [TestMethod]
         public void FromEnvelope_has_guard_clauses()
         {
-            var builder = new Fixture().Customize(new AutoMoqCustomization());
+            IFixture builder = new Fixture().Customize(new AutoMoqCustomization());
             new GuardClauseAssertion(builder).Verify(typeof(PendingEvent).GetMethod("FromEnvelope"));
         }
 
         [TestMethod]
         public void FromEnvelope_sets_AggregateId_correctly()
         {
-            var domainEvent = _fixture.Create<FakeUserCreated>();
+            FakeUserCreated domainEvent = _fixture.Create<FakeUserCreated>();
             var envelope = new Envelope(domainEvent);
             var actual = PendingEvent.FromEnvelope(envelope, _serializer);
             actual.AggregateId.Should().Be(domainEvent.SourceId);
@@ -41,7 +41,7 @@
         [TestMethod]
         public void FromEnvelope_sets_Version_correctly()
         {
-            var domainEvent = _fixture.Create<FakeUserCreated>();
+            FakeUserCreated domainEvent = _fixture.Create<FakeUserCreated>();
             var envelope = new Envelope(domainEvent);
             var actual = PendingEvent.FromEnvelope(envelope, _serializer);
             actual.Version.Should().Be(domainEvent.Version);
@@ -50,7 +50,7 @@
         [TestMethod]
         public void FromEnvelope_sets_MessageId_correctly()
         {
-            var domainEvent = _fixture.Create<FakeUserCreated>();
+            FakeUserCreated domainEvent = _fixture.Create<FakeUserCreated>();
             var envelope = new Envelope(domainEvent);
             var actual = PendingEvent.FromEnvelope(envelope, _serializer);
             actual.MessageId.Should().Be(envelope.MessageId);
@@ -59,7 +59,7 @@
         [TestMethod]
         public void FromEnvelope_sets_EventJson_correctly()
         {
-            var domainEvent = _fixture.Create<FakeUserCreated>();
+            FakeUserCreated domainEvent = _fixture.Create<FakeUserCreated>();
             var envelope = new Envelope(domainEvent);
 
             var actual = PendingEvent.FromEnvelope(envelope, _serializer);
@@ -72,7 +72,7 @@
         [TestMethod]
         public void FromEnvelope_sets_OperationId_correctly()
         {
-            var domainEvent = _fixture.Create<FakeUserCreated>();
+            FakeUserCreated domainEvent = _fixture.Create<FakeUserCreated>();
             var operationId = Guid.NewGuid();
             var envelope = new Envelope(Guid.NewGuid(), domainEvent, operationId);
             var actual = PendingEvent.FromEnvelope(envelope, _serializer);
@@ -82,7 +82,7 @@
         [TestMethod]
         public void FromEnvelope_sets_CorrelationId_correctly()
         {
-            var domainEvent = _fixture.Create<FakeUserCreated>();
+            FakeUserCreated domainEvent = _fixture.Create<FakeUserCreated>();
             var correlationId = Guid.NewGuid();
             var envelope = new Envelope(Guid.NewGuid(), domainEvent, correlationId: correlationId);
             var actual = PendingEvent.FromEnvelope(envelope, _serializer);
@@ -92,8 +92,8 @@
         [TestMethod]
         public void FromEnvelope_sets_Contributor_correctly()
         {
-            var domainEvent = _fixture.Create<FakeUserCreated>();
-            var contributor = _fixture.Create<string>();
+            FakeUserCreated domainEvent = _fixture.Create<FakeUserCreated>();
+            string contributor = _fixture.Create<string>();
             var envelope = new Envelope(Guid.NewGuid(), domainEvent, contributor: contributor);
             var actual = PendingEvent.FromEnvelope(envelope, _serializer);
             actual.Contributor.Should().Be(contributor);

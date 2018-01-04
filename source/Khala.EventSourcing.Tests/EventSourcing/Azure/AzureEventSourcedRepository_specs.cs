@@ -53,7 +53,7 @@
         [TestMethod]
         public void constructor_sets_EventPublisher_correctly()
         {
-            var eventPublisher = Mock.Of<IAzureEventPublisher>();
+            IAzureEventPublisher eventPublisher = Mock.Of<IAzureEventPublisher>();
 
             var sut = new AzureEventSourcedRepository<FakeUser>(
                 Mock.Of<IAzureEventStore>(),
@@ -67,11 +67,11 @@
         public async Task SaveAndPublish_saves_events()
         {
             // Arrange
-            var user = _fixture.Create<FakeUser>();
+            FakeUser user = _fixture.Create<FakeUser>();
             var operationId = Guid.NewGuid();
             var correlationId = Guid.NewGuid();
             string contributor = Guid.NewGuid().ToString();
-            var cancellationToken = new CancellationTokenSource().Token;
+            CancellationToken cancellationToken = new CancellationTokenSource().Token;
             user.ChangeUsername("foo");
             var pendingEvents = new List<IDomainEvent>(user.PendingEvents);
 
@@ -93,7 +93,7 @@
         [TestMethod]
         public async Task SaveAndPublish_publishes_events()
         {
-            var user = _fixture.Create<FakeUser>();
+            FakeUser user = _fixture.Create<FakeUser>();
             var operationId = Guid.NewGuid();
             var correlationId = Guid.NewGuid();
             string contributor = Guid.NewGuid().ToString();
@@ -113,7 +113,7 @@
         public void SaveAndPublish_does_not_publish_events_if_fails_to_save()
         {
             // Arrange
-            var user = _fixture.Create<FakeUser>();
+            FakeUser user = _fixture.Create<FakeUser>();
             var operationId = Guid.NewGuid();
             var correlationId = Guid.NewGuid();
             string contributor = Guid.NewGuid().ToString();
@@ -145,7 +145,7 @@
         [TestMethod]
         public async Task SaveAndPublish_saves_memento()
         {
-            var user = _fixture.Create<FakeUser>();
+            FakeUser user = _fixture.Create<FakeUser>();
             var operationId = Guid.NewGuid();
             var correlationId = Guid.NewGuid();
             string contributor = Guid.NewGuid().ToString();
@@ -169,7 +169,7 @@
         public void SaveAndPublish_does_not_save_memento_if_fails_to_save_events()
         {
             // Arrange
-            var user = _fixture.Create<FakeUser>();
+            FakeUser user = _fixture.Create<FakeUser>();
             var operationId = Guid.NewGuid();
             var correlationId = Guid.NewGuid();
             string contributor = Guid.NewGuid().ToString();
@@ -202,7 +202,7 @@
         [TestMethod]
         public async Task Find_publishes_pending_events()
         {
-            var user = _fixture.Create<FakeUser>();
+            FakeUser user = _fixture.Create<FakeUser>();
             user.ChangeUsername("foo");
 
             await _sut.Find(user.Id, CancellationToken.None);
@@ -218,7 +218,7 @@
         [TestMethod]
         public async Task Find_restores_aggregate()
         {
-            var user = _fixture.Create<FakeUser>();
+            FakeUser user = _fixture.Create<FakeUser>();
             user.ChangeUsername("foo");
             Mock.Get(_eventStore)
                 .Setup(x => x.LoadEvents<FakeUser>(user.Id, 0, CancellationToken.None))
@@ -233,7 +233,7 @@
         public void Find_does_not_load_events_if_fails_to_publish_events()
         {
             // Arrange
-            var user = _fixture.Create<FakeUser>();
+            FakeUser user = _fixture.Create<FakeUser>();
             user.ChangeUsername("foo");
             Mock.Get(_eventPublisher)
                 .Setup(
@@ -276,8 +276,8 @@
         public async Task Find_restores_aggregate_using_memento_if_found()
         {
             // Arrange
-            var user = _fixture.Create<FakeUser>();
-            var memento = user.SaveToMemento();
+            FakeUser user = _fixture.Create<FakeUser>();
+            IMemento memento = user.SaveToMemento();
             user.ChangeUsername("foo");
 
             Mock.Get(_mementoStore)
@@ -336,7 +336,7 @@
 
             // Assert
             IEnumerable<IDomainEvent> expected = await eventStore.LoadEvents<FakeUser>(userId);
-            List<IDomainEvent> actual = messageBus.Log.Select(e => (IDomainEvent)e.Message).Distinct(e => e.Version).OrderBy(e => e.Version).ToList();
+            var actual = messageBus.Log.Select(e => (IDomainEvent)e.Message).Distinct(e => e.Version).OrderBy(e => e.Version).ToList();
             actual.ShouldAllBeEquivalentTo(expected, opts => opts.WithStrictOrdering().Excluding(e => e.RaisedAt));
         }
 
@@ -346,7 +346,7 @@
 
             try
             {
-                var storageAccount = CloudStorageAccount.DevelopmentStorageAccount;
+                CloudStorageAccount storageAccount = CloudStorageAccount.DevelopmentStorageAccount;
                 CloudTableClient tableClient = storageAccount.CreateCloudTableClient();
                 eventTable = tableClient.GetTableReference(eventTableName);
                 eventTable.DeleteIfExists(new TableRequestOptions { RetryPolicy = new NoRetry() });

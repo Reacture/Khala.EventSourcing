@@ -49,7 +49,7 @@
         [TestMethod]
         public void FromEnvelope_sets_PartitionKey_correctly()
         {
-            var domainEvent = _fixture.Create<FakeUserCreated>();
+            FakeUserCreated domainEvent = _fixture.Create<FakeUserCreated>();
             var envelope = new Envelope(domainEvent);
 
             PendingEventTableEntity actual =
@@ -62,7 +62,7 @@
         [TestMethod]
         public void FromEnvelope_sets_RowKey_correctly()
         {
-            var domainEvent = _fixture.Create<FakeUserCreated>();
+            FakeUserCreated domainEvent = _fixture.Create<FakeUserCreated>();
             var envelope = new Envelope(domainEvent);
 
             PendingEventTableEntity actual =
@@ -74,7 +74,7 @@
         [TestMethod]
         public void FromEnvelope_sets_PersistentPartition_correctly()
         {
-            var domainEvent = _fixture.Create<FakeUserCreated>();
+            FakeUserCreated domainEvent = _fixture.Create<FakeUserCreated>();
             var envelope = new Envelope(domainEvent);
 
             PendingEventTableEntity actual =
@@ -88,7 +88,7 @@
         [TestMethod]
         public void FromEnvelope_sets_Version_correctly()
         {
-            var domainEvent = _fixture.Create<FakeUserCreated>();
+            FakeUserCreated domainEvent = _fixture.Create<FakeUserCreated>();
             var envelope = new Envelope(domainEvent);
 
             PendingEventTableEntity actual =
@@ -100,7 +100,7 @@
         [TestMethod]
         public void FromEnvelope_sets_MessageId_correctly()
         {
-            var domainEvent = _fixture.Create<FakeUserCreated>();
+            FakeUserCreated domainEvent = _fixture.Create<FakeUserCreated>();
             var envelope = new Envelope(domainEvent);
 
             PendingEventTableEntity actual =
@@ -112,7 +112,7 @@
         [TestMethod]
         public void FromEnvelope_sets_OperationId_correctly()
         {
-            var domainEvent = _fixture.Create<FakeUserCreated>();
+            FakeUserCreated domainEvent = _fixture.Create<FakeUserCreated>();
             var envelope = new Envelope(GuidGenerator.Create(), domainEvent, operationId: GuidGenerator.Create());
 
             PendingEventTableEntity actual =
@@ -124,7 +124,7 @@
         [TestMethod]
         public void FromEnvelope_sets_CorrelationId_correctly()
         {
-            var domainEvent = _fixture.Create<FakeUserCreated>();
+            FakeUserCreated domainEvent = _fixture.Create<FakeUserCreated>();
             var envelope = new Envelope(GuidGenerator.Create(), domainEvent, correlationId: GuidGenerator.Create());
 
             PendingEventTableEntity actual =
@@ -136,7 +136,7 @@
         [TestMethod]
         public void FromEnvelope_sets_Contributor_correctly()
         {
-            var domainEvent = _fixture.Create<FakeUserCreated>();
+            FakeUserCreated domainEvent = _fixture.Create<FakeUserCreated>();
             var envelope = new Envelope(GuidGenerator.Create(), domainEvent, contributor: new Fixture().Create<string>());
 
             PendingEventTableEntity actual =
@@ -148,7 +148,7 @@
         [TestMethod]
         public void FromEnvelope_sets_EventJson_correctly()
         {
-            var domainEvent = _fixture.Create<FakeUserCreated>();
+            FakeUserCreated domainEvent = _fixture.Create<FakeUserCreated>();
             var envelope = new Envelope(domainEvent);
 
             PendingEventTableEntity actual =

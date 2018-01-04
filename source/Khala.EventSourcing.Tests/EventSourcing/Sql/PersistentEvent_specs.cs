@@ -43,7 +43,7 @@
         [TestMethod]
         public void FromEnvelope_sets_AggregateId_correctly()
         {
-            var domainEvent = _fixture.Create<FakeDomainEvent>();
+            FakeDomainEvent domainEvent = _fixture.Create<FakeDomainEvent>();
             var envelope = new Envelope(domainEvent);
             var actual = PersistentEvent.FromEnvelope(
                 envelope, new JsonMessageSerializer());
@@ -53,7 +53,7 @@
         [TestMethod]
         public void FromEnvelope_sets_Version_correctly()
         {
-            var domainEvent = _fixture.Create<FakeDomainEvent>();
+            FakeDomainEvent domainEvent = _fixture.Create<FakeDomainEvent>();
             var envelope = new Envelope(domainEvent);
             var actual = PersistentEvent.FromEnvelope(
                 envelope, new JsonMessageSerializer());
@@ -63,7 +63,7 @@
         [TestMethod]
         public void FromEnvelope_sets_EventType_correctly()
         {
-            var domainEvent = _fixture.Create<FakeDomainEvent>();
+            FakeDomainEvent domainEvent = _fixture.Create<FakeDomainEvent>();
             var envelope = new Envelope(domainEvent);
             var actual = PersistentEvent.FromEnvelope(
                 envelope, new JsonMessageSerializer());
@@ -73,7 +73,7 @@
         [TestMethod]
         public void FromEnvelope_sets_MessageId_correctly()
         {
-            var domainEvent = _fixture.Create<FakeDomainEvent>();
+            FakeDomainEvent domainEvent = _fixture.Create<FakeDomainEvent>();
             var envelope = new Envelope(domainEvent);
             var actual = PersistentEvent.FromEnvelope(
                 envelope, new JsonMessageSerializer());
@@ -84,7 +84,7 @@
         public void FromEnvelope_sets_EventJson_correctly()
         {
             var serializer = new JsonMessageSerializer();
-            var domainEvent = _fixture.Create<FakeDomainEvent>();
+            FakeDomainEvent domainEvent = _fixture.Create<FakeDomainEvent>();
             var envelope = new Envelope(domainEvent);
 
             var actual = PersistentEvent.FromEnvelope(envelope, serializer);
@@ -97,7 +97,7 @@
         [TestMethod]
         public void FromEnvelope_sets_OperationId_correctly()
         {
-            var domainEvent = _fixture.Create<FakeDomainEvent>();
+            FakeDomainEvent domainEvent = _fixture.Create<FakeDomainEvent>();
             var operationId = Guid.NewGuid();
             var envelope = new Envelope(Guid.NewGuid(), domainEvent, operationId);
             var actual = PersistentEvent.FromEnvelope(
@@ -108,7 +108,7 @@
         [TestMethod]
         public void FromEnvelope_sets_CorrelationId_correctly()
         {
-            var domainEvent = _fixture.Create<FakeDomainEvent>();
+            FakeDomainEvent domainEvent = _fixture.Create<FakeDomainEvent>();
             var correlationId = Guid.NewGuid();
             var envelope = new Envelope(Guid.NewGuid(), domainEvent, correlationId: correlationId);
             var actual = PersistentEvent.FromEnvelope(
@@ -119,8 +119,8 @@
         [TestMethod]
         public void FromEnvelope_sets_Contributor_correctly()
         {
-            var domainEvent = _fixture.Create<FakeDomainEvent>();
-            var contributor = _fixture.Create<string>();
+            FakeDomainEvent domainEvent = _fixture.Create<FakeDomainEvent>();
+            string contributor = _fixture.Create<string>();
             var envelope = new Envelope(Guid.NewGuid(), domainEvent, contributor: contributor);
             var actual = PersistentEvent.FromEnvelope(
                 envelope, new JsonMessageSerializer());
@@ -130,7 +130,7 @@
         [TestMethod]
         public void FromEnvelope_sets_RaisedAt_correctly()
         {
-            var domainEvent = _fixture.Create<FakeDomainEvent>();
+            FakeDomainEvent domainEvent = _fixture.Create<FakeDomainEvent>();
             var envelope = new Envelope(domainEvent);
             var actual = PersistentEvent.FromEnvelope(
                 envelope, new JsonMessageSerializer());

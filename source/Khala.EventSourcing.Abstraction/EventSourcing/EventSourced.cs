@@ -177,7 +177,7 @@
                 }
                 catch (ArgumentException exception)
                 {
-                    var message =
+                    string message =
                         $"Could not handle {nameof(pastEvents)} successfully." +
                         " See the inner exception for details.";
                     throw new ArgumentException(
@@ -210,13 +210,13 @@
         {
             if (domainEvent.SourceId != _id)
             {
-                var message = $"{nameof(domainEvent.SourceId)} is invalid.";
+                string message = $"{nameof(domainEvent.SourceId)} is invalid.";
                 throw new ArgumentException(message, nameof(domainEvent));
             }
 
             if (domainEvent.Version != _version + 1)
             {
-                var message = $"{nameof(domainEvent.Version)} is invalid.";
+                string message = $"{nameof(domainEvent.Version)} is invalid.";
                 throw new ArgumentException(message, nameof(domainEvent));
             }
 
@@ -228,14 +228,14 @@
             }
             else
             {
-                var message = $"Cannot handle event of type {eventType}.";
+                string message = $"Cannot handle event of type {eventType}.";
                 throw new InvalidOperationException(message);
             }
         }
 
         public IEnumerable<IDomainEvent> FlushPendingEvents()
         {
-            List<IDomainEvent> domainEvents = _pendingEvents.ToList();
+            var domainEvents = _pendingEvents.ToList();
             try
             {
                 return domainEvents;

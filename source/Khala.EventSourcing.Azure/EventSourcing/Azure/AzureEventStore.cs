@@ -38,7 +38,7 @@
                 throw new ArgumentNullException(nameof(events));
             }
 
-            List<IDomainEvent> domainEvents = events.ToList();
+            var domainEvents = events.ToList();
 
             for (int i = 0; i < domainEvents.Count; i++)
             {
@@ -117,7 +117,7 @@
             catch (StorageException exception) when (correlationId.HasValue)
             {
                 string filter = CorrelationTableEntity.GetFilter(typeof(T), sourceId, correlationId.Value);
-                var query = new TableQuery<CorrelationTableEntity>().Where(filter);
+                TableQuery<CorrelationTableEntity> query = new TableQuery<CorrelationTableEntity>().Where(filter);
                 if (await _eventTable.Any(query, cancellationToken))
                 {
                     throw new DuplicateCorrelationException(
@@ -163,7 +163,7 @@
                     GreaterThan,
                     EventTableEntity.GetRowKey(afterVersion)));
 
-            var query = new TableQuery<EventTableEntity>().Where(filter);
+            TableQuery<EventTableEntity> query = new TableQuery<EventTableEntity>().Where(filter);
 
             IEnumerable<EventTableEntity> events = await _eventTable
                 .ExecuteQuery(query, cancellationToken)
