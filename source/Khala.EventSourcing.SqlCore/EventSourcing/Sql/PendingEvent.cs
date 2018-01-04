@@ -17,10 +17,12 @@
 
         public Guid MessageId { get; set; }
 
-        public Guid? CorrelationId { get; set; }
-
         [Required]
         public string EventJson { get; set; }
+
+        public Guid? OperationId { get; set; }
+
+        public Guid? CorrelationId { get; set; }
 
         public string Contributor { get; set; }
 

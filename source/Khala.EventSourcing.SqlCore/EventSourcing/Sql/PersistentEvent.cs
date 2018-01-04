@@ -30,10 +30,12 @@
 
         public Guid MessageId { get; set; }
 
-        public Guid? CorrelationId { get; set; }
-
         [Required]
         public string EventJson { get; set; }
+
+        public Guid? OperationId { get; set; }
+
+        public Guid? CorrelationId { get; set; }
 
         [StringLength(128)]
         public string Contributor { get; set; }

@@ -70,6 +70,8 @@ namespace Khala.FakeDomain.Migrations
 
                     b.Property<Guid>("MessageId");
 
+                    b.Property<Guid?>("OperationId");
+
                     b.HasKey("AggregateId", "Version");
 
                     b.ToTable("PendingEvents");
@@ -94,6 +96,8 @@ namespace Khala.FakeDomain.Migrations
                         .IsRequired();
 
                     b.Property<Guid>("MessageId");
+
+                    b.Property<Guid?>("OperationId");
 
                     b.Property<DateTimeOffset>("RaisedAt");
 

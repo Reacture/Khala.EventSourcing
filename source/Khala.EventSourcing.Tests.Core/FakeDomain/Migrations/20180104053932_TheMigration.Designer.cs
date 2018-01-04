@@ -11,8 +11,8 @@ using System;
 namespace Khala.FakeDomain.Migrations
 {
     [DbContext(typeof(FakeEventStoreDbContext))]
-    [Migration("20171209174945_AddContributorPropertyToPersistentEvent")]
-    partial class AddContributorPropertyToPersistentEvent
+    [Migration("20180104053932_TheMigration")]
+    partial class TheMigration
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -62,12 +62,16 @@ namespace Khala.FakeDomain.Migrations
 
                     b.Property<int>("Version");
 
+                    b.Property<string>("Contributor");
+
                     b.Property<Guid?>("CorrelationId");
 
                     b.Property<string>("EventJson")
                         .IsRequired();
 
                     b.Property<Guid>("MessageId");
+
+                    b.Property<Guid?>("OperationId");
 
                     b.HasKey("AggregateId", "Version");
 
@@ -93,6 +97,8 @@ namespace Khala.FakeDomain.Migrations
                         .IsRequired();
 
                     b.Property<Guid>("MessageId");
+
+                    b.Property<Guid?>("OperationId");
 
                     b.Property<DateTimeOffset>("RaisedAt");
 

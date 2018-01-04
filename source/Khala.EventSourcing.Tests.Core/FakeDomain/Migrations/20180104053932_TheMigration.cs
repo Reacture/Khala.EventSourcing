@@ -4,7 +4,7 @@
     using Microsoft.EntityFrameworkCore.Metadata;
     using Microsoft.EntityFrameworkCore.Migrations;
 
-    public partial class InitializeEventStore : Migration
+    public partial class TheMigration : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -42,9 +42,11 @@
                 {
                     AggregateId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     Version = table.Column<int>(type: "int", nullable: false),
+                    Contributor = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     CorrelationId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
                     EventJson = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    MessageId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
+                    MessageId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    OperationId = table.Column<Guid>(type: "uniqueidentifier", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -58,10 +60,12 @@
                     SequenceId = table.Column<long>(type: "bigint", nullable: false)
                         .Annotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn),
                     AggregateId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Contributor = table.Column<string>(type: "nvarchar(128)", maxLength: 128, nullable: true),
                     CorrelationId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
                     EventJson = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     EventType = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     MessageId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    OperationId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
                     RaisedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
                     Version = table.Column<int>(type: "int", nullable: false)
                 },
