@@ -115,7 +115,7 @@
                     t.Pending.OperationId,
                     t.Pending.CorrelationId,
                     t.Pending.Contributor,
-                    Message = _serializer.Deserialize(t.Pending.EventJson)
+                    Message = _serializer.Deserialize(t.Pending.EventJson),
                 };
                 actual.ShouldBeEquivalentTo(new
                 {
@@ -125,7 +125,7 @@
                     OperationId = operationId,
                     CorrelationId = correlationId,
                     Contributor = contributor,
-                    Message = t.Source
+                    Message = t.Source,
                 },
                 opts => opts.RespectingRuntimeTypes());
             }
@@ -164,7 +164,7 @@
                     t.Persistent.CorrelationId,
                     t.Persistent.Contributor,
                     Event = (DomainEvent)_serializer.Deserialize(t.Persistent.EventJson),
-                    t.Persistent.RaisedAt
+                    t.Persistent.RaisedAt,
                 };
                 actual.ShouldBeEquivalentTo(new
                 {
@@ -175,7 +175,7 @@
                     CorrelationId = correlationId,
                     Contributor = contributor,
                     Event = t.Source,
-                    t.Source.RaisedAt
+                    t.Source.RaisedAt,
                 });
             }
         }
@@ -189,7 +189,7 @@
             await s_eventTable.ExecuteAsync(TableOperation.Insert(new TableEntity
             {
                 PartitionKey = PendingEventTableEntity.GetPartitionKey(typeof(FakeUser), _userId),
-                RowKey = PendingEventTableEntity.GetRowKey(domainEvent.Version)
+                RowKey = PendingEventTableEntity.GetRowKey(domainEvent.Version),
             }));
 
             // Act

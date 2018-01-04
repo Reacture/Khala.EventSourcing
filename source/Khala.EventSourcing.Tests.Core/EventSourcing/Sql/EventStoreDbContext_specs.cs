@@ -56,7 +56,7 @@
             IIndex actual = sut.FindIndex(new[]
             {
                 sut.FindProperty("AggregateId"),
-                sut.FindProperty("Version")
+                sut.FindProperty("Version"),
             });
             actual.Should().NotBeNull();
             actual.IsUnique.Should().BeTrue();
@@ -80,7 +80,7 @@
             actual.Properties.Should().Equal(new[]
             {
                 sut.FindProperty("AggregateId"),
-                sut.FindProperty("Version")
+                sut.FindProperty("Version"),
             });
         }
 
@@ -103,7 +103,7 @@
             {
                 sut.FindProperty("AggregateType"),
                 sut.FindProperty("PropertyName"),
-                sut.FindProperty("PropertyValue")
+                sut.FindProperty("PropertyValue"),
             });
         }
 
@@ -115,7 +115,7 @@
             IIndex actual = sut.FindIndex(new[]
             {
                 sut.FindProperty("AggregateId"),
-                sut.FindProperty("PropertyName")
+                sut.FindProperty("PropertyName"),
             });
             actual.Should().NotBeNull();
             actual.IsUnique.Should().BeTrue();
@@ -139,7 +139,7 @@
             actual.Properties.Should().Equal(new[]
             {
                 sut.FindProperty("AggregateId"),
-                sut.FindProperty("CorrelationId")
+                sut.FindProperty("CorrelationId"),
             });
         }
     }

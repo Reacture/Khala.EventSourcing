@@ -155,7 +155,7 @@
             {
                 new FakeUserCreated(),
                 new FakeUserCreated(),
-                new FakeUserCreated()
+                new FakeUserCreated(),
             };
 
             var eventStore = new SqlEventStore(
@@ -205,7 +205,7 @@
             {
                 new FakeUserCreated(),
                 new FakeUserCreated(),
-                new FakeUserCreated()
+                new FakeUserCreated(),
             };
 
             var eventStore = new SqlEventStore(

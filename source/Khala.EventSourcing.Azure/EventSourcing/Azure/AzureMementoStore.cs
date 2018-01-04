@@ -37,7 +37,7 @@
                 typeof(T).FullName,
                 s.Substring(0, 2),
                 s.Substring(2, 2),
-                $"{s}.json"
+                $"{s}.json",
             };
 
             return string.Join("/", fragments);

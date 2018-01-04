@@ -92,7 +92,7 @@
                 OperationId = envelope.OperationId,
                 CorrelationId = envelope.CorrelationId,
                 Contributor = envelope.Contributor,
-                EventJson = serializer.Serialize(domainEvent)
+                EventJson = serializer.Serialize(domainEvent),
             };
         }
     }

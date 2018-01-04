@@ -81,7 +81,7 @@
             DomainEvent[] events = new DomainEvent[]
             {
                 _fixture.Create<FakeUserCreated>(),
-                _fixture.Create<FakeUsernameChanged>()
+                _fixture.Create<FakeUsernameChanged>(),
             };
             RaiseEvents(_userId, events);
             var sut = new SqlEventStore(
@@ -151,7 +151,7 @@
                 {
                     AggregateId = _userId,
                     AggregateType = typeof(FakeUser).FullName,
-                    Version = 1
+                    Version = 1,
                 };
                 db.Aggregates.Add(aggregate);
                 await db.SaveChangesAsync();
@@ -182,7 +182,7 @@
             {
                 new FakeUserCreated { Version = 0 },
                 new FakeUsernameChanged { Version = 1 },
-                new FakeUsernameChanged { Version = 3 }
+                new FakeUsernameChanged { Version = 3 },
             };
 
             Func<Task> action = () => _sut.SaveEvents<FakeUser>(events);
@@ -201,7 +201,7 @@
                 {
                     AggregateId = _userId,
                     AggregateType = typeof(FakeUser).FullName,
-                    Version = 1
+                    Version = 1,
                 };
                 db.Aggregates.Add(aggregate);
                 await db.SaveChangesAsync();
@@ -276,7 +276,7 @@
                         t.Pending.OperationId,
                         t.Pending.CorrelationId,
                         t.Pending.Contributor,
-                        Message = _serializer.Deserialize(t.Pending.EventJson)
+                        Message = _serializer.Deserialize(t.Pending.EventJson),
                     };
                     actual.ShouldBeEquivalentTo(new
                     {
@@ -284,7 +284,7 @@
                         OperationId = operationId,
                         CorrelationId = correlationId,
                         Contributor = contributor,
-                        Message = t.Source
+                        Message = t.Source,
                     },
                     opts => opts.RespectingRuntimeTypes());
                 }
@@ -321,7 +321,7 @@
                         e.OperationId,
                         e.CorrelationId,
                         e.Contributor,
-                        Payload = _serializer.Deserialize(e.EventJson)
+                        Payload = _serializer.Deserialize(e.EventJson),
                     })
                     .ToList();
 
@@ -334,7 +334,7 @@
                     OperationId = operationId,
                     CorrelationId = correlationId,
                     Contributor = contributor,
-                    Payload = e
+                    Payload = e,
                 });
 
                 actual.ShouldAllBeEquivalentTo(expected);

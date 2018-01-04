@@ -115,7 +115,7 @@
                 {
                     AggregateId = sourceId,
                     AggregateType = typeof(T).FullName,
-                    Version = 0
+                    Version = 0,
                 };
                 context.Aggregates.Add(aggregate);
             }
@@ -203,7 +203,7 @@
                         PropertyName = name,
                         PropertyValue = value,
                         AggregateId = sourceId,
-                        Version = indexedEvent.Version
+                        Version = indexedEvent.Version,
                     };
                     properties.Add(property);
                 }
@@ -227,7 +227,7 @@
             {
                 AggregateId = sourceId,
                 CorrelationId = correlationId.Value,
-                HandledAt = DateTimeOffset.Now
+                HandledAt = DateTimeOffset.Now,
             });
         }
 

@@ -28,7 +28,7 @@
                 PartitionKey = GetPartitionKey(sourceType, sourceId),
                 RowKey = GetRowKey(correlationId),
                 CorrelationId = correlationId,
-                HandledAt = DateTimeOffset.Now
+                HandledAt = DateTimeOffset.Now,
             };
         }
 

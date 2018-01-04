@@ -142,9 +142,9 @@
                     SourceId = sut.Id,
                     Version = 1,
                     RaisedAt = DateTimeOffset.Now,
-                    Property = Guid.NewGuid()
+                    Property = Guid.NewGuid(),
                 },
-                null
+                null,
             };
 
             Action action = () => sut.HandlePastEvents(pastEvents);
@@ -164,8 +164,8 @@
                     SourceId = Guid.NewGuid(),
                     Version = 1,
                     RaisedAt = DateTimeOffset.Now,
-                    Property = Guid.NewGuid()
-                }
+                    Property = Guid.NewGuid(),
+                },
             };
 
             Action action = () => sut.HandlePastEvents(pastEvents);
@@ -185,15 +185,15 @@
                     SourceId = sut.Id,
                     Version = 1,
                     RaisedAt = DateTimeOffset.Now,
-                    Property = Guid.NewGuid()
+                    Property = Guid.NewGuid(),
                 },
                 new SomeDomainEvent
                 {
                     SourceId = sut.Id,
                     Version = 1,
                     RaisedAt = DateTimeOffset.Now,
-                    Property = Guid.NewGuid()
-                }
+                    Property = Guid.NewGuid(),
+                },
             };
 
             Action action = () => sut.HandlePastEvents(pastEvents);
@@ -212,8 +212,8 @@
                     SourceId = sut.Id,
                     Version = 1,
                     RaisedAt = DateTimeOffset.Now,
-                    Property = Guid.NewGuid()
-                }
+                    Property = Guid.NewGuid(),
+                },
             };
 
             Action action = () => sut.HandlePastEvents(pastEvents);

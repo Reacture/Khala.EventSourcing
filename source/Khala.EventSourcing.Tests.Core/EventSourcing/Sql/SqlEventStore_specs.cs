@@ -64,7 +64,7 @@
             DomainEvent[] events = new DomainEvent[]
             {
                 new FakeUserCreated(),
-                new FakeUsernameChanged()
+                new FakeUsernameChanged(),
             };
             events.Raise(userId);
             var context = new DbContextSpy(_dbContextOptions);
@@ -167,7 +167,7 @@
                 {
                     AggregateId = userId,
                     AggregateType = typeof(FakeUser).FullName,
-                    Version = 1
+                    Version = 1,
                 };
                 db.Aggregates.Add(aggregate);
                 await db.SaveChangesAsync();
@@ -206,7 +206,7 @@
             {
                 new FakeUserCreated { Version = 1 },
                 new FakeUsernameChanged { Version = 2 },
-                new FakeUsernameChanged { Version = 4 }
+                new FakeUsernameChanged { Version = 4 },
             };
 
             var sut = new SqlEventStore(
@@ -236,7 +236,7 @@
                 {
                     AggregateId = userId,
                     AggregateType = typeof(FakeUser).FullName,
-                    Version = 1
+                    Version = 1,
                 };
                 db.Aggregates.Add(aggregate);
                 await db.SaveChangesAsync();
@@ -269,14 +269,14 @@
             {
                 SourceId = userId,
                 Version = 1,
-                RaisedAt = DateTimeOffset.Now
+                RaisedAt = DateTimeOffset.Now,
             };
 
             var usernameChanged = new FakeUsernameChanged
             {
                 SourceId = Guid.NewGuid(),
                 Version = 2,
-                RaisedAt = DateTimeOffset.Now
+                RaisedAt = DateTimeOffset.Now,
             };
 
             var sut = new SqlEventStore(
@@ -335,7 +335,7 @@
                         t.Pending.Version,
                         t.Pending.CorrelationId,
                         t.Pending.Contributor,
-                        Message = serializer.Deserialize(t.Pending.EventJson)
+                        Message = serializer.Deserialize(t.Pending.EventJson),
                     };
                     actual.ShouldBeEquivalentTo(new
                     {
@@ -343,7 +343,7 @@
                         OperationId = operationId,
                         CorrelationId = correlationId,
                         Contributor = contributor,
-                        Message = t.Source
+                        Message = t.Source,
                     },
                     opts => opts.RespectingRuntimeTypes());
                 }
@@ -386,7 +386,7 @@
                     {
                         e.Version,
                         e.EventType,
-                        Payload = serializer.Deserialize(e.EventJson)
+                        Payload = serializer.Deserialize(e.EventJson),
                     })
                     .ToList();
 
@@ -394,9 +394,9 @@
 
                 IEnumerable<object> expected = events.Select(e => new
                 {
-                    Version = e.Version,
+                    e.Version,
                     EventType = e.GetType().FullName,
-                    Payload = e
+                    Payload = e,
                 });
 
                 actual.ShouldAllBeEquivalentTo(expected);

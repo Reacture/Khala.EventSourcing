@@ -16,7 +16,7 @@
                         .Annotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn),
                     AggregateId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     AggregateType = table.Column<string>(type: "nvarchar(128)", maxLength: 128, nullable: false),
-                    Version = table.Column<int>(type: "int", nullable: false)
+                    Version = table.Column<int>(type: "int", nullable: false),
                 },
                 constraints: table =>
                 {
@@ -29,7 +29,7 @@
                 {
                     AggregateId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     CorrelationId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    HandledAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false)
+                    HandledAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
                 },
                 constraints: table =>
                 {
@@ -46,7 +46,7 @@
                     CorrelationId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
                     EventJson = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     MessageId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    OperationId = table.Column<Guid>(type: "uniqueidentifier", nullable: true)
+                    OperationId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
                 },
                 constraints: table =>
                 {
@@ -67,7 +67,7 @@
                     MessageId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     OperationId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
                     RaisedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
-                    Version = table.Column<int>(type: "int", nullable: false)
+                    Version = table.Column<int>(type: "int", nullable: false),
                 },
                 constraints: table =>
                 {
@@ -82,7 +82,7 @@
                     PropertyName = table.Column<string>(type: "nvarchar(128)", maxLength: 128, nullable: false),
                     PropertyValue = table.Column<string>(type: "nvarchar(128)", maxLength: 128, nullable: false),
                     AggregateId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    Version = table.Column<int>(type: "int", nullable: false)
+                    Version = table.Column<int>(type: "int", nullable: false),
                 },
                 constraints: table =>
                 {

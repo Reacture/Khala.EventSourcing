@@ -845,6 +845,7 @@
   </Rules>
   <Rules AnalyzerId="StyleCop.Analyzers" RuleNamespace="StyleCop.Analyzers">
     <Rule Id="SA0000" Action="Error" />
+    <Rule Id="SA0001" Action="None" />
     <Rule Id="SA1000" Action="Error" />
     <Rule Id="SA1001" Action="Error" />
     <Rule Id="SA1002" Action="Error" />
@@ -928,7 +929,6 @@
     <Rule Id="SA1302" Action="Error" />
     <Rule Id="SA1303" Action="Error" />
     <Rule Id="SA1304" Action="Error" />
-    <Rule Id="SA1305" Action="Error" />
     <Rule Id="SA1306" Action="Error" />
     <Rule Id="SA1307" Action="Error" />
     <Rule Id="SA1308" Action="Error" />
@@ -970,8 +970,8 @@
     <Rule Id="SA1518" Action="Error" />
     <Rule Id="SA1519" Action="Error" />
     <Rule Id="SA1520" Action="Error" />
-    <Rule Id="SA1600" Action="Error" />
-    <Rule Id="SA1601" Action="Error" />
+    <Rule Id="SA1600" Action="None" />
+    <Rule Id="SA1601" Action="None" />
     <Rule Id="SA1602" Action="Error" />
     <Rule Id="SA1604" Action="Error" />
     <Rule Id="SA1605" Action="Error" />

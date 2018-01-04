@@ -88,7 +88,7 @@
                 typeof(FakeUser).FullName,
                 s.Substring(0, 2),
                 s.Substring(2, 2),
-                $"{s}.json"
+                $"{s}.json",
             };
             actual.Should().Be(string.Join("/", fragments));
         }

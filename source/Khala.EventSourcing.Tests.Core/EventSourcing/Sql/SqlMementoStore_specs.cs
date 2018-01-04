@@ -69,7 +69,7 @@
                 var memento = new Memento
                 {
                     AggregateId = sourceId,
-                    MementoJson = serializer.Serialize(oldMemento)
+                    MementoJson = serializer.Serialize(oldMemento),
                 };
                 db.Mementoes.Add(memento);
                 await db.SaveChangesAsync();

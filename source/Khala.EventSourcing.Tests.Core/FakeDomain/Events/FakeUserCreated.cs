@@ -16,7 +16,7 @@
             {
                 return new Dictionary<string, string>
                 {
-                    ["Username"] = Username
+                    ["Username"] = Username,
                 };
             }
         }

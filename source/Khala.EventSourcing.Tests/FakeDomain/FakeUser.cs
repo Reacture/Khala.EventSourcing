@@ -53,7 +53,7 @@
             return new FakeUserMemento
             {
                 Version = Version,
-                Username = Username
+                Username = Username,
             };
         }
 

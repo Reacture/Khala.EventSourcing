@@ -75,7 +75,7 @@
                 CorrelationId = envelope.CorrelationId,
                 Contributor = envelope.Contributor,
                 EventJson = serializer.Serialize(domainEvent),
-                RaisedAt = domainEvent.RaisedAt
+                RaisedAt = domainEvent.RaisedAt,
             };
         }
     }

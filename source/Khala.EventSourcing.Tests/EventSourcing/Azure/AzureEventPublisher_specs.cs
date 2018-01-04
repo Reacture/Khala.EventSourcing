@@ -122,7 +122,7 @@
             DomainEvent[] domainEvents = new DomainEvent[]
             {
                 fixture.Create<FakeUserCreated>(),
-                fixture.Create<FakeUsernameChanged>()
+                fixture.Create<FakeUsernameChanged>(),
             };
             RaiseEvents(userId, domainEvents);
             return domainEvents;
