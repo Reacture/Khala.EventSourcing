@@ -15,12 +15,14 @@
         /// </summary>
         /// <typeparam name="T">The type of the event sourcing applied aggregate.</typeparam>
         /// <param name="events">A seqeuence that contains domain events.</param>
+        /// <param name="operationId">The identifier of the operation.</param>
         /// <param name="correlationId">The identifier of the correlation.</param>
         /// <param name="contributor">Information of the contributor to domain events.</param>
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
         /// <returns>A task representing the asynchronous operation.</returns>
         Task SaveEvents<T>(
             IEnumerable<IDomainEvent> events,
+            Guid? operationId = default,
             Guid? correlationId = default,
             string contributor = default,
             CancellationToken cancellationToken = default)

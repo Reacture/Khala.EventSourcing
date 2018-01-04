@@ -66,6 +66,7 @@
                 x =>
                 x.SaveEvents<FakeUser>(
                     pendingEvents,
+                    operationId,
                     correlationId,
                     contributor,
                     CancellationToken.None),
@@ -102,6 +103,7 @@
                     x =>
                     x.SaveEvents<FakeUser>(
                         It.IsAny<IEnumerable<IDomainEvent>>(),
+                        operationId,
                         correlationId,
                         contributor,
                         CancellationToken.None))
@@ -151,6 +153,7 @@
                     x =>
                     x.SaveEvents<FakeUser>(
                         It.IsAny<IEnumerable<IDomainEvent>>(),
+                        operationId,
                         correlationId,
                         contributor,
                         CancellationToken.None))

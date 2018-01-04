@@ -71,10 +71,11 @@
                 Version = domainEvent.Version,
                 EventType = domainEvent.GetType().FullName,
                 MessageId = envelope.MessageId,
+                EventJson = serializer.Serialize(domainEvent),
+                OperationId = envelope.OperationId,
                 CorrelationId = envelope.CorrelationId,
                 Contributor = envelope.Contributor,
-                EventJson = serializer.Serialize(domainEvent),
-                RaisedAt = domainEvent.RaisedAt
+                RaisedAt = domainEvent.RaisedAt,
             };
         }
     }

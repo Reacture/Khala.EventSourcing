@@ -71,19 +71,35 @@
                 throw new ArgumentNullException(nameof(source));
             }
 
-            return RunSaveAndPublish(source, correlationId, contributor, cancellationToken);
+            return RunSaveAndPublish(source, operationId, correlationId, contributor, cancellationToken);
         }
 
         private async Task RunSaveAndPublish(
-            T source, Guid? correlationId, string contributor, CancellationToken cancellationToken)
+            T source,
+            Guid? operationId,
+            Guid? correlationId,
+            string contributor,
+            CancellationToken cancellationToken)
         {
-            await SaveEvents(source, correlationId, contributor, cancellationToken).ConfigureAwait(false);
+            await SaveEvents(source, operationId, correlationId, contributor, cancellationToken).ConfigureAwait(false);
             await FlushEvents(source, cancellationToken).ConfigureAwait(false);
             await SaveMementoIfPossible(source, cancellationToken).ConfigureAwait(false);
         }
 
-        private Task SaveEvents(T source, Guid? correlationId, string contributor, CancellationToken cancellationToken)
-            => _eventStore.SaveEvents<T>(source.FlushPendingEvents(), correlationId, contributor, cancellationToken);
+        private Task SaveEvents(
+            T source,
+            Guid? operationId,
+            Guid? correlationId,
+            string contributor,
+            CancellationToken cancellationToken)
+        {
+            return _eventStore.SaveEvents<T>(
+                source.FlushPendingEvents(),
+                operationId,
+                correlationId,
+                contributor,
+                cancellationToken);
+        }
 
         private Task FlushEvents(T source, CancellationToken cancellationToken)
             => _eventPublisher.FlushPendingEvents(source.Id, cancellationToken);

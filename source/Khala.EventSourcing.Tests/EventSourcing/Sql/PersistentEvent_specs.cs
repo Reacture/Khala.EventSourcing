@@ -81,6 +81,31 @@
         }
 
         [TestMethod]
+        public void FromEnvelope_sets_EventJson_correctly()
+        {
+            var serializer = new JsonMessageSerializer();
+            var domainEvent = _fixture.Create<FakeDomainEvent>();
+            var envelope = new Envelope(domainEvent);
+
+            var actual = PersistentEvent.FromEnvelope(envelope, serializer);
+
+            object deserialized = serializer.Deserialize(actual.EventJson);
+            deserialized.Should().BeOfType<FakeDomainEvent>();
+            deserialized.ShouldBeEquivalentTo(domainEvent);
+        }
+
+        [TestMethod]
+        public void FromEnvelope_sets_OperationId_correctly()
+        {
+            var domainEvent = _fixture.Create<FakeDomainEvent>();
+            var operationId = Guid.NewGuid();
+            var envelope = new Envelope(Guid.NewGuid(), domainEvent, operationId);
+            var actual = PersistentEvent.FromEnvelope(
+                envelope, new JsonMessageSerializer());
+            actual.OperationId.Should().Be(operationId);
+        }
+
+        [TestMethod]
         public void FromEnvelope_sets_CorrelationId_correctly()
         {
             var domainEvent = _fixture.Create<FakeDomainEvent>();
@@ -92,17 +117,14 @@
         }
 
         [TestMethod]
-        public void FromEnvelope_sets_PayloadJson_correctly()
+        public void FromEnvelope_sets_Contributor_correctly()
         {
-            var serializer = new JsonMessageSerializer();
             var domainEvent = _fixture.Create<FakeDomainEvent>();
-            var envelope = new Envelope(domainEvent);
-
-            var actual = PersistentEvent.FromEnvelope(envelope, serializer);
-
-            object deserialized = serializer.Deserialize(actual.EventJson);
-            deserialized.Should().BeOfType<FakeDomainEvent>();
-            deserialized.ShouldBeEquivalentTo(domainEvent);
+            var contributor = _fixture.Create<string>();
+            var envelope = new Envelope(Guid.NewGuid(), domainEvent, contributor: contributor);
+            var actual = PersistentEvent.FromEnvelope(
+                envelope, new JsonMessageSerializer());
+            actual.Contributor.Should().Be(contributor);
         }
 
         [TestMethod]

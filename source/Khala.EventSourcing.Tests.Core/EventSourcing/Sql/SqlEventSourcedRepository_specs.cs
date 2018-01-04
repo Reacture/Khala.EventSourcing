@@ -48,7 +48,7 @@
             // Assert
             Mock.Get(eventStore).Verify(
                 x =>
-                x.SaveEvents<FakeUser>(pendingEvents, correlationId, contributor, default),
+                x.SaveEvents<FakeUser>(pendingEvents, operationId, correlationId, contributor, default),
                 Times.Once());
         }
 
@@ -95,6 +95,7 @@
                     x =>
                     x.SaveEvents<FakeUser>(
                         It.IsAny<IEnumerable<IDomainEvent>>(),
+                        operationId,
                         correlationId,
                         contributor,
                         default))
@@ -169,6 +170,7 @@
                     x =>
                     x.SaveEvents<FakeUser>(
                         It.IsAny<IEnumerable<IDomainEvent>>(),
+                        operationId,
                         correlationId,
                         contributor,
                         default))

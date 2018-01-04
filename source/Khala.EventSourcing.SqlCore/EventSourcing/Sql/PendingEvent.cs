@@ -54,9 +54,10 @@
                 AggregateId = domainEvent.SourceId,
                 Version = domainEvent.Version,
                 MessageId = envelope.MessageId,
+                EventJson = serializer.Serialize(domainEvent),
+                OperationId = envelope.OperationId,
                 CorrelationId = envelope.CorrelationId,
                 Contributor = envelope.Contributor,
-                EventJson = serializer.Serialize(domainEvent)
             };
         }
     }

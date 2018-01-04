@@ -57,16 +57,6 @@
         }
 
         [TestMethod]
-        public void FromEnvelope_sets_CorrelationId_correctly()
-        {
-            var domainEvent = _fixture.Create<FakeUserCreated>();
-            var correlationId = Guid.NewGuid();
-            var envelope = new Envelope(Guid.NewGuid(), domainEvent, correlationId: correlationId);
-            var actual = PendingEvent.FromEnvelope(envelope, _serializer);
-            actual.CorrelationId.Should().Be(correlationId);
-        }
-
-        [TestMethod]
         public void FromEnvelope_sets_EventJson_correctly()
         {
             var domainEvent = _fixture.Create<FakeUserCreated>();
@@ -77,6 +67,36 @@
             object message = _serializer.Deserialize(actual.EventJson);
             message.Should().BeOfType<FakeUserCreated>();
             message.ShouldBeEquivalentTo(domainEvent);
+        }
+
+        [TestMethod]
+        public void FromEnvelope_sets_OperationId_correctly()
+        {
+            var domainEvent = _fixture.Create<FakeUserCreated>();
+            var operationId = Guid.NewGuid();
+            var envelope = new Envelope(Guid.NewGuid(), domainEvent, operationId);
+            var actual = PendingEvent.FromEnvelope(envelope, _serializer);
+            actual.OperationId.Should().Be(operationId);
+        }
+
+        [TestMethod]
+        public void FromEnvelope_sets_CorrelationId_correctly()
+        {
+            var domainEvent = _fixture.Create<FakeUserCreated>();
+            var correlationId = Guid.NewGuid();
+            var envelope = new Envelope(Guid.NewGuid(), domainEvent, correlationId: correlationId);
+            var actual = PendingEvent.FromEnvelope(envelope, _serializer);
+            actual.CorrelationId.Should().Be(correlationId);
+        }
+
+        [TestMethod]
+        public void FromEnvelope_sets_Contributor_correctly()
+        {
+            var domainEvent = _fixture.Create<FakeUserCreated>();
+            var contributor = _fixture.Create<string>();
+            var envelope = new Envelope(Guid.NewGuid(), domainEvent, contributor: contributor);
+            var actual = PendingEvent.FromEnvelope(envelope, _serializer);
+            actual.Contributor.Should().Be(contributor);
         }
 
         [TestMethod]

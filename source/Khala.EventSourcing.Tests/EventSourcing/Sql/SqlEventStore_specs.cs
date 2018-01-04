@@ -251,10 +251,12 @@
             var usernameChanged = _fixture.Create<FakeUsernameChanged>();
             var events = new DomainEvent[] { created, usernameChanged };
             RaiseEvents(_userId, events);
+            var operationId = Guid.NewGuid();
             var correlationId = Guid.NewGuid();
+            string contributor = _fixture.Create<string>();
 
             // Act
-            await _sut.SaveEvents<FakeUser>(events, correlationId);
+            await _sut.SaveEvents<FakeUser>(events, operationId, correlationId, contributor);
 
             // Asseert
             using (var db = new DataContext())
@@ -271,13 +273,17 @@
                     var actual = new
                     {
                         t.Pending.Version,
+                        t.Pending.OperationId,
                         t.Pending.CorrelationId,
+                        t.Pending.Contributor,
                         Message = _serializer.Deserialize(t.Pending.EventJson)
                     };
                     actual.ShouldBeEquivalentTo(new
                     {
                         t.Source.Version,
+                        OperationId = operationId,
                         CorrelationId = correlationId,
+                        Contributor = contributor,
                         Message = t.Source
                     },
                     opts => opts.RespectingRuntimeTypes());
@@ -293,9 +299,12 @@
             var usernameChanged = _fixture.Create<FakeUsernameChanged>();
             var events = new DomainEvent[] { created, usernameChanged };
             RaiseEvents(_userId, events);
+            var operationId = Guid.NewGuid();
+            var correlationId = Guid.NewGuid();
+            string contributor = _fixture.Create<string>();
 
             // Act
-            await _sut.SaveEvents<FakeUser>(events);
+            await _sut.SaveEvents<FakeUser>(events, operationId, correlationId, contributor);
 
             // Asseert
             using (var db = new DataContext())
@@ -309,6 +318,9 @@
                     {
                         e.Version,
                         e.EventType,
+                        e.OperationId,
+                        e.CorrelationId,
+                        e.Contributor,
                         Payload = _serializer.Deserialize(e.EventJson)
                     })
                     .ToList();
@@ -317,45 +329,13 @@
 
                 IEnumerable<object> expected = events.Select(e => new
                 {
-                    Version = e.Version,
+                    e.Version,
                     EventType = e.GetType().FullName,
+                    OperationId = operationId,
+                    CorrelationId = correlationId,
+                    Contributor = contributor,
                     Payload = e
                 });
-
-                actual.ShouldAllBeEquivalentTo(expected);
-            }
-        }
-
-        [TestMethod]
-        public async Task SaveEvents_sets_message_properties_correctly()
-        {
-            // Arrange
-            var created = _fixture.Create<FakeUserCreated>();
-            var usernameChanged = _fixture.Create<FakeUsernameChanged>();
-            var events = new DomainEvent[] { created, usernameChanged };
-            RaiseEvents(_userId, events);
-
-            // Act
-            await _sut.SaveEvents<FakeUser>(events, Guid.NewGuid());
-
-            // Asseert
-            using (var db = new DataContext())
-            {
-                IEnumerable<object> expected = db
-                    .PendingEvents
-                    .Where(e => e.AggregateId == _userId)
-                    .OrderBy(e => e.Version)
-                    .AsEnumerable()
-                    .Select(e => new { e.MessageId, e.CorrelationId })
-                    .ToList();
-
-                IEnumerable<object> actual = db
-                    .PersistentEvents
-                    .Where(e => e.AggregateId == _userId)
-                    .OrderBy(e => e.Version)
-                    .AsEnumerable()
-                    .Select(e => new { e.MessageId, e.CorrelationId })
-                    .ToList();
 
                 actual.ShouldAllBeEquivalentTo(expected);
             }
@@ -530,7 +510,7 @@
             RaiseEvents(_userId, created);
             var now = DateTimeOffset.Now;
 
-            await _sut.SaveEvents<FakeUser>(new[] { created }, correlationId);
+            await _sut.SaveEvents<FakeUser>(new[] { created }, correlationId: correlationId);
 
             using (var db = new DataContext())
             {
@@ -553,9 +533,10 @@
             var usernameChanged = _fixture.Create<FakeUsernameChanged>();
             RaiseEvents(_userId, created, usernameChanged);
             var correlationId = Guid.NewGuid();
-            await _sut.SaveEvents<FakeUser>(new[] { created }, correlationId);
+            await _sut.SaveEvents<FakeUser>(new[] { created }, correlationId: correlationId);
 
-            Func<Task> action = () => _sut.SaveEvents<FakeUser>(new[] { usernameChanged }, correlationId);
+            Func<Task> action = () =>
+            _sut.SaveEvents<FakeUser>(new[] { usernameChanged }, correlationId: correlationId);
 
             action.ShouldThrow<DuplicateCorrelationException>().Where(
                 x =>

@@ -32,6 +32,7 @@
 
         public Task SaveEvents<T>(
             IEnumerable<IDomainEvent> events,
+            Guid? operationId = default,
             Guid? correlationId = default,
             string contributor = default,
             CancellationToken cancellationToken = default)
@@ -70,12 +71,13 @@
                 }
             }
 
-            return Save<T>(firstEvent.SourceId, domainEvents, correlationId, contributor, cancellationToken);
+            return Save<T>(firstEvent.SourceId, domainEvents, operationId, correlationId, contributor, cancellationToken);
         }
 
         private async Task Save<T>(
             Guid sourceId,
             List<IDomainEvent> events,
+            Guid? operationId,
             Guid? correlationId,
             string contributor,
             CancellationToken cancellationToken)
@@ -84,7 +86,7 @@
             using (EventStoreDbContext context = _dbContextFactory.Invoke())
             {
                 await UpsertAggregate<T>(context, sourceId, events, cancellationToken).ConfigureAwait(false);
-                InsertEvents(context, events, correlationId, contributor);
+                InsertEvents(context, events, operationId, correlationId, contributor);
                 await UpdateUniqueIndexedProperties<T>(context, sourceId, events, cancellationToken).ConfigureAwait(false);
                 InsertCorrelation(sourceId, correlationId, context);
 
@@ -131,22 +133,24 @@
         private void InsertEvents(
             EventStoreDbContext context,
             List<IDomainEvent> events,
+            Guid? operationId,
             Guid? correlationId,
             string contributor)
         {
             foreach (IDomainEvent domainEvent in events)
             {
-                InsertEvent(context, domainEvent, correlationId, contributor);
+                InsertEvent(context, domainEvent, operationId, correlationId, contributor);
             }
         }
 
         private void InsertEvent(
             EventStoreDbContext context,
             IDomainEvent domainEvent,
+            Guid? operationId,
             Guid? correlationId,
             string contributor)
         {
-            var envelope = new Envelope(Guid.NewGuid(), domainEvent, correlationId: correlationId, contributor: contributor);
+            var envelope = new Envelope(Guid.NewGuid(), domainEvent, operationId, correlationId, contributor);
             context.PersistentEvents.Add(PersistentEvent.FromEnvelope(envelope, _serializer));
             context.PendingEvents.Add(PendingEvent.FromEnvelope(envelope, _serializer));
         }

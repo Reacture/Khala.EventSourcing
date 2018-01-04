@@ -311,11 +311,12 @@
                 () => new FakeEventStoreDbContext(_dbContextOptions),
                 serializer);
 
+            var operationId = Guid.NewGuid();
             var correlationId = Guid.NewGuid();
             string contributor = Guid.NewGuid().ToString();
 
             // Act
-            await sut.SaveEvents<FakeUser>(events, correlationId, contributor, default);
+            await sut.SaveEvents<FakeUser>(events, operationId, correlationId, contributor, default);
 
             // Asseert
             using (var db = new FakeEventStoreDbContext(_dbContextOptions))
@@ -339,6 +340,7 @@
                     actual.ShouldBeEquivalentTo(new
                     {
                         t.Source.Version,
+                        OperationId = operationId,
                         CorrelationId = correlationId,
                         Contributor = contributor,
                         Message = t.Source
@@ -647,11 +649,7 @@
                 new JsonMessageSerializer());
 
             // Act
-            await sut.SaveEvents<FakeUser>(
-                new[] { created },
-                correlationId,
-                contributor: default,
-                cancellationToken: default);
+            await sut.SaveEvents<FakeUser>(new[] { created }, correlationId: correlationId);
 
             // Assert
             using (var db = new FakeEventStoreDbContext(_dbContextOptions))
@@ -684,14 +682,11 @@
 
             var correlationId = Guid.NewGuid();
 
-            await sut.SaveEvents<FakeUser>(
-                new[] { created },
-                correlationId,
-                contributor: default,
-                cancellationToken: default);
+            await sut.SaveEvents<FakeUser>(new[] { created }, correlationId: correlationId);
 
             // Act
-            Func<Task> action = () => sut.SaveEvents<FakeUser>(new[] { usernameChanged }, correlationId);
+            Func<Task> action = () =>
+            sut.SaveEvents<FakeUser>(new[] { usernameChanged }, correlationId: correlationId);
 
             // Assert
             action.ShouldThrow<DuplicateCorrelationException>().Where(
