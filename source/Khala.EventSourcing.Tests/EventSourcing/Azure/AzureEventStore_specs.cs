@@ -79,11 +79,7 @@
                 .Concat(new[] { default(IDomainEvent) })
                 .OrderBy(_ => random.Next());
 
-            Func<Task> action = () => _sut.SaveEvents<FakeUser>(
-                events,
-                correlationId: default,
-                contributor: default,
-                cancellationToken: default);
+            Func<Task> action = () => _sut.SaveEvents<FakeUser>(events);
 
             action.ShouldThrow<ArgumentException>().Where(x => x.ParamName == "events");
         }
@@ -95,12 +91,13 @@
             var created = _fixture.Create<FakeUserCreated>();
             var usernameChanged = _fixture.Create<FakeUsernameChanged>();
             var events = new DomainEvent[] { created, usernameChanged };
+            var operationId = Guid.NewGuid();
             var correlationId = Guid.NewGuid();
             string contributor = Guid.NewGuid().ToString();
             RaiseEvents(_userId, events);
 
             // Act
-            await _sut.SaveEvents<FakeUser>(events, correlationId, contributor, cancellationToken: default);
+            await _sut.SaveEvents<FakeUser>(events, operationId, correlationId, contributor);
 
             // Assert
             string partitionKey = PendingEventTableEntity.GetPartitionKey(typeof(FakeUser), _userId);
@@ -115,6 +112,7 @@
                     t.Pending.RowKey,
                     t.Pending.PersistentPartition,
                     t.Pending.Version,
+                    t.Pending.OperationId,
                     t.Pending.CorrelationId,
                     t.Pending.Contributor,
                     Message = _serializer.Deserialize(t.Pending.EventJson)
@@ -124,6 +122,7 @@
                     RowKey = PendingEventTableEntity.GetRowKey(t.Source.Version),
                     PersistentPartition = EventTableEntity.GetPartitionKey(typeof(FakeUser), _userId),
                     t.Source.Version,
+                    OperationId = operationId,
                     CorrelationId = correlationId,
                     Contributor = contributor,
                     Message = t.Source
@@ -139,16 +138,13 @@
             var created = _fixture.Create<FakeUserCreated>();
             var usernameChanged = _fixture.Create<FakeUsernameChanged>();
             var events = new DomainEvent[] { created, usernameChanged };
+            var operationId = Guid.NewGuid();
             var correlationId = Guid.NewGuid();
             string contributor = Guid.NewGuid().ToString();
             RaiseEvents(_userId, events);
 
             // Act
-            await _sut.SaveEvents<FakeUser>(
-                events,
-                correlationId,
-                contributor,
-                cancellationToken: default);
+            await _sut.SaveEvents<FakeUser>(events, operationId, correlationId, contributor);
 
             // Assert
             string partitionKey = EventTableEntity.GetPartitionKey(typeof(FakeUser), _userId);
@@ -164,6 +160,7 @@
                     t.Persistent.RowKey,
                     t.Persistent.Version,
                     t.Persistent.EventType,
+                    t.Persistent.OperationId,
                     t.Persistent.CorrelationId,
                     t.Persistent.Contributor,
                     Event = (DomainEvent)_serializer.Deserialize(t.Persistent.EventJson),
@@ -174,6 +171,7 @@
                     RowKey = EventTableEntity.GetRowKey(t.Source.Version),
                     t.Source.Version,
                     EventType = t.Source.GetType().FullName,
+                    OperationId = operationId,
                     CorrelationId = correlationId,
                     Contributor = contributor,
                     Event = t.Source,
@@ -195,11 +193,7 @@
             }));
 
             // Act
-            Func<Task> action = () => _sut.SaveEvents<FakeUser>(
-                new[] { domainEvent },
-                correlationId: default,
-                contributor: default,
-                cancellationToken: default);
+            Func<Task> action = () => _sut.SaveEvents<FakeUser>(new[] { domainEvent });
 
             // Assert
             action.ShouldThrow<Exception>();
@@ -211,11 +205,7 @@
         public void SaveEvents_does_not_fail_even_if_events_empty()
         {
             var events = new DomainEvent[] { };
-            Func<Task> action = () => _sut.SaveEvents<FakeUser>(
-                events,
-                correlationId: default,
-                contributor: default,
-                cancellationToken: default);
+            Func<Task> action = () => _sut.SaveEvents<FakeUser>(events);
             action.ShouldNotThrow();
         }
 
@@ -230,11 +220,7 @@
 
             // Act
             var now = DateTimeOffset.Now;
-            await _sut.SaveEvents<FakeUser>(
-                events,
-                correlationId,
-                contributor: default,
-                cancellationToken: default);
+            await _sut.SaveEvents<FakeUser>(events, correlationId: correlationId);
 
             // Assert
             string partitionKey = CorrelationTableEntity.GetPartitionKey(typeof(FakeUser), _userId);
@@ -253,13 +239,10 @@
             var usernameChanged = _fixture.Create<FakeUsernameChanged>();
             RaiseEvents(_userId, created, usernameChanged);
             var correlationId = Guid.NewGuid();
-            await _sut.SaveEvents<FakeUser>(new[] { created }, correlationId);
+            await _sut.SaveEvents<FakeUser>(new[] { created }, correlationId: correlationId);
 
-            Func<Task> action = () => _sut.SaveEvents<FakeUser>(
-                new[] { usernameChanged },
-                correlationId,
-                contributor: default,
-                cancellationToken: default);
+            Func<Task> action = () =>
+            _sut.SaveEvents<FakeUser>(new[] { usernameChanged }, correlationId: correlationId);
 
             action.ShouldThrow<DuplicateCorrelationException>().Where(
                 x =>

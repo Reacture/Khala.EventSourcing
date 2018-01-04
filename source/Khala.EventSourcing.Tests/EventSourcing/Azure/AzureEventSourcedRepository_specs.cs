@@ -71,20 +71,22 @@
             var operationId = Guid.NewGuid();
             var correlationId = Guid.NewGuid();
             string contributor = Guid.NewGuid().ToString();
+            var cancellationToken = new CancellationTokenSource().Token;
             user.ChangeUsername("foo");
             var pendingEvents = new List<IDomainEvent>(user.PendingEvents);
 
             // Act
-            await _sut.SaveAndPublish(user, operationId, correlationId, contributor);
+            await _sut.SaveAndPublish(user, operationId, correlationId, contributor, cancellationToken);
 
             // Assert
             Mock.Get(_eventStore).Verify(
                 x =>
                 x.SaveEvents<FakeUser>(
                     pendingEvents,
+                    operationId,
                     correlationId,
                     contributor,
-                    CancellationToken.None),
+                    cancellationToken),
                 Times.Once());
         }
 
@@ -121,6 +123,7 @@
                     x =>
                     x.SaveEvents<FakeUser>(
                         It.IsAny<IEnumerable<IDomainEvent>>(),
+                        It.IsAny<Guid?>(),
                         It.IsAny<Guid?>(),
                         It.IsAny<string>(),
                         CancellationToken.None))
@@ -176,6 +179,7 @@
                     x =>
                     x.SaveEvents<FakeUser>(
                         It.IsAny<IEnumerable<IDomainEvent>>(),
+                        It.IsAny<Guid?>(),
                         It.IsAny<Guid?>(),
                         It.IsAny<string>(),
                         CancellationToken.None))
