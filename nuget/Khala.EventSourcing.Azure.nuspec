@@ -2,7 +2,7 @@
 <package >
   <metadata>
     <id>Khala.EventSourcing.Azure</id>
-    <version>0.16.2</version>
+    <version>0.17.0</version>
     <title>Khala.EventSourcing.Azure</title>
     <authors>Gyuwon</authors>
     <owners>Gyuwon</owners>
@@ -15,13 +15,13 @@
     <tags>CQRS EventSourcing Azure TableStorage Cloud Reactive</tags>
     <dependencies>
       <group targetFramework="net461">
-        <dependency id="Khala.EventSourcing.Abstraction" version="0.16.2" exclude="build,analyzers" />
-        <dependency id="Khala.Messaging.Abstraction" version="0.16.4" exclude="build,analyzers" />
+        <dependency id="Khala.EventSourcing.Abstraction" version="0.17.0" exclude="build,analyzers" />
+        <dependency id="Khala.Messaging.Abstraction" version="0.18.0" exclude="build,analyzers" />
         <dependency id="WindowsAzure.Storage" version="8.5.0" exclude="build,analyzers" />
       </group>
       <group targetFramework="netstandard1.3">
-        <dependency id="Khala.EventSourcing.Abstraction" version="0.16.2" exclude="build,analyzers" />
-        <dependency id="Khala.Messaging.Abstraction" version="0.16.4" exclude="build,analyzers" />
+        <dependency id="Khala.EventSourcing.Abstraction" version="0.17.0" exclude="build,analyzers" />
+        <dependency id="Khala.Messaging.Abstraction" version="0.18.0" exclude="build,analyzers" />
         <dependency id="WindowsAzure.Storage" version="8.5.0" exclude="build,analyzers" />
         <dependency id="NETStandard.Library" version="1.6.1" exclude="build,analyzers" />
       </group>
