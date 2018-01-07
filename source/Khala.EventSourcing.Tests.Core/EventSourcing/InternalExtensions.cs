@@ -1,4 +1,4 @@
-﻿namespace Khala.EventSourcing.Sql
+﻿namespace Khala.EventSourcing
 {
     using System;
     using System.Collections.Generic;

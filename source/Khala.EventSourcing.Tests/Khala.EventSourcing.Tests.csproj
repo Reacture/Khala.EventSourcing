@@ -149,7 +149,6 @@
     <Compile Include="EventSourcing\AppBuilderExtensions_specs.cs" />
     <Compile Include="EventSourcing\Azure\AzureEventPublisher_specs.cs" />
     <Compile Include="EventSourcing\Azure\AzureEventSourcedRepository_specs.cs" />
-    <Compile Include="EventSourcing\Azure\AzureEventStore_specs.cs" />
     <Compile Include="EventSourcing\Azure\AzureMementoStore_specs.cs" />
     <Compile Include="EventSourcing\Azure\CorrelationTableEntity_specs.cs" />
     <Compile Include="EventSourcing\Azure\EventTableEntity_specs.cs" />

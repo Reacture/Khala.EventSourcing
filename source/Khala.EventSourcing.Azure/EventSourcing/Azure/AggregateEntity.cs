@@ -5,19 +5,19 @@
 
     public abstract class AggregateEntity : TableEntity
     {
-        public static string GetPartitionKey(Type aggregateType, Guid aggregateId)
+        public static string GetPartitionKey(Type sourceType, Guid sourceId)
         {
-            if (aggregateType == null)
+            if (sourceType == null)
             {
-                throw new ArgumentNullException(nameof(aggregateType));
+                throw new ArgumentNullException(nameof(sourceType));
             }
 
-            if (aggregateId == Guid.Empty)
+            if (sourceId == Guid.Empty)
             {
-                throw new ArgumentException("Value cannot be empty.", nameof(aggregateId));
+                throw new ArgumentException("Value cannot be empty.", nameof(sourceId));
             }
 
-            return $"{aggregateType.Name}-{aggregateId:n}";
+            return $"{sourceType.Name}-{sourceId:n}";
         }
     }
 }

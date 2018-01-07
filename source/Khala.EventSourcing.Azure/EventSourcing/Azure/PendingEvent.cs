@@ -2,19 +2,20 @@
 {
     using System;
     using Khala.Messaging;
+    using Microsoft.WindowsAzure.Storage.Table;
 
     public class PendingEvent : EventEntity
     {
         public static string GetRowKey(int version) => $"Pending-{version:D10}";
 
         public static PendingEvent Create(
-            Type aggregateType,
+            Type sourceType,
             Envelope<IDomainEvent> envelope,
             IMessageSerializer serializer)
         {
-            if (aggregateType == null)
+            if (sourceType == null)
             {
-                throw new ArgumentNullException(nameof(aggregateType));
+                throw new ArgumentNullException(nameof(sourceType));
             }
 
             if (envelope == null)
@@ -29,7 +30,7 @@
 
             return new PendingEvent
             {
-                PartitionKey = GetPartitionKey(aggregateType, envelope.Message.SourceId),
+                PartitionKey = GetPartitionKey(sourceType, envelope.Message.SourceId),
                 RowKey = GetRowKey(envelope.Message.Version),
                 MessageId = envelope.MessageId,
                 EventJson = serializer.Serialize(envelope.Message),
@@ -37,6 +38,37 @@
                 CorrelationId = envelope.CorrelationId,
                 Contributor = envelope.Contributor,
             };
+        }
+
+        public static string GetFilter(Type sourceType, Guid sourceId, int afterVersion = default)
+        {
+            if (sourceType == null)
+            {
+                throw new ArgumentNullException(nameof(sourceType));
+            }
+
+            if (sourceId == Guid.Empty)
+            {
+                throw new ArgumentException("Value cannot be empty.", nameof(sourceId));
+            }
+
+            string partitionCondition = TableQuery.GenerateFilterCondition(
+                nameof(PartitionKey),
+                QueryComparisons.Equal,
+                GetPartitionKey(sourceType, sourceId));
+
+            string rowCondition = TableQuery.CombineFilters(
+                TableQuery.GenerateFilterCondition(
+                    nameof(RowKey),
+                    QueryComparisons.GreaterThan,
+                    GetRowKey(afterVersion)),
+                TableOperators.And,
+                TableQuery.GenerateFilterCondition(
+                    nameof(RowKey),
+                    QueryComparisons.LessThanOrEqual,
+                    GetRowKey(int.MaxValue)));
+
+            return TableQuery.CombineFilters(partitionCondition, TableOperators.And, rowCondition);
         }
     }
 }

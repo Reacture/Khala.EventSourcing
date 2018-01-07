@@ -25,15 +25,15 @@
         }
 
         [TestMethod]
-        public void GetPartitionKey_returns_combination_of_aggregate_type_name_and_aggregate_id()
+        public void GetPartitionKey_returns_combination_of_source_type_name_and_source_id()
         {
             IFixture fixture = new Fixture().Customize(new AutoMoqCustomization());
-            Type aggregateType = fixture.Create<IEventSourced>().GetType();
-            Guid aggregateId = fixture.Create<Guid>();
+            Type sourceType = fixture.Create<IEventSourced>().GetType();
+            Guid sourceId = fixture.Create<Guid>();
 
-            string actual = AggregateEntity.GetPartitionKey(aggregateType, aggregateId);
+            string actual = AggregateEntity.GetPartitionKey(sourceType, sourceId);
 
-            actual.Should().Be($"{aggregateType.Name}-{aggregateId:n}");
+            actual.Should().Be($"{sourceType.Name}-{sourceId:n}");
         }
 
         [TestMethod]

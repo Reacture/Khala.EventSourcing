@@ -216,11 +216,7 @@
                 new JsonMessageSerializer());
 
             // Act
-            Func<Task> action = () => sut.SaveEvents<FakeUser>(
-                events,
-                correlationId: default,
-                contributor: default,
-                cancellationToken: default);
+            Func<Task> action = () => sut.SaveEvents<FakeUser>(events);
 
             // Assert
             action.ShouldThrow<ArgumentException>().Where(x => x.ParamName == "events");

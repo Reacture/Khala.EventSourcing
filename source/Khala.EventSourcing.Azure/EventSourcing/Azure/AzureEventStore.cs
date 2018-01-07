@@ -9,17 +9,12 @@
     using Microsoft.WindowsAzure.Storage;
     using Microsoft.WindowsAzure.Storage.Table;
 
-    using static Microsoft.WindowsAzure.Storage.Table.QueryComparisons;
-    using static Microsoft.WindowsAzure.Storage.Table.TableOperators;
-    using static Microsoft.WindowsAzure.Storage.Table.TableQuery;
-
     public class AzureEventStore : IAzureEventStore
     {
-        private CloudTable _eventTable;
-        private IMessageSerializer _serializer;
+        private readonly CloudTable _eventTable;
+        private readonly IMessageSerializer _serializer;
 
-        public AzureEventStore(
-            CloudTable eventTable, IMessageSerializer serializer)
+        public AzureEventStore(CloudTable eventTable, IMessageSerializer serializer)
         {
             _eventTable = eventTable ?? throw new ArgumentNullException(nameof(eventTable));
             _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
@@ -40,12 +35,33 @@
 
             var domainEvents = events.ToList();
 
+            if (domainEvents.Count == 0)
+            {
+                return Task.FromResult(true);
+            }
+
+            IDomainEvent firstEvent = domainEvents.First();
+
             for (int i = 0; i < domainEvents.Count; i++)
             {
                 if (domainEvents[i] == null)
                 {
                     throw new ArgumentException(
                         $"{nameof(events)} cannot contain null.",
+                        nameof(events));
+                }
+
+                if (domainEvents[i].Version != firstEvent.Version + i)
+                {
+                    throw new ArgumentException(
+                        $"Versions of {nameof(events)} must be sequential.",
+                        nameof(events));
+                }
+
+                if (domainEvents[i].SourceId != firstEvent.SourceId)
+                {
+                    throw new ArgumentException(
+                        $"All events must have the same source id.",
                         nameof(events));
                 }
             }
@@ -61,53 +77,24 @@
             CancellationToken cancellationToken)
             where T : class, IEventSourced
         {
-            if (domainEvents.Any() == false)
-            {
-                return;
-            }
-
-            var envelopes = new List<Envelope>(
+            var envelopes = new List<Envelope<IDomainEvent>>(
                 from domainEvent in domainEvents
-                select new Envelope(Guid.NewGuid(), domainEvent, operationId, correlationId, contributor));
+                let messageId = Guid.NewGuid()
+                select new Envelope<IDomainEvent>(messageId, domainEvent, operationId, correlationId, contributor));
 
-            await InsertPendingEvents<T>(envelopes, cancellationToken).ConfigureAwait(false);
-            await InsertEventsAndCorrelation<T>(envelopes, correlationId, cancellationToken).ConfigureAwait(false);
-        }
-
-        private Task InsertPendingEvents<T>(
-            List<Envelope> envelopes,
-            CancellationToken cancellationToken)
-            where T : class, IEventSourced
-        {
             var batch = new TableBatchOperation();
 
-            foreach (Envelope envelope in envelopes)
+            foreach (Envelope<IDomainEvent> envelope in envelopes)
             {
-                batch.Insert(PendingEventTableEntity.FromEnvelope<T>(envelope, _serializer));
+                batch.Insert(PersistentEvent.Create(typeof(T), envelope, _serializer));
+                batch.Insert(PendingEvent.Create(typeof(T), envelope, _serializer));
             }
 
-            return _eventTable.ExecuteBatch(batch, cancellationToken);
-        }
-
-        private async Task InsertEventsAndCorrelation<T>(
-            List<Envelope> envelopes,
-            Guid? correlationId,
-            CancellationToken cancellationToken)
-            where T : class, IEventSourced
-        {
-            var batch = new TableBatchOperation();
-
-            var firstEvent = (IDomainEvent)envelopes.First().Message;
-            Guid sourceId = firstEvent.SourceId;
-
-            foreach (Envelope envelope in envelopes)
-            {
-                batch.Insert(EventTableEntity.FromEnvelope<T>(envelope, _serializer));
-            }
+            Guid sourceId = domainEvents.First().SourceId;
 
             if (correlationId.HasValue)
             {
-                batch.Insert(CorrelationTableEntity.Create(typeof(T), sourceId, correlationId.Value));
+                batch.Insert(Correlation.Create(typeof(T), sourceId, correlationId.Value));
             }
 
             try
@@ -116,9 +103,9 @@
             }
             catch (StorageException exception) when (correlationId.HasValue)
             {
-                string filter = CorrelationTableEntity.GetFilter(typeof(T), sourceId, correlationId.Value);
-                TableQuery<CorrelationTableEntity> query = new TableQuery<CorrelationTableEntity>().Where(filter);
-                if (await _eventTable.Any(query, cancellationToken))
+                string filter = Correlation.GetFilter(typeof(T), sourceId, correlationId.Value);
+                var query = new TableQuery<Correlation> { FilterString = filter };
+                if (await _eventTable.Any(query, cancellationToken).ConfigureAwait(false))
                 {
                     throw new DuplicateCorrelationException(
                         typeof(T),
@@ -152,18 +139,8 @@
             CancellationToken cancellationToken)
             where T : class, IEventSourced
         {
-            string filter = CombineFilters(
-                GenerateFilterCondition(
-                    nameof(ITableEntity.PartitionKey),
-                    Equal,
-                    EventTableEntity.GetPartitionKey(typeof(T), sourceId)),
-                And,
-                GenerateFilterCondition(
-                    nameof(ITableEntity.RowKey),
-                    GreaterThan,
-                    EventTableEntity.GetRowKey(afterVersion)));
-
-            TableQuery<EventTableEntity> query = new TableQuery<EventTableEntity>().Where(filter);
+            string filter = PersistentEvent.GetFilter(typeof(T), sourceId, afterVersion);
+            var query = new TableQuery<EventTableEntity> { FilterString = filter };
 
             IEnumerable<EventTableEntity> events = await _eventTable
                 .ExecuteQuery(query, cancellationToken)

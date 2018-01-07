@@ -61,17 +61,17 @@
         public void Create_sets_PartitionKey_correctly()
         {
             IFixture fixture = new Fixture();
-            Type aggregateType = fixture.Create<Type>();
+            Type sourceType = fixture.Create<Type>();
             SomeDomainEvent domainEvent = fixture.Create<SomeDomainEvent>();
             TestContext.WriteLine($"SourceId: {domainEvent.SourceId}");
             fixture.Inject<IDomainEvent>(domainEvent);
 
             var actual = PersistentEvent.Create(
-                aggregateType,
+                sourceType,
                 fixture.Create<Envelope<IDomainEvent>>(),
                 new JsonMessageSerializer());
 
-            actual.PartitionKey.Should().Be(AggregateEntity.GetPartitionKey(aggregateType, domainEvent.SourceId));
+            actual.PartitionKey.Should().Be(AggregateEntity.GetPartitionKey(sourceType, domainEvent.SourceId));
         }
 
         [TestMethod]
