@@ -12,9 +12,7 @@
         private readonly CloudBlobContainer _container;
         private readonly IMessageSerializer _serializer;
 
-        public AzureMementoStore(
-            CloudBlobContainer container,
-            IMessageSerializer serializer)
+        public AzureMementoStore(CloudBlobContainer container, IMessageSerializer serializer)
         {
             _container = container ?? throw new ArgumentNullException(nameof(container));
             _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));

@@ -18,7 +18,6 @@
     [TestClass]
     public class AzureEventStore_specs
     {
-        private static CloudStorageAccount s_storageAccount;
         private static CloudTable s_eventTable;
         private IMessageSerializer _serializer;
         private AzureEventStore _sut;
@@ -28,8 +27,7 @@
         {
             try
             {
-                s_storageAccount = CloudStorageAccount.DevelopmentStorageAccount;
-                CloudTableClient tableClient = s_storageAccount.CreateCloudTableClient();
+                CloudTableClient tableClient = CloudStorageAccount.DevelopmentStorageAccount.CreateCloudTableClient();
                 s_eventTable = tableClient.GetTableReference("AzureEventStoreTestEventStore");
                 await s_eventTable.DeleteIfExistsAsync(
                     new TableRequestOptions { RetryPolicy = new NoRetry() },

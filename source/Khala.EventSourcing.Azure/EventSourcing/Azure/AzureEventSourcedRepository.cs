@@ -86,8 +86,7 @@
 
         private Task SaveMementoIfPossible(T source, CancellationToken cancellationToken)
         {
-            if (_mementoStore != null &&
-                source is IMementoOriginator mementoOriginator)
+            if (_mementoStore != null && source is IMementoOriginator mementoOriginator)
             {
                 IMemento memento = mementoOriginator.SaveToMemento();
                 return _mementoStore.Save<T>(source.Id, memento, cancellationToken);
@@ -100,8 +99,7 @@
         {
             if (sourceId == Guid.Empty)
             {
-                throw new ArgumentException(
-                    $"{nameof(sourceId)} cannot be empty.", nameof(sourceId));
+                throw new ArgumentException($"{nameof(sourceId)} cannot be empty.", nameof(sourceId));
             }
 
             return PublishAndRestore(sourceId, cancellationToken);
@@ -110,16 +108,21 @@
         private async Task<T> PublishAndRestore(
             Guid sourceId, CancellationToken cancellationToken)
         {
-            await _eventPublisher
-                .FlushPendingEvents<T>(sourceId, cancellationToken)
-                .ConfigureAwait(false);
+            T eventSourced = default;
+            async Task Rehydrate() => eventSourced = await Restore(sourceId, cancellationToken).ConfigureAwait(false);
+            await Task.WhenAll(Publish(sourceId, cancellationToken), Rehydrate()).ConfigureAwait(false);
+            return eventSourced;
+        }
 
+        private Task Publish(Guid sourceId, CancellationToken cancellationToken)
+            => _eventPublisher.FlushPendingEvents<T>(sourceId, cancellationToken);
+
+        private async Task<T> Restore(Guid sourceId, CancellationToken cancellationToken)
+        {
             IMemento memento = null;
             if (_mementoStore != null && _mementoEntityFactory != null)
             {
-                memento = await _mementoStore
-                    .Find<T>(sourceId, cancellationToken)
-                    .ConfigureAwait(false);
+                memento = await _mementoStore.Find<T>(sourceId, cancellationToken).ConfigureAwait(false);
             }
 
             IEnumerable<IDomainEvent> domainEvents = await _eventStore
@@ -128,9 +131,7 @@
 
             return
                 memento == null
-                ? domainEvents.Any()
-                    ? _entityFactory.Invoke(sourceId, domainEvents)
-                    : default
+                ? domainEvents.Any() ? _entityFactory.Invoke(sourceId, domainEvents) : default
                 : _mementoEntityFactory.Invoke(sourceId, memento, domainEvents);
         }
     }

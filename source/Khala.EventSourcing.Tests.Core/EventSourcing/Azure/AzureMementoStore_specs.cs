@@ -2,9 +2,10 @@
 {
     using System;
     using System.IO;
-    using System.Net;
-    using System.Threading;
     using System.Threading.Tasks;
+    using AutoFixture;
+    using AutoFixture.AutoMoq;
+    using AutoFixture.Idioms;
     using FluentAssertions;
     using Khala.FakeDomain;
     using Khala.Messaging;
@@ -12,65 +13,45 @@
     using Microsoft.WindowsAzure.Storage;
     using Microsoft.WindowsAzure.Storage.Blob;
     using Microsoft.WindowsAzure.Storage.RetryPolicies;
-    using Ploeh.AutoFixture;
-    using Ploeh.AutoFixture.AutoMoq;
-    using Ploeh.AutoFixture.Idioms;
 
     [TestClass]
     public class AzureMementoStore_specs
     {
-        private static CloudStorageAccount s_storageAccount;
+        private static IMessageSerializer s_serializer;
         private static CloudBlobContainer s_container;
-        private static bool s_storageEmulatorConnected;
-        private IFixture _fixture;
-        private IMessageSerializer _serializer;
-        private AzureMementoStore _sut;
 
         public TestContext TestContext { get; set; }
 
         [ClassInitialize]
-        public static void ClassInitialize(TestContext context)
+        public static async Task ClassInitialize(TestContext context)
         {
+            s_serializer = new JsonMessageSerializer();
+
             try
             {
-                s_storageAccount = CloudStorageAccount.DevelopmentStorageAccount;
-                CloudBlobClient tableClient = s_storageAccount.CreateCloudBlobClient();
+                CloudBlobClient tableClient = CloudStorageAccount.DevelopmentStorageAccount.CreateCloudBlobClient();
                 s_container = tableClient.GetContainerReference("test-memento-store");
-                s_container.DeleteIfExists(options: new BlobRequestOptions { RetryPolicy = new NoRetry() });
-                s_container.Create();
-                s_storageEmulatorConnected = true;
+                await s_container.DeleteIfExistsAsync(accessCondition: default, new BlobRequestOptions { RetryPolicy = new NoRetry() }, operationContext: default);
+                await s_container.CreateAsync();
             }
             catch (StorageException exception)
-            when (exception.InnerException is WebException)
             {
-                context.WriteLine("{0}", exception);
-            }
-        }
-
-        [TestInitialize]
-        public void TestInitialize()
-        {
-            if (s_storageEmulatorConnected == false)
-            {
+                context.WriteLine($"{exception}");
                 Assert.Inconclusive("Could not connect to Azure Storage Emulator. See the output for details. Refer to the following URL for more information: http://go.microsoft.com/fwlink/?LinkId=392237");
             }
-
-            _fixture = new Fixture().Customize(new AutoMoqCustomization());
-            _serializer = new JsonMessageSerializer();
-            _sut = new AzureMementoStore(s_container, _serializer);
         }
 
         [TestMethod]
         public void sut_implements_IMementoStore()
         {
-            _sut.Should().BeAssignableTo<IMementoStore>();
+            typeof(AzureMementoStore).Should().Implement<IMementoStore>();
         }
 
         [TestMethod]
         public void class_has_guard_clauses()
         {
-            var assertion = new GuardClauseAssertion(_fixture);
-            assertion.Verify(typeof(AzureMementoStore));
+            IFixture builder = new Fixture().Customize(new AutoMoqCustomization());
+            new GuardClauseAssertion(builder).Verify(typeof(AzureMementoStore));
         }
 
         [TestMethod]
@@ -79,8 +60,7 @@
             var userId = Guid.NewGuid();
             string s = userId.ToString();
 
-            string actual =
-                AzureMementoStore.GetMementoBlobName<FakeUser>(userId);
+            string actual = AzureMementoStore.GetMementoBlobName<FakeUser>(userId);
 
             TestContext.WriteLine("{0}", actual);
             string[] fragments = new[]
@@ -98,20 +78,21 @@
         {
             // Arrange
             var userId = Guid.NewGuid();
-            FakeUserMemento memento = _fixture.Create<FakeUserMemento>();
+            FakeUserMemento memento = new Fixture().Create<FakeUserMemento>();
+            var sut = new AzureMementoStore(s_container, s_serializer);
 
             // Act
-            await _sut.Save<FakeUser>(userId, memento, CancellationToken.None);
+            await sut.Save<FakeUser>(userId, memento);
 
             // Assert
             CloudBlockBlob blob = s_container.GetBlockBlobReference(
                 AzureMementoStore.GetMementoBlobName<FakeUser>(userId));
-            blob.Exists().Should().BeTrue();
+            (await blob.ExistsAsync()).Should().BeTrue();
             using (Stream s = await blob.OpenReadAsync())
             using (var reader = new StreamReader(s))
             {
                 string json = await reader.ReadToEndAsync();
-                object actual = _serializer.Deserialize(json);
+                object actual = s_serializer.Deserialize(json);
                 actual.Should().BeOfType<FakeUserMemento>();
                 actual.ShouldBeEquivalentTo(memento);
             }
@@ -121,26 +102,28 @@
         public async Task Save_overwrites_memento_blob_if_already_exists()
         {
             // Arrange
+            var sut = new AzureMementoStore(s_container, s_serializer);
             var userId = Guid.NewGuid();
-            FakeUserMemento oldMemento = _fixture.Create<FakeUserMemento>();
+            var fixture = new Fixture();
+            FakeUserMemento oldMemento = fixture.Create<FakeUserMemento>();
 
             CloudBlockBlob blob = s_container.GetBlockBlobReference(
                 AzureMementoStore.GetMementoBlobName<FakeUser>(userId));
-            await blob.UploadTextAsync(_serializer.Serialize(oldMemento));
+            await blob.UploadTextAsync(s_serializer.Serialize(oldMemento));
 
-            FakeUserMemento memento = _fixture.Create<FakeUserMemento>();
+            FakeUserMemento memento = fixture.Create<FakeUserMemento>();
 
             // Act
-            Func<Task> action = () => _sut.Save<FakeUser>(userId, memento, CancellationToken.None);
+            Func<Task> action = () => sut.Save<FakeUser>(userId, memento);
 
             // Assert
             action.ShouldNotThrow();
-            blob.Exists().Should().BeTrue();
+            (await blob.ExistsAsync()).Should().BeTrue();
             using (Stream s = await blob.OpenReadAsync())
             using (var reader = new StreamReader(s))
             {
                 string json = await reader.ReadToEndAsync();
-                object actual = _serializer.Deserialize(json);
+                object actual = s_serializer.Deserialize(json);
                 actual.Should().BeOfType<FakeUserMemento>();
                 actual.ShouldBeEquivalentTo(memento);
             }
@@ -149,15 +132,14 @@
         [TestMethod]
         public async Task Save_sets_ContentType_to_application_json()
         {
+            var sut = new AzureMementoStore(s_container, s_serializer);
             var userId = Guid.NewGuid();
-            FakeUserMemento memento = _fixture.Create<FakeUserMemento>();
+            FakeUserMemento memento = new Fixture().Create<FakeUserMemento>();
 
-            await _sut.Save<FakeUser>(userId, memento, CancellationToken.None);
+            await sut.Save<FakeUser>(userId, memento);
 
-            string blobName =
-                AzureMementoStore.GetMementoBlobName<FakeUser>(userId);
-            ICloudBlob blob = await
-                s_container.GetBlobReferenceFromServerAsync(blobName);
+            string blobName = AzureMementoStore.GetMementoBlobName<FakeUser>(userId);
+            ICloudBlob blob = await s_container.GetBlobReferenceFromServerAsync(blobName);
             blob.Properties.ContentType.Should().Be("application/json");
         }
 
@@ -165,12 +147,13 @@
         public async Task Find_restores_memento_correctly()
         {
             // Arrange
+            var sut = new AzureMementoStore(s_container, s_serializer);
             var userId = Guid.NewGuid();
-            FakeUserMemento memento = _fixture.Create<FakeUserMemento>();
-            await _sut.Save<FakeUser>(userId, memento, CancellationToken.None);
+            FakeUserMemento memento = new Fixture().Create<FakeUserMemento>();
+            await sut.Save<FakeUser>(userId, memento);
 
             // Act
-            IMemento actual = await _sut.Find<FakeUser>(userId, CancellationToken.None);
+            IMemento actual = await sut.Find<FakeUser>(userId);
 
             // Assert
             actual.Should().BeOfType<FakeUserMemento>();
@@ -180,30 +163,37 @@
         [TestMethod]
         public async Task Find_returns_null_if_blob_not_found()
         {
+            var sut = new AzureMementoStore(s_container, s_serializer);
             var userId = Guid.NewGuid();
-            IMemento actual = await _sut.Find<FakeUser>(userId, CancellationToken.None);
+
+            IMemento actual = await sut.Find<FakeUser>(userId);
+
             actual.Should().BeNull();
         }
 
         [TestMethod]
         public async Task Delete_deletes_memento_blob()
         {
+            var sut = new AzureMementoStore(s_container, s_serializer);
             var userId = Guid.NewGuid();
-            FakeUserMemento memento = _fixture.Create<FakeUserMemento>();
-            await _sut.Save<FakeUser>(userId, memento, CancellationToken.None);
+            FakeUserMemento memento = new Fixture().Create<FakeUserMemento>();
+            await sut.Save<FakeUser>(userId, memento);
 
-            await _sut.Delete<FakeUser>(userId, CancellationToken.None);
+            await sut.Delete<FakeUser>(userId);
 
             CloudBlockBlob blob = s_container.GetBlockBlobReference(
                 AzureMementoStore.GetMementoBlobName<FakeUser>(userId));
-            blob.Exists().Should().BeFalse();
+            (await blob.ExistsAsync()).Should().BeFalse();
         }
 
         [TestMethod]
         public void Delete_does_not_fails_even_if_memento_not_found()
         {
+            var sut = new AzureMementoStore(s_container, s_serializer);
             var userId = Guid.NewGuid();
-            Func<Task> action = () => _sut.Delete<FakeUser>(userId, CancellationToken.None);
+
+            Func<Task> action = () => sut.Delete<FakeUser>(userId);
+
             action.ShouldNotThrow();
         }
     }
