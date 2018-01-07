@@ -19,6 +19,9 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="AutoFixture" Version="4.0.0-rc1" />
+    <PackageReference Include="AutoFixture.AutoMoq" Version="4.0.0-rc1" />
+    <PackageReference Include="AutoFixture.Idioms" Version="4.0.0-rc1" />
     <PackageReference Include="FluentAssertions" Version="4.19.4" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="2.0.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="2.0.0" />
@@ -27,11 +30,13 @@
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.3.0" />
     <PackageReference Include="Moq" Version="4.7.142" />
     <PackageReference Include="StyleCop.Analyzers" Version="1.1.0-beta004" />
+    <PackageReference Include="WindowsAzure.Storage" Version="8.5.0" />
     <PackageReference Include="xunit" Version="2.3.0" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.3.0" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Khala.EventSourcing.Azure\Khala.EventSourcing.Azure.csproj" />
     <ProjectReference Include="..\Khala.EventSourcing.SqlCore\Khala.EventSourcing.SqlCore.csproj" />
   </ItemGroup>
 
