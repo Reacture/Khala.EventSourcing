@@ -12,6 +12,7 @@
     using Ploeh.AutoFixture.Idioms;
 
     [TestClass]
+    [Ignore("Khala.EventSourcing.Owin 프로젝트는 더이상 지원되지 않는다. 이후 ASP.NET Core를 위한 유사 프로젝트가 지원될 계획이다.")]
     public class AppBuilderExtensions_specs
     {
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1034:NestedTypesShouldNotBeVisible", Justification = "Should be mockable.")]
