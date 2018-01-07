@@ -66,11 +66,11 @@
     <Reference Include="FluentAssertions.Core, Version=4.19.4.0, Culture=neutral, PublicKeyToken=33f2691a05b67b6a, processorArchitecture=MSIL">
       <HintPath>..\packages\FluentAssertions.4.19.4\lib\net45\FluentAssertions.Core.dll</HintPath>
     </Reference>
-    <Reference Include="Khala.Messaging.Abstraction, Version=0.17.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Khala.Messaging.Abstraction.0.17.0\lib\netstandard1.3\Khala.Messaging.Abstraction.dll</HintPath>
+    <Reference Include="Khala.Messaging.Abstraction, Version=0.18.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Khala.Messaging.Abstraction.0.18.0\lib\netstandard1.3\Khala.Messaging.Abstraction.dll</HintPath>
     </Reference>
-    <Reference Include="Khala.Messaging.Contracts, Version=0.17.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Khala.Messaging.Contracts.0.17.0\lib\netstandard1.3\Khala.Messaging.Contracts.dll</HintPath>
+    <Reference Include="Khala.Messaging.Contracts, Version=0.18.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Khala.Messaging.Contracts.0.18.0\lib\netstandard1.3\Khala.Messaging.Contracts.dll</HintPath>
     </Reference>
     <Reference Include="Khala.TransientFaultHandling, Version=0.12.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Khala.TransientFaultHandling.0.12.0\lib\netstandard1.3\Khala.TransientFaultHandling.dll</HintPath>
