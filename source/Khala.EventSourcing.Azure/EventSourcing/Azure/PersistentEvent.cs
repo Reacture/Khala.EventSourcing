@@ -14,13 +14,13 @@
         public static string GetRowKey(int version) => $"{version:D10}";
 
         public static PersistentEvent Create(
-            Type sourceType,
+            Type aggregateType,
             Envelope<IDomainEvent> envelope,
             IMessageSerializer serializer)
         {
-            if (sourceType == null)
+            if (aggregateType == null)
             {
-                throw new ArgumentNullException(nameof(sourceType));
+                throw new ArgumentNullException(nameof(aggregateType));
             }
 
             if (envelope == null)
@@ -35,7 +35,7 @@
 
             return new PersistentEvent
             {
-                PartitionKey = GetPartitionKey(sourceType, envelope.Message.SourceId),
+                PartitionKey = GetPartitionKey(aggregateType, envelope.Message.SourceId),
                 RowKey = GetRowKey(envelope.Message.Version),
                 Version = envelope.Message.Version,
                 EventType = envelope.Message.GetType().FullName,

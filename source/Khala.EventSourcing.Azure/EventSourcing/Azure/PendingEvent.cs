@@ -8,13 +8,13 @@
         public static string GetRowKey(int version) => $"Pending-{version:D10}";
 
         public static PendingEvent Create(
-            Type sourceType,
+            Type aggregateType,
             Envelope<IDomainEvent> envelope,
             IMessageSerializer serializer)
         {
-            if (sourceType == null)
+            if (aggregateType == null)
             {
-                throw new ArgumentNullException(nameof(sourceType));
+                throw new ArgumentNullException(nameof(aggregateType));
             }
 
             if (envelope == null)
@@ -29,7 +29,7 @@
 
             return new PendingEvent
             {
-                PartitionKey = GetPartitionKey(sourceType, envelope.Message.SourceId),
+                PartitionKey = GetPartitionKey(aggregateType, envelope.Message.SourceId),
                 RowKey = GetRowKey(envelope.Message.Version),
                 MessageId = envelope.MessageId,
                 EventJson = serializer.Serialize(envelope.Message),
