@@ -3,7 +3,6 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using System.Net;
     using System.Threading.Tasks;
     using AutoFixture;
     using AutoFixture.AutoMoq;
@@ -38,7 +37,6 @@
                 await s_eventTable.CreateAsync();
             }
             catch (StorageException exception)
-            when (exception.InnerException is WebException)
             {
                 context.WriteLine($"{exception}");
                 Assert.Inconclusive("Could not connect to Azure Storage Emulator. See the output for details. Refer to the following URL for more information: http://go.microsoft.com/fwlink/?LinkId=392237");
@@ -57,7 +55,7 @@
         [TestMethod]
         public void sut_implements_IAzureEventStore()
         {
-            _sut.Should().BeAssignableTo<IAzureEventStore>();
+            typeof(AzureEventStore).Should().Implement<IAzureEventStore>();
         }
 
         [TestMethod]

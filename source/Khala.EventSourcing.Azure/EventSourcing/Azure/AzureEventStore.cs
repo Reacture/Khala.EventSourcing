@@ -140,9 +140,9 @@
             where T : class, IEventSourced
         {
             string filter = PersistentEvent.GetFilter(typeof(T), sourceId, afterVersion);
-            var query = new TableQuery<EventTableEntity> { FilterString = filter };
+            var query = new TableQuery<PersistentEvent> { FilterString = filter };
 
-            IEnumerable<EventTableEntity> events = await _eventTable
+            IEnumerable<PersistentEvent> events = await _eventTable
                 .ExecuteQuery(query, cancellationToken)
                 .ConfigureAwait(false);
 

@@ -147,12 +147,8 @@
   </Choose>
   <ItemGroup>
     <Compile Include="EventSourcing\AppBuilderExtensions_specs.cs" />
-    <Compile Include="EventSourcing\Azure\AzureEventPublisher_specs.cs" />
     <Compile Include="EventSourcing\Azure\AzureEventSourcedRepository_specs.cs" />
     <Compile Include="EventSourcing\Azure\AzureMementoStore_specs.cs" />
-    <Compile Include="EventSourcing\Azure\CorrelationTableEntity_specs.cs" />
-    <Compile Include="EventSourcing\Azure\EventTableEntity_specs.cs" />
-    <Compile Include="EventSourcing\Azure\PendingEventTableEntity_specs.cs" />
     <Compile Include="EventSourcing\DomainEvent_specs.cs" />
     <Compile Include="EventSourcing\DuplicateCorrelationException_specs.cs" />
     <Compile Include="EventSourcing\EventSourced_specs.cs" />

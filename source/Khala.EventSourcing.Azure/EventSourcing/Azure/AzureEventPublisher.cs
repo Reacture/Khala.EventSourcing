@@ -10,10 +10,6 @@
     using Microsoft.WindowsAzure.Storage;
     using Microsoft.WindowsAzure.Storage.Table;
 
-    using static Microsoft.WindowsAzure.Storage.Table.QueryComparisons;
-    using static Microsoft.WindowsAzure.Storage.Table.TableOperators;
-    using static Microsoft.WindowsAzure.Storage.Table.TableQuery;
-
     public class AzureEventPublisher : IAzureEventPublisher
     {
         private readonly CloudTable _eventTable;
@@ -41,17 +37,13 @@
                     $"{sourceId} cannot be empty.", nameof(sourceId));
             }
 
-            string pendingPartition = PendingEventTableEntity.GetPartitionKey(typeof(T), sourceId);
-            return Flush(pendingPartition, cancellationToken);
+            string partition = AggregateEntity.GetPartitionKey(typeof(T), sourceId);
+            return Flush(partition, cancellationToken);
         }
 
-        private async Task Flush(
-            string pendingPartition,
-            CancellationToken cancellationToken)
+        private async Task Flush(string partition, CancellationToken cancellationToken)
         {
-            List<PendingEventTableEntity> pendingEvents = await
-                GetPendingEvents(pendingPartition, cancellationToken).ConfigureAwait(false);
-
+            List<PendingEvent> pendingEvents = await GetPendingEvents(partition, cancellationToken).ConfigureAwait(false);
             if (pendingEvents.Any())
             {
                 await SendPendingEvents(pendingEvents, cancellationToken).ConfigureAwait(false);
@@ -59,98 +51,43 @@
             }
         }
 
-        private async Task<List<PendingEventTableEntity>> GetPendingEvents(
-            string pendingPartition,
-            CancellationToken cancellationToken)
+        private async Task<List<PendingEvent>> GetPendingEvents(string partition, CancellationToken cancellationToken)
         {
-            var query = new TableQuery<PendingEventTableEntity>();
-
-            string filter = GenerateFilterCondition(
-                nameof(ITableEntity.PartitionKey),
-                Equal,
-                pendingPartition);
-
-            return new List<PendingEventTableEntity>(await _eventTable
-                .ExecuteQuery(query.Where(filter), cancellationToken)
+            string filter = PendingEvent.GetFilter(partition);
+            var query = new TableQuery<PendingEvent> { FilterString = filter };
+            return new List<PendingEvent>(await _eventTable
+                .ExecuteQuery(query, cancellationToken)
                 .ConfigureAwait(false));
         }
 
-        private async Task SendPendingEvents(
-            List<PendingEventTableEntity> pendingEvents,
-            CancellationToken cancellationToken)
+        private Task SendPendingEvents(List<PendingEvent> pendingEvents, CancellationToken cancellationToken)
         {
-            PendingEventTableEntity firstEvent = pendingEvents.First();
-
-            string persistentPartition = firstEvent.PersistentPartition;
-
-            List<EventTableEntity> persistentEvents = await
-                GetPersistentEvents(persistentPartition, firstEvent.Version, cancellationToken).ConfigureAwait(false);
-
-            var persistentVersions = new HashSet<int>(persistentEvents.Select(e => e.Version));
-
             IEnumerable<Envelope> envelopes =
                 from e in pendingEvents
-                where persistentVersions.Contains(e.Version)
                 let domainEvent = _serializer.Deserialize(e.EventJson)
-                select new Envelope(e.MessageId, domainEvent, e.OperationId, e.CorrelationId, e.Contributor);
+                select new Envelope(
+                    e.MessageId,
+                    domainEvent,
+                    e.OperationId,
+                    e.CorrelationId,
+                    e.Contributor);
 
-            await _messageBus.Send(envelopes, cancellationToken).ConfigureAwait(false);
+            return _messageBus.Send(envelopes, cancellationToken);
         }
 
-        private async Task<List<EventTableEntity>> GetPersistentEvents(
-            string persistentPartition,
-            int version,
-            CancellationToken cancellationToken)
+        private async Task DeletePendingEvents(List<PendingEvent> pendingEvents, CancellationToken cancellationToken)
         {
-            var query = new TableQuery<EventTableEntity>();
-
-            string filter = CombineFilters(
-                GenerateFilterCondition(
-                    nameof(ITableEntity.PartitionKey),
-                    Equal,
-                    persistentPartition),
-                And,
-                GenerateFilterCondition(
-                    nameof(ITableEntity.RowKey),
-                    GreaterThanOrEqual,
-                    EventTableEntity.GetRowKey(version)));
-
-            return new List<EventTableEntity>(await _eventTable
-                .ExecuteQuery(query.Where(filter), cancellationToken)
-                .ConfigureAwait(false));
-        }
-
-        private async Task DeletePendingEvents(
-            List<PendingEventTableEntity> pendingEvents,
-            CancellationToken cancellationToken)
-        {
-            foreach (PendingEventTableEntity pendingEvent in pendingEvents)
+            foreach (PendingEvent pendingEvent in pendingEvents)
             {
                 try
                 {
                     var operation = TableOperation.Delete(pendingEvent);
                     await _eventTable.Execute(operation, cancellationToken).ConfigureAwait(false);
                 }
-                catch (StorageException exception) when (ReasonIsNotFound(exception))
+                catch (StorageException exception) when (exception.Message == "Not Found")
                 {
                 }
             }
-        }
-
-        private static bool ReasonIsNotFound(StorageException exception)
-        {
-            if (exception.InnerException.GetType().FullName == "System.Net.WebException")
-            {
-                dynamic innerException = exception.InnerException;
-                if (innerException.Response.GetType().FullName == "System.Net.HttpWebResponse")
-                {
-                    dynamic response = innerException.Response;
-                    object statusCode = response.StatusCode;
-                    return (int)statusCode == 404;
-                }
-            }
-
-            return false;
         }
 
         public async void EnqueueAll(CancellationToken cancellationToken)
@@ -159,13 +96,13 @@
         [EditorBrowsable(EditorBrowsableState.Never)]
         public async Task FlushAllPendingEvents(CancellationToken cancellationToken)
         {
-            string filter = PendingEventTableEntity.ScanFilter;
-            TableQuery<PendingEventTableEntity> query = new TableQuery<PendingEventTableEntity>().Where(filter);
+            string filter = PendingEvent.FullScanFilter;
+            var query = new TableQuery<PendingEvent> { FilterString = filter };
             TableContinuationToken continuation = null;
 
             do
             {
-                TableQuerySegment<PendingEventTableEntity> segment = await _eventTable
+                TableQuerySegment<PendingEvent> segment = await _eventTable
                     .ExecuteQuerySegmented(query, continuation, cancellationToken)
                     .ConfigureAwait(false);
 

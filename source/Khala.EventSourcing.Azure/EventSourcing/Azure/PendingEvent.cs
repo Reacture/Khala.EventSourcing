@@ -6,6 +6,17 @@
 
     public class PendingEvent : EventEntity
     {
+        public static readonly string FullScanFilter = TableQuery.CombineFilters(
+            TableQuery.GenerateFilterCondition(
+                nameof(RowKey),
+                QueryComparisons.GreaterThan,
+                GetRowKey(version: 0)),
+            TableOperators.And,
+            TableQuery.GenerateFilterCondition(
+                nameof(RowKey),
+                QueryComparisons.LessThanOrEqual,
+                GetRowKey(version: int.MaxValue)));
+
         public static string GetRowKey(int version) => $"Pending-{version:D10}";
 
         public static PendingEvent Create(
@@ -40,7 +51,7 @@
             };
         }
 
-        public static string GetFilter(Type sourceType, Guid sourceId, int afterVersion = default)
+        public static string GetFilter(Type sourceType, Guid sourceId)
         {
             if (sourceType == null)
             {
@@ -52,21 +63,26 @@
                 throw new ArgumentException("Value cannot be empty.", nameof(sourceId));
             }
 
+            return GetFilter(GetPartitionKey(sourceType, sourceId));
+        }
+
+        public static string GetFilter(string partition)
+        {
             string partitionCondition = TableQuery.GenerateFilterCondition(
                 nameof(PartitionKey),
                 QueryComparisons.Equal,
-                GetPartitionKey(sourceType, sourceId));
+                partition);
 
             string rowCondition = TableQuery.CombineFilters(
                 TableQuery.GenerateFilterCondition(
                     nameof(RowKey),
                     QueryComparisons.GreaterThan,
-                    GetRowKey(afterVersion)),
+                    GetRowKey(version: 0)),
                 TableOperators.And,
                 TableQuery.GenerateFilterCondition(
                     nameof(RowKey),
                     QueryComparisons.LessThanOrEqual,
-                    GetRowKey(int.MaxValue)));
+                    GetRowKey(version: int.MaxValue)));
 
             return TableQuery.CombineFilters(partitionCondition, TableOperators.And, rowCondition);
         }
