@@ -5,11 +5,12 @@
     using System.ComponentModel.DataAnnotations.Schema;
     using FluentAssertions;
     using Khala.Messaging;
-    using Xunit;
+    using Microsoft.VisualStudio.TestTools.UnitTesting;
 
+    [TestClass]
     public class PersistentEvent_specs
     {
-        [Fact]
+        [TestMethod]
         public void sut_has_SeqeunceId_property()
         {
             typeof(PersistentEvent)
@@ -18,7 +19,7 @@
                 .Which.SetMethod.IsPrivate.Should().BeTrue();
         }
 
-        [Fact]
+        [TestMethod]
         public void SequenceId_is_decorated_with_Key()
         {
             typeof(PersistentEvent)
@@ -27,7 +28,7 @@
                 .BeDecoratedWith<KeyAttribute>();
         }
 
-        [Fact]
+        [TestMethod]
         public void SequenceId_is_decorated_with_DatebaseGenerated()
         {
             typeof(PersistentEvent)
@@ -36,25 +37,25 @@
                 .BeDecoratedWith<DatabaseGeneratedAttribute>(a => a.DatabaseGeneratedOption == DatabaseGeneratedOption.Identity);
         }
 
-        [Fact]
+        [TestMethod]
         public void sut_has_AggregateId_property()
         {
             typeof(PersistentEvent).Should().HaveProperty<Guid>("AggregateId");
         }
 
-        [Fact]
+        [TestMethod]
         public void sut_has_Version_property()
         {
             typeof(PersistentEvent).Should().HaveProperty<int>("Version");
         }
 
-        [Fact]
+        [TestMethod]
         public void sut_has_EventType_property()
         {
             typeof(PersistentEvent).Should().HaveProperty<string>("EventType");
         }
 
-        [Fact]
+        [TestMethod]
         public void EventType_is_decorated_with_Required()
         {
             typeof(PersistentEvent)
@@ -63,25 +64,25 @@
                 .BeDecoratedWith<RequiredAttribute>(a => a.AllowEmptyStrings == false);
         }
 
-        [Fact]
+        [TestMethod]
         public void sut_has_MessageId_property()
         {
             typeof(PersistentEvent).Should().HaveProperty<Guid>("MessageId");
         }
 
-        [Fact]
+        [TestMethod]
         public void sut_has_CorrelationId_property()
         {
             typeof(PersistentEvent).Should().HaveProperty<Guid?>("CorrelationId");
         }
 
-        [Fact]
+        [TestMethod]
         public void sut_has_EventJson_property()
         {
             typeof(PersistentEvent).Should().HaveProperty<string>("EventJson");
         }
 
-        [Fact]
+        [TestMethod]
         public void EventJson_is_decorated_with_Required()
         {
             typeof(PersistentEvent)
@@ -90,13 +91,13 @@
                 .BeDecoratedWith<RequiredAttribute>(a => a.AllowEmptyStrings == false);
         }
 
-        [Fact]
+        [TestMethod]
         public void sut_has_RaisedAt_property()
         {
             typeof(PersistentEvent).Should().HaveProperty<DateTimeOffset>("RaisedAt");
         }
 
-        [Fact]
+        [TestMethod]
         public void FromEnvelope_generates_PersistentEvent_correctly()
         {
             var domainEvent = new SomeDomainEvent();
@@ -116,7 +117,7 @@
             actual.RaisedAt.Should().Be(domainEvent.RaisedAt);
         }
 
-        [Fact]
+        [TestMethod]
         public void FromEnvelope_has_guard_clause_for_invalid_message()
         {
             var envelope = new Envelope(new object());

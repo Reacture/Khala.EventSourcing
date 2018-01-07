@@ -6,24 +6,25 @@
     using AutoFixture.AutoMoq;
     using AutoFixture.Idioms;
     using FluentAssertions;
+    using Microsoft.VisualStudio.TestTools.UnitTesting;
     using Microsoft.WindowsAzure.Storage.Table;
-    using Xunit;
 
+    [TestClass]
     public class AggregateEntity_specs
     {
-        [Fact]
+        [TestMethod]
         public void sut_is_abstract()
         {
             typeof(AggregateEntity).IsAbstract.Should().BeTrue();
         }
 
-        [Fact]
+        [TestMethod]
         public void sut_inherits_TableEntity()
         {
             typeof(AggregateEntity).BaseType.Should().Be(typeof(TableEntity));
         }
 
-        [Fact]
+        [TestMethod]
         public void GetPartitionKey_returns_combination_of_aggregate_type_name_and_aggregate_id()
         {
             IFixture fixture = new Fixture().Customize(new AutoMoqCustomization());
@@ -35,7 +36,7 @@
             actual.Should().Be($"{aggregateType.Name}-{aggregateId:n}");
         }
 
-        [Fact]
+        [TestMethod]
         public void GetPartitionKey_has_guard_clauses()
         {
             MethodInfo mut = typeof(AggregateEntity).GetMethod("GetPartitionKey");

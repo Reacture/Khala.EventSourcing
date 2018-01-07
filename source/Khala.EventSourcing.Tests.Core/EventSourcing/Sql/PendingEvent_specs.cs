@@ -5,17 +5,18 @@
     using System.ComponentModel.DataAnnotations.Schema;
     using FluentAssertions;
     using Khala.Messaging;
-    using Xunit;
+    using Microsoft.VisualStudio.TestTools.UnitTesting;
 
+    [TestClass]
     public class PendingEvent_specs
     {
-        [Fact]
+        [TestMethod]
         public void sut_has_AggregateId_property()
         {
             typeof(PendingEvent).Should().HaveProperty<Guid>("AggregateId");
         }
 
-        [Fact]
+        [TestMethod]
         public void AggregateId_is_decorated_with_Key()
         {
             typeof(PendingEvent)
@@ -24,7 +25,7 @@
                 .BeDecoratedWith<KeyAttribute>();
         }
 
-        [Fact]
+        [TestMethod]
         public void AggregateId_is_decorated_with_Column()
         {
             typeof(PendingEvent)
@@ -33,13 +34,13 @@
                 .BeDecoratedWith<ColumnAttribute>(a => a.Order == 0);
         }
 
-        [Fact]
+        [TestMethod]
         public void sut_has_Version_property()
         {
             typeof(PendingEvent).Should().HaveProperty<int>("Version");
         }
 
-        [Fact]
+        [TestMethod]
         public void Version_is_decorated_with_Key()
         {
             typeof(PendingEvent)
@@ -48,7 +49,7 @@
                 .BeDecoratedWith<KeyAttribute>();
         }
 
-        [Fact]
+        [TestMethod]
         public void Version_is_decorated_with_Column()
         {
             typeof(PendingEvent)
@@ -57,25 +58,25 @@
                 .BeDecoratedWith<ColumnAttribute>(a => a.Order == 1);
         }
 
-        [Fact]
+        [TestMethod]
         public void sut_has_MessageId_property()
         {
             typeof(PendingEvent).Should().HaveProperty<Guid>("MessageId");
         }
 
-        [Fact]
+        [TestMethod]
         public void sut_has_CorrelationId_property()
         {
             typeof(PendingEvent).Should().HaveProperty<Guid?>("CorrelationId");
         }
 
-        [Fact]
+        [TestMethod]
         public void sut_has_EventJson_property()
         {
             typeof(PendingEvent).Should().HaveProperty<string>("EventJson");
         }
 
-        [Fact]
+        [TestMethod]
         public void EventJson_is_decorated_with_Required()
         {
             typeof(PendingEvent)
@@ -84,7 +85,7 @@
                 .BeDecoratedWith<RequiredAttribute>(a => a.AllowEmptyStrings == false);
         }
 
-        [Fact]
+        [TestMethod]
         public void FromEnvelope_generates_PendingEvent_correctly()
         {
             var domainEvent = new SomeDomainEvent();
@@ -102,7 +103,7 @@
             actual.EventJson.Should().Be(serializer.Serialize(domainEvent));
         }
 
-        [Fact]
+        [TestMethod]
         public void FromEnvelope_has_guard_clause_for_invalid_message()
         {
             var envelope = new Envelope(new object());

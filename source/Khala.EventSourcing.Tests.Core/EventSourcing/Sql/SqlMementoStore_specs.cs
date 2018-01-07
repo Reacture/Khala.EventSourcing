@@ -7,20 +7,22 @@
     using Khala.FakeDomain;
     using Khala.Messaging;
     using Microsoft.EntityFrameworkCore;
-    using Xunit;
+    using Microsoft.VisualStudio.TestTools.UnitTesting;
 
+    [TestClass]
     public class SqlMementoStore_specs
     {
-        private readonly DbContextOptions _dbContextOptions;
+        private DbContextOptions _dbContextOptions;
 
-        public SqlMementoStore_specs()
+        [TestInitialize]
+        public void TestInitialize()
         {
             _dbContextOptions = new DbContextOptionsBuilder()
                 .UseInMemoryDatabase(nameof(SqlMementoStore_specs))
                 .Options;
         }
 
-        [Fact]
+        [TestMethod]
         public async Task Save_inserts_Memento_entity_correctly()
         {
             // Arrange
@@ -52,7 +54,7 @@
             }
         }
 
-        [Fact]
+        [TestMethod]
         public async Task Save_updates_Memento_entity_if_already_exists()
         {
             // Arrange
@@ -99,7 +101,7 @@
             }
         }
 
-        [Fact]
+        [TestMethod]
         public async Task Find_returns_memento_correctly()
         {
             // Arrange
@@ -118,7 +120,7 @@
             actual.ShouldBeEquivalentTo(memento);
         }
 
-        [Fact]
+        [TestMethod]
         public async Task Find_returns_null_if_not_exists()
         {
             var sourceId = Guid.NewGuid();
@@ -131,7 +133,7 @@
             actual.Should().BeNull();
         }
 
-        [Fact]
+        [TestMethod]
         public async Task Delete_deletes_Memento_entity()
         {
             // Arrange
@@ -158,7 +160,7 @@
             }
         }
 
-        [Fact]
+        [TestMethod]
         public void Delete_does_not_fail_even_if_Memento_entity_does_not_exist()
         {
             // Arrange

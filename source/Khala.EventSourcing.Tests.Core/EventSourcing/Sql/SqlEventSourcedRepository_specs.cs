@@ -7,24 +7,25 @@
     using System.Threading.Tasks;
     using FluentAssertions;
     using Khala.FakeDomain;
+    using Microsoft.VisualStudio.TestTools.UnitTesting;
     using Moq;
-    using Xunit;
 
+    [TestClass]
     public class SqlEventSourcedRepository_specs
     {
-        [Fact]
+        [TestMethod]
         public void sut_implements_ISqlEventSourcedRepository()
         {
             typeof(SqlEventSourcedRepository<FakeUser>).Should().Implement<ISqlEventSourcedRepository<FakeUser>>();
         }
 
-        [Fact]
+        [TestMethod]
         public void sut_implements_IEventSourcedRepositoryT()
         {
             typeof(SqlEventSourcedRepository<FakeUser>).Should().Implement<IEventSourcedRepository<FakeUser>>();
         }
 
-        [Fact]
+        [TestMethod]
         public async Task SaveAndPublish_saves_events()
         {
             // Arrange
@@ -52,7 +53,7 @@
                 Times.Once());
         }
 
-        [Fact]
+        [TestMethod]
         public async Task SaveAndPublish_publishes_events()
         {
             // Arrange
@@ -79,7 +80,7 @@
                 Times.Once());
         }
 
-        [Fact]
+        [TestMethod]
         public void SaveAndPublish_does_not_publish_events_if_fails_to_save_events()
         {
             // Arrange
@@ -119,7 +120,7 @@
                 Times.Never());
         }
 
-        [Fact]
+        [TestMethod]
         public async Task SaveAndPublish_saves_memento()
         {
             // Arrange
@@ -153,7 +154,7 @@
                 Times.Once());
         }
 
-        [Fact]
+        [TestMethod]
         public void SaveAndPublish_does_not_saves_memento_if_fails_to_save_events()
         {
             // Arrange
@@ -197,7 +198,7 @@
                 Times.Never());
         }
 
-        [Fact]
+        [TestMethod]
         public async Task Find_loads_events()
         {
             // Arrange
@@ -223,7 +224,7 @@
             Mock.Get(eventStore).Verify();
         }
 
-        [Fact]
+        [TestMethod]
         public async Task Find_restores_aggregate_from_events()
         {
             // Arrange
@@ -250,7 +251,7 @@
             actual.ShouldBeEquivalentTo(user);
         }
 
-        [Fact]
+        [TestMethod]
         public async Task Find_restores_aggregate_using_memento_if_found()
         {
             // Arrange
@@ -286,7 +287,7 @@
             actual.ShouldBeEquivalentTo(user);
         }
 
-        [Fact]
+        [TestMethod]
         public async Task Find_returns_null_if_no_event()
         {
             // Arrange
@@ -310,7 +311,7 @@
             actual.Should().BeNull();
         }
 
-        [Fact]
+        [TestMethod]
         public async Task FindIdByUniqueIndexedProperty_relays_to_event_store()
         {
             // Arrange

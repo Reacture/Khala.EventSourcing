@@ -3,26 +3,28 @@
     using FluentAssertions;
     using Microsoft.EntityFrameworkCore;
     using Microsoft.EntityFrameworkCore.Metadata;
-    using Xunit;
+    using Microsoft.VisualStudio.TestTools.UnitTesting;
 
+    [TestClass]
     public class EventStoreDbContext_specs
     {
-        private readonly DbContextOptions _dbContextOptions;
+        private DbContextOptions _dbContextOptions;
 
-        public EventStoreDbContext_specs()
+        [TestInitialize]
+        public void TestInitialize()
         {
             _dbContextOptions = new DbContextOptionsBuilder()
                 .UseInMemoryDatabase(nameof(EventStoreDbContext_specs))
                 .Options;
         }
 
-        [Fact]
+        [TestMethod]
         public void sut_inherits_DbContext()
         {
             typeof(EventStoreDbContext).BaseType.Should().Be(typeof(DbContext));
         }
 
-        [Fact]
+        [TestMethod]
         public void model_has_Aggregate_entity()
         {
             var sut = new EventStoreDbContext(_dbContextOptions);
@@ -30,7 +32,7 @@
             actual.Should().NotBeNull();
         }
 
-        [Fact]
+        [TestMethod]
         public void Aggregate_entity_has_index_with_AggregateId()
         {
             var context = new EventStoreDbContext(_dbContextOptions);
@@ -40,7 +42,7 @@
             actual.IsUnique.Should().BeTrue();
         }
 
-        [Fact]
+        [TestMethod]
         public void model_has_PersistentEvent_entity()
         {
             var sut = new EventStoreDbContext(_dbContextOptions);
@@ -48,7 +50,7 @@
             actual.Should().NotBeNull();
         }
 
-        [Fact]
+        [TestMethod]
         public void PersistentEvent_entity_has_index_with_AggregateId_Version()
         {
             var context = new EventStoreDbContext(_dbContextOptions);
@@ -62,7 +64,7 @@
             actual.IsUnique.Should().BeTrue();
         }
 
-        [Fact]
+        [TestMethod]
         public void model_has_PendingEvent_entity()
         {
             var sut = new EventStoreDbContext(_dbContextOptions);
@@ -70,7 +72,7 @@
             actual.Should().NotBeNull();
         }
 
-        [Fact]
+        [TestMethod]
         public void PendingEvent_entity_has_primary_key_with_AggregateId_Version()
         {
             var context = new EventStoreDbContext(_dbContextOptions);
@@ -84,7 +86,7 @@
             });
         }
 
-        [Fact]
+        [TestMethod]
         public void model_has_UniqueIndexedProperty_entity()
         {
             var sut = new EventStoreDbContext(_dbContextOptions);
@@ -92,7 +94,7 @@
             actual.Should().NotBeNull();
         }
 
-        [Fact]
+        [TestMethod]
         public void UniqueIndexedProperty_entity_has_primary_key_with_AggregateType_PropertyName_PropertyValue()
         {
             var context = new EventStoreDbContext(_dbContextOptions);
@@ -107,7 +109,7 @@
             });
         }
 
-        [Fact]
+        [TestMethod]
         public void UniqueIndexedProperty_entity_has_index_with_AggregateId_PropertyName()
         {
             var context = new EventStoreDbContext(_dbContextOptions);
@@ -121,7 +123,7 @@
             actual.IsUnique.Should().BeTrue();
         }
 
-        [Fact]
+        [TestMethod]
         public void model_has_Correlation_entity()
         {
             var sut = new EventStoreDbContext(_dbContextOptions);
@@ -129,7 +131,7 @@
             actual.Should().NotBeNull();
         }
 
-        [Fact]
+        [TestMethod]
         public void Correlation_entity_has_primary_key_with_AggregateId_CorrelationId()
         {
             var context = new EventStoreDbContext(_dbContextOptions);

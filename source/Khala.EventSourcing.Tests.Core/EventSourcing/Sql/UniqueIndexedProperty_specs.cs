@@ -4,23 +4,24 @@
     using System.ComponentModel.DataAnnotations;
     using System.ComponentModel.DataAnnotations.Schema;
     using FluentAssertions;
-    using Xunit;
+    using Microsoft.VisualStudio.TestTools.UnitTesting;
 
+    [TestClass]
     public class UniqueIndexedProperty_specs
     {
-        [Fact]
+        [TestMethod]
         public void IndexName_is_correct()
         {
             UniqueIndexedProperty.IndexName.Should().Be("SqlEventStore_IX_AggregateId_PropertyName");
         }
 
-        [Fact]
+        [TestMethod]
         public void sut_has_AggregateType_property()
         {
             typeof(UniqueIndexedProperty).Should().HaveProperty<string>("AggregateType");
         }
 
-        [Fact]
+        [TestMethod]
         public void AggregateType_is_decorated_with_Key()
         {
             typeof(UniqueIndexedProperty)
@@ -29,7 +30,7 @@
                 .BeDecoratedWith<KeyAttribute>();
         }
 
-        [Fact]
+        [TestMethod]
         public void AggregateType_is_decorated_with_Column()
         {
             typeof(UniqueIndexedProperty)
@@ -38,7 +39,7 @@
                 .BeDecoratedWith<ColumnAttribute>(a => a.Order == 0);
         }
 
-        [Fact]
+        [TestMethod]
         public void AggregateType_is_decorated_with_StringLength()
         {
             typeof(UniqueIndexedProperty)
@@ -47,13 +48,13 @@
                 .BeDecoratedWith<StringLengthAttribute>(a => a.MaximumLength == 128);
         }
 
-        [Fact]
+        [TestMethod]
         public void sut_has_PropertyName_property()
         {
             typeof(UniqueIndexedProperty).Should().HaveProperty<string>("PropertyName");
         }
 
-        [Fact]
+        [TestMethod]
         public void PropertyName_is_decorated_with_Key()
         {
             typeof(UniqueIndexedProperty)
@@ -62,7 +63,7 @@
                 .BeDecoratedWith<KeyAttribute>();
         }
 
-        [Fact]
+        [TestMethod]
         public void PropertyName_is_decorated_with_Column()
         {
             typeof(UniqueIndexedProperty)
@@ -71,7 +72,7 @@
                 .BeDecoratedWith<ColumnAttribute>(a => a.Order == 1);
         }
 
-        [Fact]
+        [TestMethod]
         public void PropertyName_is_decorated_with_StringLength()
         {
             typeof(UniqueIndexedProperty)
@@ -80,13 +81,13 @@
                 .BeDecoratedWith<StringLengthAttribute>(a => a.MaximumLength == 128);
         }
 
-        [Fact]
+        [TestMethod]
         public void sut_has_PropertyValue_property()
         {
             typeof(UniqueIndexedProperty).Should().HaveProperty<string>("PropertyValue");
         }
 
-        [Fact]
+        [TestMethod]
         public void PropertyValue_is_decorated_with_Key()
         {
             typeof(UniqueIndexedProperty)
@@ -95,7 +96,7 @@
                 .BeDecoratedWith<KeyAttribute>();
         }
 
-        [Fact]
+        [TestMethod]
         public void PropertyValue_is_decorated_with_Column()
         {
             typeof(UniqueIndexedProperty)
@@ -104,7 +105,7 @@
                 .BeDecoratedWith<ColumnAttribute>(a => a.Order == 2);
         }
 
-        [Fact]
+        [TestMethod]
         public void PropertyValue_is_decorated_with_StringLength()
         {
             typeof(UniqueIndexedProperty)
@@ -113,19 +114,19 @@
                 .BeDecoratedWith<StringLengthAttribute>(a => a.MaximumLength == 128);
         }
 
-        [Fact]
+        [TestMethod]
         public void sut_has_AggregateId_property()
         {
             typeof(UniqueIndexedProperty).Should().HaveProperty<Guid>("AggregateId");
         }
 
-        [Fact]
+        [TestMethod]
         public void sut_has_Version_property()
         {
             typeof(UniqueIndexedProperty).Should().HaveProperty<int>("Version");
         }
 
-        [Fact]
+        [TestMethod]
         public void Version_is_decorated_with_ConcurrencyCheck()
         {
             typeof(UniqueIndexedProperty)

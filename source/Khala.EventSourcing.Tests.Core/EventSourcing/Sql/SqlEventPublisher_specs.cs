@@ -11,36 +11,38 @@
     using Khala.FakeDomain.Events;
     using Khala.Messaging;
     using Microsoft.EntityFrameworkCore;
+    using Microsoft.VisualStudio.TestTools.UnitTesting;
     using Moq;
-    using Xunit;
 
+    [TestClass]
     public class SqlEventPublisher_specs
     {
-        private static readonly DbContextOptions _dbContextOptions;
+        private static DbContextOptions _dbContextOptions;
 
-        static SqlEventPublisher_specs()
+        [ClassInitialize]
+        public static void ClassInitialize(TestContext context)
         {
             _dbContextOptions = new DbContextOptionsBuilder()
                 .UseSqlServer($@"Server=(localdb)\mssqllocaldb;Database={typeof(SqlEventPublisher_specs).FullName}.Core;Trusted_Connection=True;")
                 .Options;
 
-            using (var context = new FakeEventStoreDbContext(_dbContextOptions))
+            using (var db = new FakeEventStoreDbContext(_dbContextOptions))
             {
-                context.Database.Migrate();
-                context.Database.ExecuteSqlCommand("DELETE FROM Aggregates");
-                context.Database.ExecuteSqlCommand("DELETE FROM PersistentEvents");
-                context.Database.ExecuteSqlCommand("DELETE FROM PendingEvents");
-                context.Database.ExecuteSqlCommand("DELETE FROM UniqueIndexedProperties");
+                db.Database.Migrate();
+                db.Database.ExecuteSqlCommand("DELETE FROM Aggregates");
+                db.Database.ExecuteSqlCommand("DELETE FROM PersistentEvents");
+                db.Database.ExecuteSqlCommand("DELETE FROM PendingEvents");
+                db.Database.ExecuteSqlCommand("DELETE FROM UniqueIndexedProperties");
             }
         }
 
-        [Fact]
+        [TestMethod]
         public void sut_implements_IEventPublisher()
         {
             typeof(SqlEventPublisher).Should().Implement<ISqlEventPublisher>();
         }
 
-        [Fact]
+        [TestMethod]
         public async Task FlushPendingEvents_sends_events_correctly()
         {
             // Arrange
@@ -84,7 +86,7 @@
             messageBus.Sent.ShouldAllBeEquivalentTo(envelopes, opts => opts.RespectingRuntimeTypes());
         }
 
-        [Fact]
+        [TestMethod]
         public async Task FlushPendingEvents_does_not_invoke_Send_if_pending_event_not_found()
         {
             // Arrange
@@ -105,7 +107,7 @@
                 Times.Never());
         }
 
-        [Fact]
+        [TestMethod]
         public async Task FlushPendingEvents_deletes_pending_events()
         {
             // Arrange
@@ -147,7 +149,7 @@
             }
         }
 
-        [Fact]
+        [TestMethod]
         public async Task FlushAllPendingEvents_sends_all_pending_events()
         {
             // Arrange
@@ -197,7 +199,7 @@
             }
         }
 
-        [Fact]
+        [TestMethod]
         public async Task FlushAllPendingEvents_deletes_all_pending_events()
         {
             // Arrange
@@ -240,7 +242,7 @@
             }
         }
 
-        [Fact]
+        [TestMethod]
         public async Task FlushPendingEvents_absorbs_exception_caused_by_that_some_pending_event_already_deleted_since_loaded()
         {
             // Arrange

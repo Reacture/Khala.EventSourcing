@@ -11,11 +11,12 @@
     using Khala.Messaging;
     using Microsoft.EntityFrameworkCore;
     using Microsoft.EntityFrameworkCore.Diagnostics;
-    using Xunit;
+    using Microsoft.VisualStudio.TestTools.UnitTesting;
 
+    [TestClass]
     public class SqlEventStore_specs
     {
-        private static readonly DbContextOptions _dbContextOptions;
+        private static DbContextOptions _dbContextOptions;
 
         public class DbContextSpy : FakeEventStoreDbContext
         {
@@ -35,29 +36,30 @@
             }
         }
 
-        static SqlEventStore_specs()
+        [ClassInitialize]
+        public static void ClassInitialize(TestContext context)
         {
             _dbContextOptions = new DbContextOptionsBuilder()
                 .UseSqlServer($@"Server=(localdb)\mssqllocaldb;Database={typeof(SqlEventStore_specs).FullName}.Core;Trusted_Connection=True;")
                 .Options;
 
-            using (var context = new FakeEventStoreDbContext(_dbContextOptions))
+            using (var db = new FakeEventStoreDbContext(_dbContextOptions))
             {
-                context.Database.Migrate();
-                context.Database.ExecuteSqlCommand("DELETE FROM Aggregates");
-                context.Database.ExecuteSqlCommand("DELETE FROM PersistentEvents");
-                context.Database.ExecuteSqlCommand("DELETE FROM PendingEvents");
-                context.Database.ExecuteSqlCommand("DELETE FROM UniqueIndexedProperties");
+                db.Database.Migrate();
+                db.Database.ExecuteSqlCommand("DELETE FROM Aggregates");
+                db.Database.ExecuteSqlCommand("DELETE FROM PersistentEvents");
+                db.Database.ExecuteSqlCommand("DELETE FROM PendingEvents");
+                db.Database.ExecuteSqlCommand("DELETE FROM UniqueIndexedProperties");
             }
         }
 
-        [Fact]
+        [TestMethod]
         public void sut_implements_ISqlEventStore()
         {
             typeof(SqlEventStore).Should().Implement<ISqlEventStore>();
         }
 
-        [Fact]
+        [TestMethod]
         public async Task SaveEvents_commits_once()
         {
             var userId = Guid.NewGuid();
@@ -81,7 +83,7 @@
             context.CommitCount.Should().Be(1);
         }
 
-        [Fact]
+        [TestMethod]
         public async Task SaveEvents_does_not_commit_for_empty_events()
         {
             var context = new DbContextSpy(_dbContextOptions);
@@ -98,7 +100,7 @@
             context.CommitCount.Should().Be(0);
         }
 
-        [Fact]
+        [TestMethod]
         public void SaveEvents_fails_if_events_contains_null()
         {
             // Arrange
@@ -122,7 +124,7 @@
             action.ShouldThrow<ArgumentException>().Where(x => x.ParamName == "events");
         }
 
-        [Fact]
+        [TestMethod]
         public async Task SaveEvents_inserts_Aggregate_correctly_for_new_aggregate_id()
         {
             // Arrange
@@ -155,7 +157,7 @@
             }
         }
 
-        [Fact]
+        [TestMethod]
         public async Task SaveEvents_updates_Aggregate_correctly_for_existing_aggregate_id()
         {
             // Arrange
@@ -198,7 +200,7 @@
             }
         }
 
-        [Fact]
+        [TestMethod]
         public void SaveEvents_fails_if_versions_not_sequential()
         {
             // Arrange
@@ -224,7 +226,7 @@
             action.ShouldThrow<ArgumentException>().Where(x => x.ParamName == "events");
         }
 
-        [Fact]
+        [TestMethod]
         public async Task SaveEvents_fails_if_version_of_first_event_not_follows_aggregate()
         {
             // Arrange
@@ -260,7 +262,7 @@
             action.ShouldThrow<ArgumentException>().Where(x => x.ParamName == "events");
         }
 
-        [Fact]
+        [TestMethod]
         public void SaveEvents_fails_if_events_not_have_same_source_id()
         {
             // Arrange
@@ -294,7 +296,7 @@
             action.ShouldThrow<ArgumentException>().Where(x => x.ParamName == "events");
         }
 
-        [Fact]
+        [TestMethod]
         public async Task SaveEvents_saves_pending_events_correctly()
         {
             // Arrange
@@ -350,7 +352,7 @@
             }
         }
 
-        [Fact]
+        [TestMethod]
         public async Task SaveEvents_saves_events_correctly()
         {
             // Arrange
@@ -403,7 +405,7 @@
             }
         }
 
-        [Fact]
+        [TestMethod]
         public async Task SaveEvents_sets_message_properties_correctly()
         {
             // Arrange
@@ -448,7 +450,7 @@
             }
         }
 
-        [Fact]
+        [TestMethod]
         public async Task SaveEvents_inserts_UniqueIndexedProperty_for_new_property()
         {
             // Arrange
@@ -485,7 +487,7 @@
             }
         }
 
-        [Fact]
+        [TestMethod]
         public async Task SaveEvents_inserts_UniqueIndexedProperty_with_value_of_latest_indexed_event()
         {
             // Arrange
@@ -522,7 +524,7 @@
             }
         }
 
-        [Fact]
+        [TestMethod]
         public async Task SaveEvents_does_not_insert_UniqueIndexedProperty_if_property_value_is_null()
         {
             // Arrange
@@ -557,7 +559,7 @@
             }
         }
 
-        [Fact]
+        [TestMethod]
         public async Task SaveEvents_removes_existing_UniqueIndexedProperty_if_property_value_is_null()
         {
             // Arrange
@@ -596,7 +598,7 @@
             }
         }
 
-        [Fact]
+        [TestMethod]
         public async Task SaveEvents_fails_if_unique_indexed_property_duplicate()
         {
             // Arrange
@@ -633,7 +635,7 @@
             }
         }
 
-        [Fact]
+        [TestMethod]
         public async Task SaveEvents_inserts_Correlation_entity_correctly()
         {
             // Arrange
@@ -666,7 +668,7 @@
             }
         }
 
-        [Fact]
+        [TestMethod]
         public async Task SaveEvents_throws_DuplicateCorrelationException_if_correlation_duplicate()
         {
             // Arrange
@@ -697,7 +699,7 @@
                 x.InnerException is DbUpdateException);
         }
 
-        [Fact]
+        [TestMethod]
         public void SaveEvents_fails_if_db_context_does_not_support_transaction()
         {
             // Arrange
@@ -722,7 +724,7 @@
             action.ShouldThrow<InvalidOperationException>();
         }
 
-        [Fact]
+        [TestMethod]
         public void SaveEvents_succeeds_if_db_context_supports_transaction()
         {
             // Arrange
@@ -748,7 +750,7 @@
             action.ShouldNotThrow();
         }
 
-        [Fact]
+        [TestMethod]
         public async Task LoadEvents_restores_all_events_correctly()
         {
             // Arrange
@@ -772,7 +774,7 @@
             actual.ShouldAllBeEquivalentTo(events);
         }
 
-        [Fact]
+        [TestMethod]
         public async Task LoadEvents_restores_events_after_specified_version_correctly()
         {
             // Arrange
@@ -796,7 +798,7 @@
             actual.ShouldAllBeEquivalentTo(events.Skip(1));
         }
 
-        [Fact]
+        [TestMethod]
         public async Task FindIdByUniqueIndexedProperty_returns_null_if_property_not_found()
         {
             string value = Guid.NewGuid().ToString();
@@ -809,7 +811,7 @@
             actual.Should().NotHaveValue();
         }
 
-        [Fact]
+        [TestMethod]
         public async Task FindIdByUniqueIndexedProperty_returns_aggregate_id_if_property_found()
         {
             var userId = Guid.NewGuid();

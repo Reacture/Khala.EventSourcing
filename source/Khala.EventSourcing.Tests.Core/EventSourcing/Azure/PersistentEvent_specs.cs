@@ -7,18 +7,11 @@
     using AutoFixture.Idioms;
     using FluentAssertions;
     using Khala.Messaging;
-    using Xunit;
-    using Xunit.Abstractions;
+    using Microsoft.VisualStudio.TestTools.UnitTesting;
 
+    [TestClass]
     public class PersistentEvent_specs
     {
-        private readonly ITestOutputHelper _output;
-
-        public PersistentEvent_specs(ITestOutputHelper output)
-        {
-            _output = output;
-        }
-
         public class SomeDomainEvent : DomainEvent
         {
             public int Foo { get; set; }
@@ -26,13 +19,15 @@
             public string Bar { get; set; }
         }
 
-        [Fact]
+        public TestContext TestContext { get; set; }
+
+        [TestMethod]
         public void sut_inherits_EventEntity()
         {
             typeof(PersistentEvent).BaseType.Should().Be(typeof(EventEntity));
         }
 
-        [Fact]
+        [TestMethod]
         public void GetRowKey_returns_formatted_version()
         {
             int version = new Fixture().Create<int>();
@@ -40,7 +35,7 @@
             actual.Should().Be($"{version:D10}");
         }
 
-        [Fact]
+        [TestMethod]
         public void Create_returns_PersistentEvent_instance()
         {
             IFixture fixture = new Fixture();
@@ -54,7 +49,7 @@
             actual.Should().NotBeNull();
         }
 
-        [Fact]
+        [TestMethod]
         public void Create_has_guard_clauses()
         {
             MethodInfo mut = typeof(PersistentEvent).GetMethod("Create");
@@ -62,13 +57,13 @@
             new GuardClauseAssertion(builder).Verify(mut);
         }
 
-        [Fact]
+        [TestMethod]
         public void Create_sets_PartitionKey_correctly()
         {
             IFixture fixture = new Fixture();
             Type aggregateType = fixture.Create<Type>();
             SomeDomainEvent domainEvent = fixture.Create<SomeDomainEvent>();
-            _output.WriteLine($"SourceId: {domainEvent.SourceId}");
+            TestContext.WriteLine($"SourceId: {domainEvent.SourceId}");
             fixture.Inject<IDomainEvent>(domainEvent);
 
             var actual = PersistentEvent.Create(
@@ -79,12 +74,12 @@
             actual.PartitionKey.Should().Be(AggregateEntity.GetPartitionKey(aggregateType, domainEvent.SourceId));
         }
 
-        [Fact]
+        [TestMethod]
         public void Create_sets_RowKey_correctly()
         {
             IFixture fixture = new Fixture();
             SomeDomainEvent domainEvent = fixture.Create<SomeDomainEvent>();
-            _output.WriteLine($"Version: {domainEvent.Version}");
+            TestContext.WriteLine($"Version: {domainEvent.Version}");
             fixture.Inject<IDomainEvent>(domainEvent);
 
             var actual = PersistentEvent.Create(
@@ -95,12 +90,12 @@
             actual.RowKey.Should().Be(PersistentEvent.GetRowKey(domainEvent.Version));
         }
 
-        [Fact]
+        [TestMethod]
         public void Create_sets_Version_correctly()
         {
             IFixture fixture = new Fixture();
             SomeDomainEvent domainEvent = fixture.Create<SomeDomainEvent>();
-            _output.WriteLine($"Version: {domainEvent.Version}");
+            TestContext.WriteLine($"Version: {domainEvent.Version}");
             fixture.Inject<IDomainEvent>(domainEvent);
 
             var actual = PersistentEvent.Create(
@@ -111,7 +106,7 @@
             actual.Version.Should().Be(domainEvent.Version);
         }
 
-        [Fact]
+        [TestMethod]
         public void Create_sets_EventType_correctly()
         {
             IFixture fixture = new Fixture();
@@ -126,13 +121,13 @@
             actual.EventType.Should().Be(typeof(SomeDomainEvent).FullName);
         }
 
-        [Fact]
+        [TestMethod]
         public void Create_sets_RaisedAt_correctly()
         {
             IFixture fixture = new Fixture();
             SomeDomainEvent domainEvent = fixture.Create<SomeDomainEvent>();
             fixture.Inject<IDomainEvent>(domainEvent);
-            _output.WriteLine($"RaisedAt: {domainEvent.RaisedAt}");
+            TestContext.WriteLine($"RaisedAt: {domainEvent.RaisedAt}");
 
             var actual = PersistentEvent.Create(
                 fixture.Create<Type>(),
@@ -142,14 +137,14 @@
             actual.RaisedAt.Should().Be(domainEvent.RaisedAt);
         }
 
-        [Fact]
+        [TestMethod]
         public void Create_sets_MessageId_correctly()
         {
             IFixture fixture = new Fixture();
             SomeDomainEvent domainEvent = fixture.Create<SomeDomainEvent>();
             fixture.Inject<IDomainEvent>(domainEvent);
             Envelope<IDomainEvent> envelope = fixture.Create<Envelope<IDomainEvent>>();
-            _output.WriteLine($"MessageId: {envelope.MessageId}");
+            TestContext.WriteLine($"MessageId: {envelope.MessageId}");
 
             var actual = PersistentEvent.Create(
                 fixture.Create<Type>(),
@@ -159,7 +154,7 @@
             actual.MessageId.Should().Be(envelope.MessageId);
         }
 
-        [Fact]
+        [TestMethod]
         public void Create_sets_EventJson_correctly()
         {
             IFixture fixture = new Fixture();
@@ -177,14 +172,14 @@
             restored.ShouldBeEquivalentTo(domainEvent);
         }
 
-        [Fact]
+        [TestMethod]
         public void Create_sets_OperationId_correctly()
         {
             IFixture fixture = new Fixture();
             SomeDomainEvent domainEvent = fixture.Create<SomeDomainEvent>();
             fixture.Inject<IDomainEvent>(domainEvent);
             Envelope<IDomainEvent> envelope = fixture.Create<Envelope<IDomainEvent>>();
-            _output.WriteLine($"OperationId: {envelope.OperationId}");
+            TestContext.WriteLine($"OperationId: {envelope.OperationId}");
 
             var actual = PersistentEvent.Create(
                 fixture.Create<Type>(),
@@ -194,14 +189,14 @@
             actual.OperationId.Should().Be(envelope.OperationId);
         }
 
-        [Fact]
+        [TestMethod]
         public void Create_sets_CorrelationId_correctly()
         {
             IFixture fixture = new Fixture();
             SomeDomainEvent domainEvent = fixture.Create<SomeDomainEvent>();
             fixture.Inject<IDomainEvent>(domainEvent);
             Envelope<IDomainEvent> envelope = fixture.Create<Envelope<IDomainEvent>>();
-            _output.WriteLine($"CorrelationId: {envelope.CorrelationId}");
+            TestContext.WriteLine($"CorrelationId: {envelope.CorrelationId}");
 
             var actual = PersistentEvent.Create(
                 fixture.Create<Type>(),
@@ -211,14 +206,14 @@
             actual.CorrelationId.Should().Be(envelope.CorrelationId);
         }
 
-        [Fact]
+        [TestMethod]
         public void Create_sets_Contributor_correctly()
         {
             IFixture fixture = new Fixture();
             SomeDomainEvent domainEvent = fixture.Create<SomeDomainEvent>();
             fixture.Inject<IDomainEvent>(domainEvent);
             Envelope<IDomainEvent> envelope = fixture.Create<Envelope<IDomainEvent>>();
-            _output.WriteLine($"Contributor: {envelope.Contributor}");
+            TestContext.WriteLine($"Contributor: {envelope.Contributor}");
 
             var actual = PersistentEvent.Create(
                 fixture.Create<Type>(),

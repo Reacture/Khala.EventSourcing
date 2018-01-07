@@ -5,17 +5,18 @@
     using AutoFixture;
     using AutoFixture.Idioms;
     using FluentAssertions;
-    using Xunit;
+    using Microsoft.VisualStudio.TestTools.UnitTesting;
 
+    [TestClass]
     public class CorrelationEntity_specs
     {
-        [Fact]
+        [TestMethod]
         public void sut_inherits_AggregateEntity()
         {
             typeof(CorrelationEntity).BaseType.Should().Be(typeof(AggregateEntity));
         }
 
-        [Fact]
+        [TestMethod]
         public void GetRowKey_returns_prefixed_correlation_id()
         {
             var correlationId = Guid.NewGuid();
@@ -23,14 +24,14 @@
             actual.Should().Be($"Correlation-{correlationId:n}");
         }
 
-        [Fact]
+        [TestMethod]
         public void GetRowKey_has_guard_clause()
         {
             MethodInfo mut = typeof(CorrelationEntity).GetMethod("GetRowKey");
             new GuardClauseAssertion(new Fixture()).Verify(mut);
         }
 
-        [Fact]
+        [TestMethod]
         public void Create_returns_CorrelationEntity_instance()
         {
             Type aggregateType = new Fixture().Create<Type>();
@@ -42,14 +43,14 @@
             actual.Should().NotBeNull();
         }
 
-        [Fact]
+        [TestMethod]
         public void Create_has_guard_clauses()
         {
             MethodInfo mut = typeof(CorrelationEntity).GetMethod("Create");
             new GuardClauseAssertion(new Fixture()).Verify(mut);
         }
 
-        [Fact]
+        [TestMethod]
         public void Create_sets_PartitionKey_correctly()
         {
             Type aggregateType = new Fixture().Create<Type>();
@@ -61,7 +62,7 @@
             actual.PartitionKey.Should().Be(AggregateEntity.GetPartitionKey(aggregateType, aggregateId));
         }
 
-        [Fact]
+        [TestMethod]
         public void Create_sets_RowKey_correctly()
         {
             Type aggregateType = new Fixture().Create<Type>();
@@ -73,7 +74,7 @@
             actual.RowKey.Should().Be(CorrelationEntity.GetRowKey(correlationId));
         }
 
-        [Fact]
+        [TestMethod]
         public void Create_sets_CorrelationId_correctly()
         {
             Type aggregateType = new Fixture().Create<Type>();

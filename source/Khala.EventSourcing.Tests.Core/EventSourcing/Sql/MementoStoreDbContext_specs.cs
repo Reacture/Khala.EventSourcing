@@ -3,26 +3,28 @@
     using FluentAssertions;
     using Microsoft.EntityFrameworkCore;
     using Microsoft.EntityFrameworkCore.Metadata;
-    using Xunit;
+    using Microsoft.VisualStudio.TestTools.UnitTesting;
 
+    [TestClass]
     public class MementoStoreDbContext_specs
     {
-        private readonly DbContextOptions _dbContextOptions;
+        private DbContextOptions _dbContextOptions;
 
-        public MementoStoreDbContext_specs()
+        [TestInitialize]
+        public void TestInitialize()
         {
             _dbContextOptions = new DbContextOptionsBuilder()
                 .UseInMemoryDatabase(nameof(MementoStoreDbContext_specs))
                 .Options;
         }
 
-        [Fact]
+        [TestMethod]
         public void sut_inherits_DbContext()
         {
             typeof(MementoStoreDbContext).BaseType.Should().Be(typeof(DbContext));
         }
 
-        [Fact]
+        [TestMethod]
         public void model_has_Memento_entity()
         {
             var sut = new MementoStoreDbContext(_dbContextOptions);
@@ -30,7 +32,7 @@
             actual.Should().NotBeNull();
         }
 
-        [Fact]
+        [TestMethod]
         public void Memento_entity_has_index_with_AggregateId()
         {
             var sut = new MementoStoreDbContext(_dbContextOptions);

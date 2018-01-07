@@ -4,11 +4,12 @@
     using System.ComponentModel.DataAnnotations;
     using System.ComponentModel.DataAnnotations.Schema;
     using FluentAssertions;
-    using Xunit;
+    using Microsoft.VisualStudio.TestTools.UnitTesting;
 
+    [TestClass]
     public class Memento_specs
     {
-        [Fact]
+        [TestMethod]
         public void sut_has_SequenceId_property()
         {
             typeof(Memento)
@@ -17,7 +18,7 @@
                 .Which.SetMethod.IsPrivate.Should().BeTrue();
         }
 
-        [Fact]
+        [TestMethod]
         public void SequenceId_is_decorated_with_Key()
         {
             typeof(Memento)
@@ -26,7 +27,7 @@
                 .BeDecoratedWith<KeyAttribute>();
         }
 
-        [Fact]
+        [TestMethod]
         public void SequenceId_is_decorated_with_DatabaseGenerated()
         {
             typeof(Memento)
@@ -35,19 +36,19 @@
                 .BeDecoratedWith<DatabaseGeneratedAttribute>(a => a.DatabaseGeneratedOption == DatabaseGeneratedOption.Identity);
         }
 
-        [Fact]
+        [TestMethod]
         public void sut_has_AggregateId_property()
         {
             typeof(Memento).Should().HaveProperty<Guid>("AggregateId");
         }
 
-        [Fact]
+        [TestMethod]
         public void sut_has_MementoJson_property()
         {
             typeof(Memento).Should().HaveProperty<string>("MementoJson");
         }
 
-        [Fact]
+        [TestMethod]
         public void MementoJson_is_decorated_with_Required()
         {
             typeof(Memento)
