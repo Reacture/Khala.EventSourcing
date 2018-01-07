@@ -3,17 +3,11 @@
     using System;
     using Khala.Messaging;
 
-    public class PersistentEvent : EventEntity
+    public class PendingEvent : EventEntity
     {
-        public int Version { get; set; }
+        public static string GetRowKey(int version) => $"Pending-{version:D10}";
 
-        public string EventType { get; set; }
-
-        public DateTimeOffset RaisedAt { get; set; }
-
-        public static string GetRowKey(int version) => $"{version:D10}";
-
-        public static PersistentEvent Create(
+        public static PendingEvent Create(
             Type sourceType,
             Envelope<IDomainEvent> envelope,
             IMessageSerializer serializer)
@@ -33,13 +27,10 @@
                 throw new ArgumentNullException(nameof(serializer));
             }
 
-            return new PersistentEvent
+            return new PendingEvent
             {
                 PartitionKey = GetPartitionKey(sourceType, envelope.Message.SourceId),
                 RowKey = GetRowKey(envelope.Message.Version),
-                Version = envelope.Message.Version,
-                EventType = envelope.Message.GetType().FullName,
-                RaisedAt = envelope.Message.RaisedAt,
                 MessageId = envelope.MessageId,
                 EventJson = serializer.Serialize(envelope.Message),
                 OperationId = envelope.OperationId,

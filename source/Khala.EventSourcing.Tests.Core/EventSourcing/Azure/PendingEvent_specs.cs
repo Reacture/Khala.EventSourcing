@@ -10,11 +10,11 @@
     using Xunit;
     using Xunit.Abstractions;
 
-    public class PersistentEvent_specs
+    public class PendingEvent_specs
     {
         private readonly ITestOutputHelper _output;
 
-        public PersistentEvent_specs(ITestOutputHelper output)
+        public PendingEvent_specs(ITestOutputHelper output)
         {
             _output = output;
         }
@@ -29,15 +29,15 @@
         [Fact]
         public void sut_inherits_EventEntity()
         {
-            typeof(PersistentEvent).BaseType.Should().Be(typeof(EventEntity));
+            typeof(PendingEvent).BaseType.Should().Be(typeof(EventEntity));
         }
 
         [Fact]
-        public void GetRowKey_returns_formatted_version()
+        public void GetRowKey_returns_prefixed_formatted_version()
         {
             int version = new Fixture().Create<int>();
-            string actual = PersistentEvent.GetRowKey(version);
-            actual.Should().Be($"{version:D10}");
+            string actual = PendingEvent.GetRowKey(version);
+            actual.Should().Be($"Pending-{version:D10}");
         }
 
         [Fact]
@@ -46,7 +46,7 @@
             IFixture fixture = new Fixture();
             fixture.Register<IDomainEvent>(() => fixture.Create<SomeDomainEvent>());
 
-            var actual = PersistentEvent.Create(
+            var actual = PendingEvent.Create(
                 fixture.Create<Type>(),
                 fixture.Create<Envelope<IDomainEvent>>(),
                 new JsonMessageSerializer());
@@ -57,7 +57,7 @@
         [Fact]
         public void Create_has_guard_clauses()
         {
-            MethodInfo mut = typeof(PersistentEvent).GetMethod("Create");
+            MethodInfo mut = typeof(PendingEvent).GetMethod("Create");
             IFixture builder = new Fixture().Customize(new AutoMoqCustomization());
             new GuardClauseAssertion(builder).Verify(mut);
         }
@@ -71,7 +71,7 @@
             _output.WriteLine($"SourceId: {domainEvent.SourceId}");
             fixture.Inject<IDomainEvent>(domainEvent);
 
-            var actual = PersistentEvent.Create(
+            var actual = PendingEvent.Create(
                 sourceType,
                 fixture.Create<Envelope<IDomainEvent>>(),
                 new JsonMessageSerializer());
@@ -87,59 +87,12 @@
             _output.WriteLine($"Version: {domainEvent.Version}");
             fixture.Inject<IDomainEvent>(domainEvent);
 
-            var actual = PersistentEvent.Create(
+            var actual = PendingEvent.Create(
                 fixture.Create<Type>(),
                 fixture.Create<Envelope<IDomainEvent>>(),
                 new JsonMessageSerializer());
 
-            actual.RowKey.Should().Be(PersistentEvent.GetRowKey(domainEvent.Version));
-        }
-
-        [Fact]
-        public void Create_sets_Version_correctly()
-        {
-            IFixture fixture = new Fixture();
-            SomeDomainEvent domainEvent = fixture.Create<SomeDomainEvent>();
-            _output.WriteLine($"Version: {domainEvent.Version}");
-            fixture.Inject<IDomainEvent>(domainEvent);
-
-            var actual = PersistentEvent.Create(
-                fixture.Create<Type>(),
-                fixture.Create<Envelope<IDomainEvent>>(),
-                new JsonMessageSerializer());
-
-            actual.Version.Should().Be(domainEvent.Version);
-        }
-
-        [Fact]
-        public void Create_sets_EventType_correctly()
-        {
-            IFixture fixture = new Fixture();
-            SomeDomainEvent domainEvent = fixture.Create<SomeDomainEvent>();
-            fixture.Inject<IDomainEvent>(domainEvent);
-
-            var actual = PersistentEvent.Create(
-                fixture.Create<Type>(),
-                fixture.Create<Envelope<IDomainEvent>>(),
-                new JsonMessageSerializer());
-
-            actual.EventType.Should().Be(typeof(SomeDomainEvent).FullName);
-        }
-
-        [Fact]
-        public void Create_sets_RaisedAt_correctly()
-        {
-            IFixture fixture = new Fixture();
-            SomeDomainEvent domainEvent = fixture.Create<SomeDomainEvent>();
-            fixture.Inject<IDomainEvent>(domainEvent);
-            _output.WriteLine($"RaisedAt: {domainEvent.RaisedAt}");
-
-            var actual = PersistentEvent.Create(
-                fixture.Create<Type>(),
-                fixture.Create<Envelope<IDomainEvent>>(),
-                new JsonMessageSerializer());
-
-            actual.RaisedAt.Should().Be(domainEvent.RaisedAt);
+            actual.RowKey.Should().Be(PendingEvent.GetRowKey(domainEvent.Version));
         }
 
         [Fact]
@@ -151,7 +104,7 @@
             Envelope<IDomainEvent> envelope = fixture.Create<Envelope<IDomainEvent>>();
             _output.WriteLine($"MessageId: {envelope.MessageId}");
 
-            var actual = PersistentEvent.Create(
+            var actual = PendingEvent.Create(
                 fixture.Create<Type>(),
                 envelope,
                 new JsonMessageSerializer());
@@ -167,7 +120,7 @@
             fixture.Inject<IDomainEvent>(domainEvent);
             var serializer = new JsonMessageSerializer();
 
-            var actual = PersistentEvent.Create(
+            var actual = PendingEvent.Create(
                 fixture.Create<Type>(),
                 fixture.Create<Envelope<IDomainEvent>>(),
                 serializer);
@@ -186,7 +139,7 @@
             Envelope<IDomainEvent> envelope = fixture.Create<Envelope<IDomainEvent>>();
             _output.WriteLine($"OperationId: {envelope.OperationId}");
 
-            var actual = PersistentEvent.Create(
+            var actual = PendingEvent.Create(
                 fixture.Create<Type>(),
                 envelope,
                 new JsonMessageSerializer());
@@ -203,7 +156,7 @@
             Envelope<IDomainEvent> envelope = fixture.Create<Envelope<IDomainEvent>>();
             _output.WriteLine($"CorrelationId: {envelope.CorrelationId}");
 
-            var actual = PersistentEvent.Create(
+            var actual = PendingEvent.Create(
                 fixture.Create<Type>(),
                 envelope,
                 new JsonMessageSerializer());
@@ -220,7 +173,7 @@
             Envelope<IDomainEvent> envelope = fixture.Create<Envelope<IDomainEvent>>();
             _output.WriteLine($"Contributor: {envelope.Contributor}");
 
-            var actual = PersistentEvent.Create(
+            var actual = PendingEvent.Create(
                 fixture.Create<Type>(),
                 envelope,
                 new JsonMessageSerializer());
