@@ -108,7 +108,7 @@
             var envelopes = new List<Envelope<IDomainEvent>>(
                 from domainEvent in user.FlushPendingEvents()
                 let messageId = Guid.NewGuid()
-                select new Envelope<IDomainEvent>(messageId, domainEvent, default, default, default));
+                select new Envelope<IDomainEvent>(messageId, domainEvent));
 
             var batch = new TableBatchOperation();
             foreach (Envelope<IDomainEvent> envelope in envelopes)
@@ -205,7 +205,7 @@
             var pendingEvents = new List<PendingEvent>(
                 from message in user.FlushPendingEvents()
                 let messageId = Guid.NewGuid()
-                let envelope = new Envelope<IDomainEvent>(messageId, message, default, default, default)
+                let envelope = new Envelope<IDomainEvent>(messageId, message)
                 select PendingEvent.Create(typeof(FakeUser), envelope, s_serializer));
 
             var batch = new TableBatchOperation();
