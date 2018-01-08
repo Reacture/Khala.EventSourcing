@@ -4,7 +4,7 @@
     <TargetFramework>netstandard1.3</TargetFramework>
     <RootNamespace>Khala</RootNamespace>
     <Authors>Gyuwon</Authors>
-    <Version>0.17.0</Version>
+    <Version>0.17.1</Version>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
