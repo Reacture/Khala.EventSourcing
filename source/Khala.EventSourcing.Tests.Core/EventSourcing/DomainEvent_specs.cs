@@ -2,14 +2,14 @@
 {
     using System;
     using System.Reflection;
+    using AutoFixture;
+    using AutoFixture.AutoMoq;
+    using AutoFixture.Idioms;
     using FluentAssertions;
     using Khala.Messaging;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
     using Moq;
     using Newtonsoft.Json;
-    using Ploeh.AutoFixture;
-    using Ploeh.AutoFixture.AutoMoq;
-    using Ploeh.AutoFixture.Idioms;
 
     [TestClass]
     public class DomainEvent_specs
@@ -98,7 +98,8 @@
 
             sut.Raise(versionedEntity);
 
-            sut.RaisedAt.Should().BeCloseTo(DateTimeOffset.Now);
+            sut.RaisedAt.Kind.Should().Be(DateTimeKind.Utc);
+            sut.RaisedAt.Should().BeCloseTo(DateTime.UtcNow);
         }
     }
 }

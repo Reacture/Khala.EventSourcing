@@ -346,6 +346,25 @@
         }
 
         [TestMethod]
+        [DataRow(DateTimeKind.Unspecified)]
+        [DataRow(DateTimeKind.Local)]
+        public void SaveEvents_fails_if_kind_of_event_raised_time_is_not_utc(DateTimeKind dateTimeKind)
+        {
+            var userId = Guid.NewGuid();
+            DomainEvent[] events = new DomainEvent[]
+            {
+                new FakeUserCreated(),
+                new FakeUsernameChanged(),
+            };
+            events.Raise(userId);
+            events.OrderBy(e => e.GetHashCode()).First().RaisedAt = new DateTime(DateTime.Now.Ticks, dateTimeKind);
+
+            Func<Task> action = () => _sut.SaveEvents<FakeUser>(events);
+
+            action.ShouldThrow<ArgumentException>().Where(x => x.ParamName == "events");
+        }
+
+        [TestMethod]
         public async Task LoadEvents_restores_domain_events_correctly()
         {
             // Arrange

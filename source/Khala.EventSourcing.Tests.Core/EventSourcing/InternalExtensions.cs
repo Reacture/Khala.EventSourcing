@@ -14,7 +14,7 @@
             {
                 events[i].SourceId = sourceId;
                 events[i].Version = versionOffset + i + 1;
-                events[i].RaisedAt = DateTimeOffset.Now;
+                events[i].RaisedAt = DateTime.UtcNow;
             }
         }
 
@@ -25,7 +25,7 @@
         {
             domainEvent.SourceId = sourceId;
             domainEvent.Version = versionOffset + 1;
-            domainEvent.RaisedAt = DateTimeOffset.Now;
+            domainEvent.RaisedAt = DateTime.UtcNow;
         }
     }
 }

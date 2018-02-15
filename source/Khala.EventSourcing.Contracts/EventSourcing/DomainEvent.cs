@@ -10,7 +10,7 @@
 
         public int Version { get; set; }
 
-        public DateTimeOffset RaisedAt { get; set; }
+        public DateTime RaisedAt { get; set; }
 
         [JsonIgnore]
         public string PartitionKey => SourceId.ToString();
@@ -24,7 +24,7 @@
 
             SourceId = source.Id;
             Version = source.Version + 1;
-            RaisedAt = DateTimeOffset.Now;
+            RaisedAt = DateTime.UtcNow;
         }
     }
 }

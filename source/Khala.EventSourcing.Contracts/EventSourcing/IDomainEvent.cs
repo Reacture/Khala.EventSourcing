@@ -32,7 +32,7 @@
         /// The time that the domain event is raised at.
         /// </value>
         /// <remarks>This property is set by <see cref="Raise(IVersionedEntity)"/> method.</remarks>
-        DateTimeOffset RaisedAt { get; }
+        DateTime RaisedAt { get; }
 
         /// <summary>
         /// Raises the domain event with the event source.

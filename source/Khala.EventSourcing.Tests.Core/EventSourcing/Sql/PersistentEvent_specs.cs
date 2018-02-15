@@ -94,7 +94,7 @@
         [TestMethod]
         public void sut_has_RaisedAt_property()
         {
-            typeof(PersistentEvent).Should().HaveProperty<DateTimeOffset>("RaisedAt");
+            typeof(PersistentEvent).Should().HaveProperty<DateTime>("RaisedAt");
         }
 
         [TestMethod]
@@ -133,7 +133,7 @@
             {
                 SourceId = Guid.NewGuid();
                 Version = _random.Next();
-                RaisedAt = DateTimeOffset.Now.AddTicks(_random.Next());
+                RaisedAt = DateTime.UtcNow.AddTicks(_random.Next());
             }
 
             public string Content { get; set; } = Guid.NewGuid().ToString();

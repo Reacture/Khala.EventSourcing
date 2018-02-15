@@ -226,12 +226,12 @@
             FakeUserCreated created = _fixture.Create<FakeUserCreated>();
             created.SourceId = _userId;
             created.Version = 1;
-            created.RaisedAt = DateTimeOffset.Now;
+            created.RaisedAt = DateTime.UtcNow;
 
             FakeUsernameChanged usernameChanged = _fixture.Create<FakeUsernameChanged>();
             usernameChanged.SourceId = Guid.NewGuid();
             usernameChanged.Version = 2;
-            usernameChanged.RaisedAt = DateTimeOffset.Now;
+            usernameChanged.RaisedAt = DateTime.UtcNow;
 
             DomainEvent[] events = new DomainEvent[] { created, usernameChanged };
 
@@ -508,7 +508,7 @@
             FakeUserCreated created = _fixture.Create<FakeUserCreated>();
             var correlationId = Guid.NewGuid();
             RaiseEvents(_userId, created);
-            DateTimeOffset now = DateTimeOffset.Now;
+            DateTime now = DateTime.UtcNow;
 
             await _sut.SaveEvents<FakeUser>(new[] { created }, correlationId: correlationId);
 
@@ -615,7 +615,7 @@
             {
                 events[i].SourceId = sourceId;
                 events[i].Version = versionOffset + i + 1;
-                events[i].RaisedAt = DateTimeOffset.Now;
+                events[i].RaisedAt = DateTime.UtcNow;
             }
         }
     }

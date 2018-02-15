@@ -29,7 +29,7 @@
                 {
                     AggregateId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     CorrelationId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    HandledAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
+                    HandledAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                 },
                 constraints: table =>
                 {
@@ -66,7 +66,7 @@
                     EventType = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     MessageId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     OperationId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
-                    RaisedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
+                    RaisedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     Version = table.Column<int>(type: "int", nullable: false),
                 },
                 constraints: table =>

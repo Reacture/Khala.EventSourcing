@@ -119,7 +119,7 @@
             {
                 SourceId = Guid.NewGuid();
                 Version = _random.Next();
-                RaisedAt = DateTimeOffset.Now.AddTicks(_random.Next());
+                RaisedAt = DateTime.UtcNow.AddTicks(_random.Next());
             }
 
             public string Content { get; set; } = Guid.NewGuid().ToString();

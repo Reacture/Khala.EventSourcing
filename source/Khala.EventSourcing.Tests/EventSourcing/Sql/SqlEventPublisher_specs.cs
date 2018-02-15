@@ -183,6 +183,7 @@
             IEnumerable<FakeUserCreated> createdEvents = _fixture
                 .Build<FakeUserCreated>()
                 .With(e => e.Version, 1)
+                .With(e => e.RaisedAt, DateTime.UtcNow)
                 .CreateMany();
             var eventStore = new SqlEventStore(() => new DataContext(), _serializer);
             foreach (FakeUserCreated createdEvent in createdEvents)
@@ -225,6 +226,7 @@
             IEnumerable<FakeUserCreated> createdEvents = _fixture
                 .Build<FakeUserCreated>()
                 .With(e => e.Version, 1)
+                .With(e => e.RaisedAt, DateTime.UtcNow)
                 .CreateMany();
             var eventStore = new SqlEventStore(() => new DataContext(), _serializer);
             foreach (FakeUserCreated createdEvent in createdEvents)
@@ -324,7 +326,7 @@
             {
                 events[i].SourceId = sourceId;
                 events[i].Version = versionOffset + i + 1;
-                events[i].RaisedAt = DateTimeOffset.Now;
+                events[i].RaisedAt = DateTime.UtcNow;
             }
         }
     }

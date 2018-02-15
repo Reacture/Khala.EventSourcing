@@ -40,7 +40,7 @@
         [StringLength(128)]
         public string Contributor { get; set; }
 
-        public DateTimeOffset RaisedAt { get; set; }
+        public DateTime RaisedAt { get; set; }
 
         public static PersistentEvent FromEnvelope(
             Envelope envelope,

@@ -3,12 +3,12 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using AutoFixture;
+    using AutoFixture.AutoMoq;
+    using AutoFixture.Idioms;
     using FluentAssertions;
     using Khala.FakeDomain;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
-    using Ploeh.AutoFixture;
-    using Ploeh.AutoFixture.AutoMoq;
-    using Ploeh.AutoFixture.Idioms;
 
     [TestClass]
     public class EventSourced_specs
@@ -141,7 +141,7 @@
                 {
                     SourceId = sut.Id,
                     Version = 1,
-                    RaisedAt = DateTimeOffset.Now,
+                    RaisedAt = DateTime.UtcNow,
                     Property = Guid.NewGuid(),
                 },
                 null,
@@ -163,7 +163,7 @@
                 {
                     SourceId = Guid.NewGuid(),
                     Version = 1,
-                    RaisedAt = DateTimeOffset.Now,
+                    RaisedAt = DateTime.UtcNow,
                     Property = Guid.NewGuid(),
                 },
             };
@@ -184,14 +184,14 @@
                 {
                     SourceId = sut.Id,
                     Version = 1,
-                    RaisedAt = DateTimeOffset.Now,
+                    RaisedAt = DateTime.UtcNow,
                     Property = Guid.NewGuid(),
                 },
                 new SomeDomainEvent
                 {
                     SourceId = sut.Id,
                     Version = 1,
-                    RaisedAt = DateTimeOffset.Now,
+                    RaisedAt = DateTime.UtcNow,
                     Property = Guid.NewGuid(),
                 },
             };
@@ -211,7 +211,7 @@
                 {
                     SourceId = sut.Id,
                     Version = 1,
-                    RaisedAt = DateTimeOffset.Now,
+                    RaisedAt = DateTime.UtcNow,
                     Property = Guid.NewGuid(),
                 },
             };
@@ -225,7 +225,7 @@
         public void FlushPendingEvents_returns_all_pending_events()
         {
             var fixture = new Fixture();
-            var sut = new FakeUser(Guid.NewGuid(), fixture.Create(nameof(FakeUser.Username)));
+            var sut = new FakeUser(Guid.NewGuid(), fixture.Create<string>());
             var expected = sut.PendingEvents.ToList();
 
             IEnumerable<IDomainEvent> actual = sut.FlushPendingEvents();
@@ -237,7 +237,7 @@
         public void FlushPendingEvents_clears_pending_events()
         {
             var fixture = new Fixture();
-            var sut = new FakeUser(Guid.NewGuid(), fixture.Create(nameof(FakeUser.Username)));
+            var sut = new FakeUser(Guid.NewGuid(), fixture.Create<string>());
 
             sut.FlushPendingEvents();
 

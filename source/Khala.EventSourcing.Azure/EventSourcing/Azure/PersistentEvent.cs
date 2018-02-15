@@ -10,7 +10,7 @@
 
         public string EventType { get; set; }
 
-        public DateTimeOffset RaisedAt { get; set; }
+        public DateTime RaisedAt { get; set; }
 
         public static string GetRowKey(int version) => $"{version:D10}";
 

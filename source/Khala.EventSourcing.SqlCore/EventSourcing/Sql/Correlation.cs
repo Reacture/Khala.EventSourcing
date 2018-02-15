@@ -14,6 +14,6 @@
         [Column(Order = 1)]
         public Guid CorrelationId { get; set; }
 
-        public DateTimeOffset HandledAt { get; set; }
+        public DateTime HandledAt { get; set; }
     }
 }

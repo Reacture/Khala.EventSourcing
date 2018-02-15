@@ -49,24 +49,33 @@
 
             for (int i = 0; i < domainEvents.Count; i++)
             {
-                if (domainEvents[i] == null)
+                IDomainEvent domainEvent = domainEvents[i];
+
+                if (domainEvent == null)
                 {
                     throw new ArgumentException(
                         $"{nameof(events)} cannot contain null.",
                         nameof(events));
                 }
 
-                if (domainEvents[i].Version != firstEvent.Version + i)
+                if (domainEvent.Version != firstEvent.Version + i)
                 {
                     throw new ArgumentException(
                         $"Versions of {nameof(events)} must be sequential.",
                         nameof(events));
                 }
 
-                if (domainEvents[i].SourceId != firstEvent.SourceId)
+                if (domainEvent.SourceId != firstEvent.SourceId)
                 {
                     throw new ArgumentException(
                         $"All events must have the same source id.",
+                        nameof(events));
+                }
+
+                if (domainEvent.RaisedAt.Kind != DateTimeKind.Utc)
+                {
+                    throw new ArgumentException(
+                        $"RaisedAt of all events must be of kind UTC.",
                         nameof(events));
                 }
             }
@@ -227,7 +236,7 @@
             {
                 AggregateId = sourceId,
                 CorrelationId = correlationId.Value,
-                HandledAt = DateTimeOffset.Now,
+                HandledAt = DateTime.UtcNow,
             });
         }
 

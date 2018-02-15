@@ -48,7 +48,7 @@ namespace Khala.FakeDomain.Migrations
 
                     b.Property<Guid>("CorrelationId");
 
-                    b.Property<DateTimeOffset>("HandledAt");
+                    b.Property<DateTime>("HandledAt");
 
                     b.HasKey("AggregateId", "CorrelationId");
 
@@ -99,7 +99,7 @@ namespace Khala.FakeDomain.Migrations
 
                     b.Property<Guid?>("OperationId");
 
-                    b.Property<DateTimeOffset>("RaisedAt");
+                    b.Property<DateTime>("RaisedAt");
 
                     b.Property<int>("Version");
 

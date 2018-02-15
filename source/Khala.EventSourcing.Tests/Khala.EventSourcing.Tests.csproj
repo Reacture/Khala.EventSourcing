@@ -147,9 +147,7 @@
   </Choose>
   <ItemGroup>
     <Compile Include="EventSourcing\AppBuilderExtensions_specs.cs" />
-    <Compile Include="EventSourcing\DomainEvent_specs.cs" />
     <Compile Include="EventSourcing\DuplicateCorrelationException_specs.cs" />
-    <Compile Include="EventSourcing\EventSourced_specs.cs" />
     <Compile Include="EventSourcing\Sql\PendingEvent_specs.cs" />
     <Compile Include="EventSourcing\Sql\PersistentEvent_specs.cs" />
     <Compile Include="EventSourcing\Sql\SqlEventPublisher_specs.cs" />

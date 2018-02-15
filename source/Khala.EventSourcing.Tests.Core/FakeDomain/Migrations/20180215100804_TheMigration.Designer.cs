@@ -11,7 +11,7 @@ using System;
 namespace Khala.FakeDomain.Migrations
 {
     [DbContext(typeof(FakeEventStoreDbContext))]
-    [Migration("20180104053932_TheMigration")]
+    [Migration("20180215100804_TheMigration")]
     partial class TheMigration
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -49,7 +49,7 @@ namespace Khala.FakeDomain.Migrations
 
                     b.Property<Guid>("CorrelationId");
 
-                    b.Property<DateTimeOffset>("HandledAt");
+                    b.Property<DateTime>("HandledAt");
 
                     b.HasKey("AggregateId", "CorrelationId");
 
@@ -100,7 +100,7 @@ namespace Khala.FakeDomain.Migrations
 
                     b.Property<Guid?>("OperationId");
 
-                    b.Property<DateTimeOffset>("RaisedAt");
+                    b.Property<DateTime>("RaisedAt");
 
                     b.Property<int>("Version");
 

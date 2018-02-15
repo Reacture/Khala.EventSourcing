@@ -11,7 +11,7 @@
         {
             SourceId = Guid.NewGuid();
             Version = _random.Next();
-            RaisedAt = DateTimeOffset.Now.AddTicks(_random.Next());
+            RaisedAt = DateTime.UtcNow.AddTicks(_random.Next());
         }
     }
 }

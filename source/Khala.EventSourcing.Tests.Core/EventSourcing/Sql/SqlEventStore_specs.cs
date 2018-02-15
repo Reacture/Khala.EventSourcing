@@ -74,11 +74,7 @@
                 () => context,
                 new JsonMessageSerializer());
 
-            await sut.SaveEvents<FakeUser>(
-                events,
-                correlationId: default,
-                contributor: default,
-                cancellationToken: default);
+            await sut.SaveEvents<FakeUser>(events);
 
             context.CommitCount.Should().Be(1);
         }
@@ -91,11 +87,7 @@
                 () => context,
                 new JsonMessageSerializer());
 
-            await sut.SaveEvents<FakeUser>(
-                Enumerable.Empty<IDomainEvent>(),
-                correlationId: default,
-                contributor: default,
-                cancellationToken: default);
+            await sut.SaveEvents<FakeUser>(Enumerable.Empty<IDomainEvent>());
 
             context.CommitCount.Should().Be(0);
         }
@@ -114,11 +106,7 @@
                 new JsonMessageSerializer());
 
             // Act
-            Func<Task> action = () => sut.SaveEvents<FakeUser>(
-                events,
-                correlationId: default,
-                contributor: default,
-                cancellationToken: default);
+            Func<Task> action = () => sut.SaveEvents<FakeUser>(events);
 
             // Assert
             action.ShouldThrow<ArgumentException>().Where(x => x.ParamName == "events");
@@ -138,11 +126,7 @@
                 new JsonMessageSerializer());
 
             // Act
-            await sut.SaveEvents<FakeUser>(
-                events,
-                correlationId: default,
-                contributor: default,
-                cancellationToken: default);
+            await sut.SaveEvents<FakeUser>(events);
 
             // Assert
             using (var db = new FakeEventStoreDbContext(_dbContextOptions))
@@ -183,11 +167,7 @@
                 new JsonMessageSerializer());
 
             // Act
-            await sut.SaveEvents<FakeUser>(
-                new[] { usernameChanged },
-                correlationId: default,
-                contributor: default,
-                cancellationToken: default);
+            await sut.SaveEvents<FakeUser>(new[] { usernameChanged });
 
             // Assert
             using (var db = new FakeEventStoreDbContext(_dbContextOptions))
@@ -248,11 +228,7 @@
                 new JsonMessageSerializer());
 
             // Act
-            Func<Task> action = () => sut.SaveEvents<FakeUser>(
-                new[] { usernameChanged },
-                correlationId: default,
-                contributor: default,
-                cancellationToken: default);
+            Func<Task> action = () => sut.SaveEvents<FakeUser>(new[] { usernameChanged });
 
             // Assert
             action.ShouldThrow<ArgumentException>().Where(x => x.ParamName == "events");
@@ -267,14 +243,14 @@
             {
                 SourceId = userId,
                 Version = 1,
-                RaisedAt = DateTimeOffset.Now,
+                RaisedAt = DateTime.UtcNow,
             };
 
             var usernameChanged = new FakeUsernameChanged
             {
                 SourceId = Guid.NewGuid(),
                 Version = 2,
-                RaisedAt = DateTimeOffset.Now,
+                RaisedAt = DateTime.UtcNow,
             };
 
             var sut = new SqlEventStore(
@@ -282,11 +258,33 @@
                 new JsonMessageSerializer());
 
             // Act
-            Func<Task> action = () => sut.SaveEvents<FakeUser>(
-                new DomainEvent[] { created, usernameChanged },
-                correlationId: default,
-                contributor: default,
-                cancellationToken: default);
+            Func<Task> action = () => sut.SaveEvents<FakeUser>(new DomainEvent[] { created, usernameChanged });
+
+            // Assert
+            action.ShouldThrow<ArgumentException>().Where(x => x.ParamName == "events");
+        }
+
+        [TestMethod]
+        [DataRow(DateTimeKind.Unspecified)]
+        [DataRow(DateTimeKind.Local)]
+        public void SaveEvents_fails_if_kind_of_event_raised_time_is_not_utc(DateTimeKind dateTimeKind)
+        {
+            // Arrange
+            var userId = Guid.NewGuid();
+            DomainEvent[] events = new DomainEvent[]
+            {
+                new FakeUserCreated(),
+                new FakeUsernameChanged(),
+            };
+            events.Raise(userId);
+            events.OrderBy(e => e.GetHashCode()).First().RaisedAt = new DateTime(DateTime.Now.Ticks, dateTimeKind);
+
+            var sut = new SqlEventStore(
+                () => new FakeEventStoreDbContext(_dbContextOptions),
+                new JsonMessageSerializer());
+
+            // Act
+            Func<Task> action = () => sut.SaveEvents<FakeUser>(events);
 
             // Assert
             action.ShouldThrow<ArgumentException>().Where(x => x.ParamName == "events");
@@ -314,7 +312,7 @@
             string contributor = Guid.NewGuid().ToString();
 
             // Act
-            await sut.SaveEvents<FakeUser>(events, operationId, correlationId, contributor, default);
+            await sut.SaveEvents<FakeUser>(events, operationId, correlationId, contributor);
 
             // Asseert
             using (var db = new FakeEventStoreDbContext(_dbContextOptions))
@@ -366,11 +364,7 @@
                 serializer);
 
             // Act
-            await sut.SaveEvents<FakeUser>(
-                events,
-                correlationId: default,
-                contributor: default,
-                cancellationToken: default);
+            await sut.SaveEvents<FakeUser>(events);
 
             // Asseert
             using (var db = new FakeEventStoreDbContext(_dbContextOptions))
@@ -420,8 +414,7 @@
             await sut.SaveEvents<FakeUser>(
                 events,
                 correlationId: Guid.NewGuid(),
-                contributor: Guid.NewGuid().ToString(),
-                cancellationToken: default);
+                contributor: Guid.NewGuid().ToString());
 
             // Asseert
             using (var db = new FakeEventStoreDbContext(_dbContextOptions))
@@ -460,11 +453,7 @@
                 new JsonMessageSerializer());
 
             // Act
-            await sut.SaveEvents<FakeUser>(
-                new[] { created },
-                correlationId: default,
-                contributor: default,
-                cancellationToken: default);
+            await sut.SaveEvents<FakeUser>(new[] { created });
 
             // Assert
             using (var db = new FakeEventStoreDbContext(_dbContextOptions))
@@ -499,11 +488,7 @@
                 new JsonMessageSerializer());
 
             // Act
-            await sut.SaveEvents<FakeUser>(
-                events,
-                correlationId: default,
-                contributor: default,
-                cancellationToken: default);
+            await sut.SaveEvents<FakeUser>(events);
 
             // Assert
             using (var db = new FakeEventStoreDbContext(_dbContextOptions))
@@ -534,11 +519,7 @@
                 new JsonMessageSerializer());
 
             // Act
-            await sut.SaveEvents<FakeUser>(
-                new DomainEvent[] { created },
-                correlationId: default,
-                contributor: default,
-                cancellationToken: default);
+            await sut.SaveEvents<FakeUser>(new DomainEvent[] { created });
 
             // Assert
             using (var db = new FakeEventStoreDbContext(_dbContextOptions))
@@ -573,11 +554,7 @@
             usernameChanged.Raise(userId, 1);
 
             // Act
-            await sut.SaveEvents<FakeUser>(
-                new[] { usernameChanged },
-                correlationId: default,
-                contributor: default,
-                cancellationToken: default);
+            await sut.SaveEvents<FakeUser>(new[] { usernameChanged });
 
             // Assert
             using (var db = new FakeEventStoreDbContext(_dbContextOptions))
@@ -613,11 +590,7 @@
             var toshId = Guid.NewGuid();
             var toshCreated = new FakeUserCreated { Username = duplicateUserName };
             toshCreated.Raise(toshId);
-            Func<Task> action = () => sut.SaveEvents<FakeUser>(
-                new[] { toshCreated },
-                correlationId: default,
-                contributor: default,
-                cancellationToken: default);
+            Func<Task> action = () => sut.SaveEvents<FakeUser>(new[] { toshCreated });
 
             // Assert
             action.ShouldThrow<Exception>();
@@ -640,7 +613,7 @@
             var created = new FakeUserCreated();
             var correlationId = Guid.NewGuid();
             created.Raise(userId);
-            DateTimeOffset now = DateTimeOffset.Now;
+            DateTime now = DateTime.UtcNow;
 
             var sut = new SqlEventStore(
                 () => new FakeEventStoreDbContext(_dbContextOptions),
@@ -710,11 +683,7 @@
                 new JsonMessageSerializer());
 
             // Act
-            Func<Task> action = () => sut.SaveEvents<FakeUser>(
-                new[] { created },
-                correlationId: default,
-                contributor: default,
-                cancellationToken: default);
+            Func<Task> action = () => sut.SaveEvents<FakeUser>(new[] { created });
 
             // Assert
             action.ShouldThrow<InvalidOperationException>();
@@ -736,11 +705,7 @@
                 new JsonMessageSerializer());
 
             // Act
-            Func<Task> action = () => sut.SaveEvents<FakeUser>(
-                new[] { created },
-                correlationId: default,
-                contributor: default,
-                cancellationToken: default);
+            Func<Task> action = () => sut.SaveEvents<FakeUser>(new[] { created });
 
             // Assert
             action.ShouldNotThrow();
