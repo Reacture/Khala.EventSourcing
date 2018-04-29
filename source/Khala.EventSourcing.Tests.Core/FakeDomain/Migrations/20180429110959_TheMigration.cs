@@ -46,7 +46,7 @@
                     CorrelationId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
                     EventJson = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     MessageId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    OperationId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
+                    OperationId = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
                 },
                 constraints: table =>
                 {
@@ -65,7 +65,7 @@
                     EventJson = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     EventType = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     MessageId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    OperationId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
+                    OperationId = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
                     RaisedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     Version = table.Column<int>(type: "int", nullable: false),
                 },

@@ -70,7 +70,8 @@ namespace Khala.FakeDomain.Migrations
 
                     b.Property<Guid>("MessageId");
 
-                    b.Property<Guid?>("OperationId");
+                    b.Property<string>("OperationId")
+                        .HasMaxLength(100);
 
                     b.HasKey("AggregateId", "Version");
 
@@ -97,7 +98,8 @@ namespace Khala.FakeDomain.Migrations
 
                     b.Property<Guid>("MessageId");
 
-                    b.Property<Guid?>("OperationId");
+                    b.Property<string>("OperationId")
+                        .HasMaxLength(100);
 
                     b.Property<DateTime>("RaisedAt");
 

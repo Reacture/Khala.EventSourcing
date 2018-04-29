@@ -62,9 +62,9 @@
         {
             // Arrange
             FakeUser user = _fixture.Create<FakeUser>();
-            var operationId = Guid.NewGuid();
+            string operationId = _fixture.Create<string>();
             var correlationId = Guid.NewGuid();
-            string contributor = Guid.NewGuid().ToString();
+            string contributor = _fixture.Create<string>();
             CancellationToken cancellationToken = new CancellationTokenSource().Token;
             user.ChangeUsername("foo");
             var pendingEvents = new List<IDomainEvent>(user.PendingEvents);
@@ -88,9 +88,9 @@
         public async Task SaveAndPublish_publishes_events()
         {
             FakeUser user = _fixture.Create<FakeUser>();
-            var operationId = Guid.NewGuid();
+            string operationId = _fixture.Create<string>();
             var correlationId = Guid.NewGuid();
-            string contributor = Guid.NewGuid().ToString();
+            string contributor = _fixture.Create<string>();
             user.ChangeUsername("foo");
 
             await _sut.SaveAndPublish(user, operationId, correlationId, contributor);
@@ -108,16 +108,16 @@
         {
             // Arrange
             FakeUser user = _fixture.Create<FakeUser>();
-            var operationId = Guid.NewGuid();
+            string operationId = _fixture.Create<string>();
             var correlationId = Guid.NewGuid();
-            string contributor = Guid.NewGuid().ToString();
+            string contributor = _fixture.Create<string>();
             user.ChangeUsername("foo");
             Mock.Get(_eventStore)
                 .Setup(
                     x =>
                     x.SaveEvents<FakeUser>(
                         It.IsAny<IEnumerable<IDomainEvent>>(),
-                        It.IsAny<Guid?>(),
+                        It.IsAny<string>(),
                         It.IsAny<Guid?>(),
                         It.IsAny<string>(),
                         CancellationToken.None))
@@ -140,9 +140,9 @@
         public async Task SaveAndPublish_saves_memento()
         {
             FakeUser user = _fixture.Create<FakeUser>();
-            var operationId = Guid.NewGuid();
+            string operationId = _fixture.Create<string>();
             var correlationId = Guid.NewGuid();
-            string contributor = Guid.NewGuid().ToString();
+            string contributor = _fixture.Create<string>();
             user.ChangeUsername("foo");
 
             await _sut.SaveAndPublish(user, operationId, correlationId, contributor);
@@ -164,16 +164,16 @@
         {
             // Arrange
             FakeUser user = _fixture.Create<FakeUser>();
-            var operationId = Guid.NewGuid();
+            string operationId = _fixture.Create<string>();
             var correlationId = Guid.NewGuid();
-            string contributor = Guid.NewGuid().ToString();
+            string contributor = _fixture.Create<string>();
             user.ChangeUsername("foo");
             Mock.Get(_eventStore)
                 .Setup(
                     x =>
                     x.SaveEvents<FakeUser>(
                         It.IsAny<IEnumerable<IDomainEvent>>(),
-                        It.IsAny<Guid?>(),
+                        It.IsAny<string>(),
                         It.IsAny<Guid?>(),
                         It.IsAny<string>(),
                         CancellationToken.None))

@@ -78,7 +78,7 @@
         [TestMethod]
         public async Task SaveEvents_commits_once()
         {
-            DomainEvent[] events = new DomainEvent[]
+            var events = new DomainEvent[]
             {
                 _fixture.Create<FakeUserCreated>(),
                 _fixture.Create<FakeUsernameChanged>(),
@@ -111,7 +111,7 @@
         public void SaveEvents_fails_if_events_contains_null()
         {
             FakeUserCreated created = _fixture.Create<FakeUserCreated>();
-            DomainEvent[] events = new DomainEvent[] { created, null };
+            var events = new DomainEvent[] { created, null };
             RaiseEvents(_userId, created);
 
             Func<Task> action = () => _sut.SaveEvents<FakeUser>(events);
@@ -124,7 +124,7 @@
         public async Task SaveEvents_inserts_Aggregate_correctly_for_new_aggregate_id()
         {
             FakeUserCreated created = _fixture.Create<FakeUserCreated>();
-            DomainEvent[] events = new DomainEvent[] { created };
+            var events = new DomainEvent[] { created };
             RaiseEvents(_userId, events);
 
             await _sut.SaveEvents<FakeUser>(events);
@@ -158,7 +158,7 @@
             }
 
             FakeUsernameChanged usernameChanged = _fixture.Create<FakeUsernameChanged>();
-            DomainEvent[] events = new DomainEvent[] { usernameChanged };
+            var events = new DomainEvent[] { usernameChanged };
             RaiseEvents(_userId, 1, usernameChanged);
 
             // Act
@@ -178,7 +178,7 @@
         [TestMethod]
         public void SaveEvents_fails_if_versions_not_sequential()
         {
-            DomainEvent[] events = new DomainEvent[]
+            var events = new DomainEvent[]
             {
                 new FakeUserCreated { Version = 0 },
                 new FakeUsernameChanged { Version = 1 },
@@ -208,7 +208,7 @@
             }
 
             FakeUsernameChanged usernameChanged = _fixture.Create<FakeUsernameChanged>();
-            DomainEvent[] events = new DomainEvent[] { usernameChanged };
+            var events = new DomainEvent[] { usernameChanged };
             RaiseEvents(_userId, 2, usernameChanged);
 
             // Act
@@ -233,7 +233,7 @@
             usernameChanged.Version = 2;
             usernameChanged.RaisedAt = DateTime.UtcNow;
 
-            DomainEvent[] events = new DomainEvent[] { created, usernameChanged };
+            var events = new DomainEvent[] { created, usernameChanged };
 
             // Act
             Func<Task> action = () => _sut.SaveEvents<FakeUser>(events);
@@ -249,9 +249,9 @@
             // Arrange
             FakeUserCreated created = _fixture.Create<FakeUserCreated>();
             FakeUsernameChanged usernameChanged = _fixture.Create<FakeUsernameChanged>();
-            DomainEvent[] events = new DomainEvent[] { created, usernameChanged };
+            var events = new DomainEvent[] { created, usernameChanged };
             RaiseEvents(_userId, events);
-            var operationId = Guid.NewGuid();
+            string operationId = _fixture.Create<string>();
             var correlationId = Guid.NewGuid();
             string contributor = _fixture.Create<string>();
 
@@ -297,9 +297,9 @@
             // Arrange
             FakeUserCreated created = _fixture.Create<FakeUserCreated>();
             FakeUsernameChanged usernameChanged = _fixture.Create<FakeUsernameChanged>();
-            DomainEvent[] events = new DomainEvent[] { created, usernameChanged };
+            var events = new DomainEvent[] { created, usernameChanged };
             RaiseEvents(_userId, events);
-            var operationId = Guid.NewGuid();
+            string operationId = _fixture.Create<string>();
             var correlationId = Guid.NewGuid();
             string contributor = _fixture.Create<string>();
 
@@ -345,7 +345,7 @@
         public async Task SaveEvents_inserts_UniqueIndexedProperty_for_new_property()
         {
             FakeUserCreated created = _fixture.Create<FakeUserCreated>();
-            DomainEvent[] events = new DomainEvent[] { created };
+            var events = new DomainEvent[] { created };
             RaiseEvents(_userId, events);
 
             await _sut.SaveEvents<FakeUser>(events);
@@ -371,7 +371,7 @@
         {
             FakeUserCreated created = _fixture.Create<FakeUserCreated>();
             FakeUsernameChanged usernameChanged = _fixture.Create<FakeUsernameChanged>();
-            DomainEvent[] events = new DomainEvent[] { created, usernameChanged };
+            var events = new DomainEvent[] { created, usernameChanged };
             RaiseEvents(_userId, events);
 
             await _sut.SaveEvents<FakeUser>(events);
@@ -394,7 +394,7 @@
         public async Task SaveEvents_does_not_insert_UniqueIndexedProperty_if_property_value_is_null()
         {
             var created = new FakeUserCreated { Username = null };
-            DomainEvent[] events = new DomainEvent[] { created };
+            var events = new DomainEvent[] { created };
             RaiseEvents(_userId, events);
 
             await _sut.SaveEvents<FakeUser>(events);
@@ -552,7 +552,7 @@
             // Arrange
             FakeUserCreated created = _fixture.Create<FakeUserCreated>();
             FakeUsernameChanged usernameChanged = _fixture.Create<FakeUsernameChanged>();
-            DomainEvent[] events = new DomainEvent[] { created, usernameChanged };
+            var events = new DomainEvent[] { created, usernameChanged };
             RaiseEvents(_userId, events);
             await _sut.SaveEvents<FakeUser>(events);
 
@@ -569,7 +569,7 @@
             // Arrange
             FakeUserCreated created = _fixture.Create<FakeUserCreated>();
             FakeUsernameChanged usernameChanged = _fixture.Create<FakeUsernameChanged>();
-            DomainEvent[] events = new DomainEvent[] { created, usernameChanged };
+            var events = new DomainEvent[] { created, usernameChanged };
             RaiseEvents(_userId, events);
             await _sut.SaveEvents<FakeUser>(events);
 

@@ -73,7 +73,7 @@
         public void FromEnvelope_sets_OperationId_correctly()
         {
             FakeUserCreated domainEvent = _fixture.Create<FakeUserCreated>();
-            var operationId = Guid.NewGuid();
+            string operationId = $"{Guid.NewGuid()}";
             var envelope = new Envelope(Guid.NewGuid(), domainEvent, operationId);
             var actual = PendingEvent.FromEnvelope(envelope, _serializer);
             actual.OperationId.Should().Be(operationId);

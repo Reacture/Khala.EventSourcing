@@ -78,7 +78,7 @@
             var user = new FakeUser(Guid.NewGuid(), fixture.Create<string>());
             user.ChangeUsername(fixture.Create<string>());
             IList<IDomainEvent> domainEvents = user.FlushPendingEvents().ToList();
-            var operationId = Guid.NewGuid();
+            string operationId = fixture.Create<string>();
             var correlationId = Guid.NewGuid();
             string contributor = fixture.Create<string>();
 
@@ -113,7 +113,7 @@
             var user = new FakeUser(Guid.NewGuid(), fixture.Create<string>());
             user.ChangeUsername(fixture.Create<string>());
             IList<IDomainEvent> domainEvents = user.FlushPendingEvents().ToList();
-            var operationId = Guid.NewGuid();
+            string operationId = fixture.Create<string>();
             var correlationId = Guid.NewGuid();
             string contributor = fixture.Create<string>();
 
@@ -201,7 +201,7 @@
         [TestMethod]
         public void SaveEvents_does_not_fail_even_if_events_empty()
         {
-            DomainEvent[] events = new DomainEvent[] { };
+            var events = new DomainEvent[] { };
             Func<Task> action = () => _sut.SaveEvents<FakeUser>(events);
             action.ShouldNotThrow();
         }
@@ -213,7 +213,7 @@
             var fixture = new Fixture();
             var user = new FakeUser(Guid.NewGuid(), fixture.Create<string>());
             IList<IDomainEvent> domainEvents = user.FlushPendingEvents().ToList();
-            var operationId = Guid.NewGuid();
+            string operationId = fixture.Create<string>();
             var correlationId = Guid.NewGuid();
             string contributor = fixture.Create<string>();
 
@@ -314,7 +314,7 @@
         public void SaveEvents_fails_if_versions_not_sequential()
         {
             // Arrange
-            DomainEvent[] events = new DomainEvent[]
+            var events = new DomainEvent[]
             {
                 new FakeUserCreated { Version = 1 },
                 new FakeUsernameChanged { Version = 2 },
@@ -332,7 +332,7 @@
         public void SaveEvents_fails_if_events_not_have_same_source_id()
         {
             // Arrange
-            DomainEvent[] events = new DomainEvent[]
+            var events = new DomainEvent[]
             {
                 new FakeUserCreated { Version = 1 },
                 new FakeUsernameChanged { Version = 2 },
@@ -351,7 +351,7 @@
         public void SaveEvents_fails_if_kind_of_event_raised_time_is_not_utc(DateTimeKind dateTimeKind)
         {
             var userId = Guid.NewGuid();
-            DomainEvent[] events = new DomainEvent[]
+            var events = new DomainEvent[]
             {
                 new FakeUserCreated(),
                 new FakeUsernameChanged(),

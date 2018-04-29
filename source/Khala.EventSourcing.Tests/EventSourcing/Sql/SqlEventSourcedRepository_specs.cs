@@ -54,7 +54,7 @@
         public async Task SaveAndPublish_saves_events()
         {
             FakeUser user = _fixture.Create<FakeUser>();
-            var operationId = Guid.NewGuid();
+            string operationId = _fixture.Create<string>();
             var correlationId = Guid.NewGuid();
             string contributor = Guid.NewGuid().ToString();
             user.ChangeUsername(_fixture.Create("username"));
@@ -77,7 +77,7 @@
         public async Task SaveAndPublish_publishes_events()
         {
             FakeUser user = _fixture.Create<FakeUser>();
-            var operationId = Guid.NewGuid();
+            string operationId = _fixture.Create<string>();
             var correlationId = Guid.NewGuid();
             string contributor = Guid.NewGuid().ToString();
             user.ChangeUsername(_fixture.Create("username"));
@@ -94,9 +94,9 @@
         public void SaveAndPublish_does_not_publish_events_if_fails_to_save_events()
         {
             FakeUser user = _fixture.Create<FakeUser>();
-            var operationId = Guid.NewGuid();
+            string operationId = _fixture.Create<string>();
             var correlationId = Guid.NewGuid();
-            string contributor = Guid.NewGuid().ToString();
+            string contributor = _fixture.Create<string>();
             user.ChangeUsername(_fixture.Create("username"));
             Mock.Get(_eventStore)
                 .Setup(
@@ -122,9 +122,9 @@
         public async Task SaveAndPublish_saves_memento()
         {
             FakeUser user = _fixture.Create<FakeUser>();
-            var operationId = Guid.NewGuid();
+            string operationId = _fixture.Create<string>();
             var correlationId = Guid.NewGuid();
-            string contributor = Guid.NewGuid().ToString();
+            string contributor = _fixture.Create<string>();
 
             await _sut.SaveAndPublish(user, operationId, correlationId, contributor);
 
@@ -145,9 +145,9 @@
         {
             // Arrange
             FakeUser user = _fixture.Create<FakeUser>();
-            var operationId = Guid.NewGuid();
+            string operationId = _fixture.Create<string>();
             var correlationId = Guid.NewGuid();
-            string contributor = Guid.NewGuid().ToString();
+            string contributor = _fixture.Create<string>();
             Mock.Get(_eventStore)
                 .Setup(
                     x =>

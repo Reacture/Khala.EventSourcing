@@ -82,11 +82,11 @@
             FakeUserCreated created = _fixture.Create<FakeUserCreated>();
             FakeUsernameChanged usernameChanged = _fixture.Create<FakeUsernameChanged>();
             var sourceId = Guid.NewGuid();
-            var operationId = Guid.NewGuid();
+            string operationId = _fixture.Create<string>();
             var correlationId = Guid.NewGuid();
             string contributor = _fixture.Create<string>();
 
-            DomainEvent[] domainEvents = new DomainEvent[] { created, usernameChanged };
+            var domainEvents = new DomainEvent[] { created, usernameChanged };
             RaiseEvents(sourceId, domainEvents);
 
             var envelopes = new List<Envelope>();
@@ -148,7 +148,7 @@
             FakeUsernameChanged usernameChanged = _fixture.Create<FakeUsernameChanged>();
             var sourceId = Guid.NewGuid();
 
-            DomainEvent[] events = new DomainEvent[] { created, usernameChanged };
+            var events = new DomainEvent[] { created, usernameChanged };
             RaiseEvents(sourceId, events);
 
             using (var db = new DataContext())

@@ -30,7 +30,7 @@
         {
             // Arrange
             var user = new FakeUser(id: Guid.NewGuid(), username: Guid.NewGuid().ToString());
-            var operationId = Guid.NewGuid();
+            string operationId = Guid.NewGuid().ToString();
             var correlationId = Guid.NewGuid();
             string contributor = Guid.NewGuid().ToString();
             user.ChangeUsername(username: Guid.NewGuid().ToString());
@@ -58,7 +58,7 @@
         {
             // Arrange
             var user = new FakeUser(id: Guid.NewGuid(), username: Guid.NewGuid().ToString());
-            var operationId = Guid.NewGuid();
+            string operationId = Guid.NewGuid().ToString();
             var correlationId = Guid.NewGuid();
             string contributor = Guid.NewGuid().ToString();
             user.ChangeUsername(username: Guid.NewGuid().ToString());
@@ -85,7 +85,7 @@
         {
             // Arrange
             var user = new FakeUser(id: Guid.NewGuid(), username: Guid.NewGuid().ToString());
-            var operationId = Guid.NewGuid();
+            string operationId = Guid.NewGuid().ToString();
             var correlationId = Guid.NewGuid();
             string contributor = Guid.NewGuid().ToString();
             user.ChangeUsername(username: Guid.NewGuid().ToString());
@@ -125,7 +125,7 @@
         {
             // Arrange
             var user = new FakeUser(id: Guid.NewGuid(), username: Guid.NewGuid().ToString());
-            var operationId = Guid.NewGuid();
+            string operationId = Guid.NewGuid().ToString();
             var correlationId = Guid.NewGuid();
             string contributor = Guid.NewGuid().ToString();
 
@@ -159,7 +159,7 @@
         {
             // Arrange
             var user = new FakeUser(id: Guid.NewGuid(), username: Guid.NewGuid().ToString());
-            var operationId = Guid.NewGuid();
+            string operationId = Guid.NewGuid().ToString();
             var correlationId = Guid.NewGuid();
             string contributor = Guid.NewGuid().ToString();
 

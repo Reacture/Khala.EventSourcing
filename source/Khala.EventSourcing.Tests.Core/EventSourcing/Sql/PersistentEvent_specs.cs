@@ -71,6 +71,21 @@
         }
 
         [TestMethod]
+        public void sut_has_OperationId_property()
+        {
+            typeof(PersistentEvent).Should().HaveProperty<string>("OperationId");
+        }
+
+        [TestMethod]
+        public void OperationId_is_decorated_with_StringLength()
+        {
+            typeof(PersistentEvent)
+                .GetProperty("OperationId")
+                .Should()
+                .BeDecoratedWith<StringLengthAttribute>(a => a.MaximumLength == 100);
+        }
+
+        [TestMethod]
         public void sut_has_CorrelationId_property()
         {
             typeof(PersistentEvent).Should().HaveProperty<Guid?>("CorrelationId");

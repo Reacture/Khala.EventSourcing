@@ -30,7 +30,7 @@
         /// <returns>A task representing the asynchronous operation.</returns>
         Task SaveAndPublish(
             T source,
-            Guid? operationId = default,
+            string operationId = default,
             Guid? correlationId = default,
             string contributor = default,
             CancellationToken cancellationToken = default);

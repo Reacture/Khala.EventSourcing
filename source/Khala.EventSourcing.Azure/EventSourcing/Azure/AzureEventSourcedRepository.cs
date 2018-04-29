@@ -41,7 +41,7 @@
 
         public Task SaveAndPublish(
             T source,
-            Guid? operationId = default,
+            string operationId = default,
             Guid? correlationId = default,
             string contributor = default,
             CancellationToken cancellationToken = default)
@@ -56,7 +56,7 @@
 
         private async Task RunSaveAndPublish(
             T source,
-            Guid? operationId,
+            string operationId,
             Guid? correlationId,
             string contributor,
             CancellationToken cancellationToken)
@@ -68,7 +68,7 @@
 
         private Task SaveEvents(
             T source,
-            Guid? operationId,
+            string operationId,
             Guid? correlationId,
             string contributor,
             CancellationToken cancellationToken)

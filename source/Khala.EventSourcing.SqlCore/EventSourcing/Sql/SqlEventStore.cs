@@ -32,7 +32,7 @@
 
         public Task SaveEvents<T>(
             IEnumerable<IDomainEvent> events,
-            Guid? operationId = default,
+            string operationId = default,
             Guid? correlationId = default,
             string contributor = default,
             CancellationToken cancellationToken = default)
@@ -86,7 +86,7 @@
         private async Task Save<T>(
             Guid sourceId,
             List<IDomainEvent> events,
-            Guid? operationId,
+            string operationId,
             Guid? correlationId,
             string contributor,
             CancellationToken cancellationToken)
@@ -142,7 +142,7 @@
         private void InsertEvents(
             EventStoreDbContext context,
             List<IDomainEvent> events,
-            Guid? operationId,
+            string operationId,
             Guid? correlationId,
             string contributor)
         {
@@ -155,7 +155,7 @@
         private void InsertEvent(
             EventStoreDbContext context,
             IDomainEvent domainEvent,
-            Guid? operationId,
+            string operationId,
             Guid? correlationId,
             string contributor)
         {

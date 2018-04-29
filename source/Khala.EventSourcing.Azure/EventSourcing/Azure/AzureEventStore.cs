@@ -22,7 +22,7 @@
 
         public Task SaveEvents<T>(
             IEnumerable<IDomainEvent> events,
-            Guid? operationId = default,
+            string operationId = default,
             Guid? correlationId = default,
             string contributor = default,
             CancellationToken cancellationToken = default)
@@ -80,7 +80,7 @@
 
         private async Task Save<T>(
             List<IDomainEvent> domainEvents,
-            Guid? operationId,
+            string operationId,
             Guid? correlationId,
             string contributor,
             CancellationToken cancellationToken)

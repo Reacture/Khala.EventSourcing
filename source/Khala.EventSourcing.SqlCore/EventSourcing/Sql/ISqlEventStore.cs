@@ -23,7 +23,7 @@
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1004:GenericMethodsShouldProvideTypeParameter", Justification = "As designed.")]
         Task SaveEvents<T>(
             IEnumerable<IDomainEvent> events,
-            Guid? operationId = default,
+            string operationId = default,
             Guid? correlationId = default,
             string contributor = default,
             CancellationToken cancellationToken = default)

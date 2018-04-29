@@ -98,7 +98,7 @@
         public void FromEnvelope_sets_OperationId_correctly()
         {
             FakeDomainEvent domainEvent = _fixture.Create<FakeDomainEvent>();
-            var operationId = Guid.NewGuid();
+            string operationId = _fixture.Create<string>();
             var envelope = new Envelope(Guid.NewGuid(), domainEvent, operationId);
             var actual = PersistentEvent.FromEnvelope(
                 envelope, new JsonMessageSerializer());

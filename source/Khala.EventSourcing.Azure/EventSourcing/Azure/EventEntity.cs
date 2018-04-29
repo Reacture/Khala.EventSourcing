@@ -8,7 +8,7 @@
 
         public string EventJson { get; set; }
 
-        public Guid? OperationId { get; set; }
+        public string OperationId { get; set; }
 
         public Guid? CorrelationId { get; set; }
 

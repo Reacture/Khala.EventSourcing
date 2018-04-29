@@ -71,7 +71,7 @@
             var user = new FakeUser(Guid.NewGuid(), fixture.Create<string>());
             user.ChangeUsername(fixture.Create<string>());
 
-            var operationId = Guid.NewGuid();
+            string operationId = fixture.Create<string>();
             var correlationId = Guid.NewGuid();
             string contributor = fixture.Create<string>();
 
@@ -142,7 +142,7 @@
             var user = new FakeUser(Guid.NewGuid(), fixture.Create<string>());
             user.ChangeUsername(fixture.Create<string>());
 
-            var operationId = Guid.NewGuid();
+            string operationId = fixture.Create<string>();
             var correlationId = Guid.NewGuid();
             string contributor = fixture.Create<string>();
 
@@ -251,7 +251,7 @@
                 var user = new FakeUser(userId, fixture.Create<string>());
                 user.ChangeUsername(fixture.Create<string>());
 
-                var operationId = Guid.NewGuid();
+                string operationId = fixture.Create<string>();
                 var correlationId = Guid.NewGuid();
                 string contributor = fixture.Create<string>();
 
