@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
   <metadata>
     <id>Khala.EventSourcing.Contracts</id>
-    <version>0.20.0</version>
+    <version>0.21.0</version>
     <title>Khala.EventSourcing.Contracts</title>
     <authors>Gyuwon</authors>
     <owners>Gyuwon</owners>
@@ -15,7 +15,7 @@
     <tags>Khala CQRS EventSourcing Reactive</tags>
     <dependencies>
       <group targetFramework="netstandard1.3">
-        <dependency id="Khala.Messaging.Contracts" version="0.18.2" exclude="build,analyzers" />
+        <dependency id="Khala.Messaging.Contracts" version="0.19.0" exclude="build,analyzers" />
         <dependency id="Newtonsoft.Json" version="10.0.2" exclude="build,analyzers" />
         <dependency id="NETStandard.Library" version="1.6.1" exclude="build,analyzers" />
       </group>
