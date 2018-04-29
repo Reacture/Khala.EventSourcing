@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
   <metadata>
     <id>Khala.EventSourcing.Abstraction</id>
-    <version>0.21.0</version>
+    <version>0.21.1</version>
     <title>Khala.EventSourcing.Abstraction</title>
     <authors>Gyuwon</authors>
     <owners>Gyuwon</owners>
@@ -15,7 +15,7 @@
     <tags>Khala CQRS EventSourcing Reactive</tags>
     <dependencies>
       <group targetFramework="netstandard1.3">
-        <dependency id="Khala.EventSourcing.Contracts" version="0.21.0" exclude="build,analyzers" />
+        <dependency id="Khala.EventSourcing.Contracts" version="0.21.1" exclude="build,analyzers" />
         <dependency id="NETStandard.Library" version="1.6.1" exclude="build,analyzers" />
       </group>
     </dependencies>
