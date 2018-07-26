@@ -13,7 +13,7 @@
         public DateTime RaisedAt { get; set; }
 
         [JsonIgnore]
-        public string PartitionKey => SourceId.ToString();
+        public virtual string PartitionKey => SourceId.ToString();
 
         public void Raise(IVersionedEntity source)
         {
