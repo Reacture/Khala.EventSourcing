@@ -101,5 +101,13 @@
             sut.RaisedAt.Kind.Should().Be(DateTimeKind.Utc);
             sut.RaisedAt.Should().BeCloseTo(DateTime.UtcNow);
         }
+
+        [TestMethod]
+        public void PartitionKey_is_virtual()
+        {
+            PropertyInfo property = typeof(DomainEvent).GetProperty("PartitionKey");
+            bool isVirtual = property.GetGetMethod().IsVirtual;
+            isVirtual.Should().BeTrue();
+        }
     }
 }
