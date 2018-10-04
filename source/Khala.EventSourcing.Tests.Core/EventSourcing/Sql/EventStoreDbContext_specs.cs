@@ -126,6 +126,7 @@
             IEntityType sut = context.Model.FindEntityType(typeof(UniqueIndexedProperty));
             IIndex actual = sut.FindIndex(new[]
             {
+                sut.FindProperty("AggregateType"),
                 sut.FindProperty("AggregateId"),
                 sut.FindProperty("PropertyName"),
             });

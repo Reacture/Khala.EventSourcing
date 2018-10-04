@@ -51,9 +51,24 @@
                     x.Version,
                 });
 
-            modelBuilder.Entity<UniqueIndexedProperty>().HasKey(nameof(UniqueIndexedProperty.AggregateType), nameof(UniqueIndexedProperty.PropertyName), nameof(UniqueIndexedProperty.PropertyValue));
+            modelBuilder
+                .Entity<UniqueIndexedProperty>()
+                .HasKey(x => new
+                {
+                    x.AggregateType,
+                    x.PropertyName,
+                    x.PropertyValue,
+                });
 
-            modelBuilder.Entity<UniqueIndexedProperty>().HasIndex(nameof(UniqueIndexedProperty.AggregateId), nameof(UniqueIndexedProperty.PropertyName)).IsUnique();
+            modelBuilder
+                .Entity<UniqueIndexedProperty>()
+                .HasIndex(x => new
+                {
+                    x.AggregateType,
+                    x.AggregateId,
+                    x.PropertyName,
+                })
+                .IsUnique();
 
             modelBuilder.Entity<Correlation>().HasKey(nameof(Correlation.AggregateId), nameof(Correlation.CorrelationId));
         }

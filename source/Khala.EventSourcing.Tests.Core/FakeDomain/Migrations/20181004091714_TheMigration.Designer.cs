@@ -11,7 +11,7 @@ using System;
 namespace Khala.FakeDomain.Migrations
 {
     [DbContext(typeof(FakeEventStoreDbContext))]
-    [Migration("20181004083155_TheMigration")]
+    [Migration("20181004091714_TheMigration")]
     partial class TheMigration
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -139,7 +139,7 @@ namespace Khala.FakeDomain.Migrations
 
                     b.HasKey("AggregateType", "PropertyName", "PropertyValue");
 
-                    b.HasIndex("AggregateId", "PropertyName")
+                    b.HasIndex("AggregateType", "AggregateId", "PropertyName")
                         .IsUnique();
 
                     b.ToTable("UniqueIndexedProperties");

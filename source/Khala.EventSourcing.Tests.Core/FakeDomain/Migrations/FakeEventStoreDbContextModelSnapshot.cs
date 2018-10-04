@@ -138,7 +138,7 @@ namespace Khala.FakeDomain.Migrations
 
                     b.HasKey("AggregateType", "PropertyName", "PropertyValue");
 
-                    b.HasIndex("AggregateId", "PropertyName")
+                    b.HasIndex("AggregateType", "AggregateId", "PropertyName")
                         .IsUnique();
 
                     b.ToTable("UniqueIndexedProperties");

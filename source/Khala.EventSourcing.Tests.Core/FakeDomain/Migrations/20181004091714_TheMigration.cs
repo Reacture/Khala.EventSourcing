@@ -104,9 +104,9 @@
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_UniqueIndexedProperties_AggregateId_PropertyName",
+                name: "IX_UniqueIndexedProperties_AggregateType_AggregateId_PropertyName",
                 table: "UniqueIndexedProperties",
-                columns: new[] { "AggregateId", "PropertyName" },
+                columns: new[] { "AggregateType", "AggregateId", "PropertyName" },
                 unique: true);
         }
 
