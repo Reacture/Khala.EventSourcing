@@ -6,7 +6,7 @@
     using System.Runtime.CompilerServices;
     using System.Threading;
     using System.Threading.Tasks;
-    using Messaging;
+    using Khala.Messaging;
 
 #if NETSTANDARD2_0
     using Microsoft.EntityFrameworkCore;

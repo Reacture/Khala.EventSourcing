@@ -5,7 +5,7 @@
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
-    using Messaging;
+    using Khala.Messaging;
 
     public class SqlEventSourcedRepository<T> : ISqlEventSourcedRepository<T>
         where T : class, IEventSourced

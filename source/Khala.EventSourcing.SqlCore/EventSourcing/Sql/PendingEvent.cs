@@ -41,25 +41,24 @@
                 throw new ArgumentNullException(nameof(serializer));
             }
 
-            var domainEvent = envelope.Message as IDomainEvent;
-
-            if (domainEvent == null)
+            if (envelope.Message is IDomainEvent domainEvent)
             {
-                throw new ArgumentException(
-                    $"{nameof(envelope)}.{nameof(envelope.Message)} must be an {nameof(IDomainEvent)}.",
-                    nameof(envelope));
+                return new PendingEvent
+                {
+                    AggregateId = domainEvent.SourceId,
+                    Version = domainEvent.Version,
+                    MessageId = envelope.MessageId,
+                    EventJson = serializer.Serialize(domainEvent),
+                    OperationId = envelope.OperationId,
+                    CorrelationId = envelope.CorrelationId,
+                    Contributor = envelope.Contributor,
+                };
             }
-
-            return new PendingEvent
+            else
             {
-                AggregateId = domainEvent.SourceId,
-                Version = domainEvent.Version,
-                MessageId = envelope.MessageId,
-                EventJson = serializer.Serialize(domainEvent),
-                OperationId = envelope.OperationId,
-                CorrelationId = envelope.CorrelationId,
-                Contributor = envelope.Contributor,
-            };
+                string message = $"{nameof(envelope)}.{nameof(envelope.Message)} must be an {nameof(IDomainEvent)}.";
+                throw new ArgumentException(message, nameof(envelope));
+            }
         }
     }
 }

@@ -4,7 +4,7 @@
     using System.IO;
     using System.Threading;
     using System.Threading.Tasks;
-    using Messaging;
+    using Khala.Messaging;
     using Microsoft.WindowsAzure.Storage.Blob;
 
     public class AzureMementoStore : IMementoStore

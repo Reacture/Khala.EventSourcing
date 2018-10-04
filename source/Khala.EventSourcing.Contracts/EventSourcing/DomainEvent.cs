@@ -1,7 +1,7 @@
 ﻿namespace Khala.EventSourcing
 {
     using System;
-    using Messaging;
+    using Khala.Messaging;
     using Newtonsoft.Json;
 
     public abstract class DomainEvent : IDomainEvent, IPartitioned

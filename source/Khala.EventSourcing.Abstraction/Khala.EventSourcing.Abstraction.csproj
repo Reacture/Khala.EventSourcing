@@ -27,7 +27,7 @@
 
   <ItemGroup>
     <PackageReference Include="Khala.EventSourcing.Contracts" Version="0.21.1" Exclude="*" />
-    <PackageReference Include="StyleCop.Analyzers" Version="1.1.0-beta004">
+    <PackageReference Include="StyleCop.Analyzers" Version="1.1.0-beta009">
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
   </ItemGroup>
