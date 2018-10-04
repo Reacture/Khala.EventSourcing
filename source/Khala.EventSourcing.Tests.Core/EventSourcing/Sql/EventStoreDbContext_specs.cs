@@ -57,15 +57,18 @@
         }
 
         [TestMethod]
-        public void PersistentEvent_entity_has_index_with_AggregateId_Version()
+        public void PersistentEvent_entity_has_index_with_AggregateType_AggregateId_and_Version()
         {
             var context = new EventStoreDbContext(_dbContextOptions);
             IEntityType sut = context.Model.FindEntityType(typeof(PersistentEvent));
+
             IIndex actual = sut.FindIndex(new[]
             {
+                sut.FindProperty("AggregateType"),
                 sut.FindProperty("AggregateId"),
                 sut.FindProperty("Version"),
             });
+
             actual.Should().NotBeNull();
             actual.IsUnique.Should().BeTrue();
         }

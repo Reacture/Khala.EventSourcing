@@ -7,22 +7,16 @@
 
     public class PersistentEvent
     {
-        public const string IndexName = "SqlEventStore_IX_AggregateId_Version";
-
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public long SequenceId { get; private set; }
 
-#if NETSTANDARD2_0
-#else
-        [Index(IndexName, IsUnique = true, Order = 0)]
-#endif
+        [Required]
+        [StringLength(maximumLength: 128)]
+        public string AggregateType { get; set; }
+
         public Guid AggregateId { get; set; }
 
-#if NETSTANDARD2_0
-#else
-        [Index(IndexName, IsUnique = true, Order = 1)]
-#endif
         public int Version { get; set; }
 
         [Required]
@@ -43,40 +37,25 @@
 
         public DateTime RaisedAt { get; set; }
 
-        public static PersistentEvent FromEnvelope(
+        internal static PersistentEvent FromEnvelope<T>(
             Envelope envelope,
             IMessageSerializer serializer)
+            where T : class, IEventSourced
         {
-            if (envelope == null)
+            var domainEvent = (IDomainEvent)envelope.Message;
+            return new PersistentEvent
             {
-                throw new ArgumentNullException(nameof(envelope));
-            }
-
-            if (serializer == null)
-            {
-                throw new ArgumentNullException(nameof(serializer));
-            }
-
-            if (envelope.Message is IDomainEvent domainEvent)
-            {
-                return new PersistentEvent
-                {
-                    AggregateId = domainEvent.SourceId,
-                    Version = domainEvent.Version,
-                    EventType = domainEvent.GetType().FullName,
-                    MessageId = envelope.MessageId,
-                    EventJson = serializer.Serialize(domainEvent),
-                    OperationId = envelope.OperationId,
-                    CorrelationId = envelope.CorrelationId,
-                    Contributor = envelope.Contributor,
-                    RaisedAt = domainEvent.RaisedAt,
-                };
-            }
-            else
-            {
-                string message = $"{nameof(envelope)}.{nameof(envelope.Message)} must be an {nameof(IDomainEvent)}.";
-                throw new ArgumentException(message, nameof(envelope));
-            }
+                AggregateType = typeof(T).FullName,
+                AggregateId = domainEvent.SourceId,
+                Version = domainEvent.Version,
+                EventType = domainEvent.GetType().FullName,
+                MessageId = envelope.MessageId,
+                EventJson = serializer.Serialize(domainEvent),
+                OperationId = envelope.OperationId,
+                CorrelationId = envelope.CorrelationId,
+                Contributor = envelope.Contributor,
+                RaisedAt = domainEvent.RaisedAt,
+            };
         }
     }
 }

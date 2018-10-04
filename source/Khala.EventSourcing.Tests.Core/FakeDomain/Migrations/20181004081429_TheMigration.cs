@@ -60,6 +60,7 @@
                     SequenceId = table.Column<long>(type: "bigint", nullable: false)
                         .Annotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn),
                     AggregateId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    AggregateType = table.Column<string>(type: "nvarchar(128)", maxLength: 128, nullable: false),
                     Contributor = table.Column<string>(type: "nvarchar(128)", maxLength: 128, nullable: true),
                     CorrelationId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
                     EventJson = table.Column<string>(type: "nvarchar(max)", nullable: false),
@@ -90,15 +91,15 @@
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_Aggregates_AggregateId",
+                name: "IX_Aggregates_AggregateType_AggregateId",
                 table: "Aggregates",
-                column: "AggregateId",
+                columns: new[] { "AggregateType", "AggregateId" },
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_PersistentEvents_AggregateId_Version",
+                name: "IX_PersistentEvents_AggregateType_AggregateId_Version",
                 table: "PersistentEvents",
-                columns: new[] { "AggregateId", "Version" },
+                columns: new[] { "AggregateType", "AggregateId", "Version" },
                 unique: true);
 
             migrationBuilder.CreateIndex(

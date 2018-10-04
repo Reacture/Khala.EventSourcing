@@ -4,7 +4,6 @@
     using System.ComponentModel.DataAnnotations;
     using System.ComponentModel.DataAnnotations.Schema;
     using FluentAssertions;
-    using Khala.Messaging;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
 
     [TestClass]
@@ -110,48 +109,6 @@
         public void sut_has_RaisedAt_property()
         {
             typeof(PersistentEvent).Should().HaveProperty<DateTime>("RaisedAt");
-        }
-
-        [TestMethod]
-        public void FromEnvelope_generates_PersistentEvent_correctly()
-        {
-            var domainEvent = new SomeDomainEvent();
-            var messageId = Guid.NewGuid();
-            var correlationId = Guid.NewGuid();
-            var envelope = new Envelope(messageId, domainEvent, correlationId: correlationId);
-            IMessageSerializer serializer = new JsonMessageSerializer();
-
-            var actual = PersistentEvent.FromEnvelope(envelope, serializer);
-
-            actual.AggregateId.Should().Be(domainEvent.SourceId);
-            actual.Version.Should().Be(domainEvent.Version);
-            actual.EventType.Should().Be(typeof(SomeDomainEvent).FullName);
-            actual.MessageId.Should().Be(messageId);
-            actual.CorrelationId.Should().Be(correlationId);
-            actual.EventJson.Should().Be(serializer.Serialize(domainEvent));
-            actual.RaisedAt.Should().Be(domainEvent.RaisedAt);
-        }
-
-        [TestMethod]
-        public void FromEnvelope_has_guard_clause_for_invalid_message()
-        {
-            var envelope = new Envelope(new object());
-            Action action = () => PersistentEvent.FromEnvelope(envelope, new JsonMessageSerializer());
-            action.ShouldThrow<ArgumentException>().Where(x => x.ParamName == "envelope");
-        }
-
-        public class SomeDomainEvent : DomainEvent
-        {
-            private static Random _random = new Random();
-
-            public SomeDomainEvent()
-            {
-                SourceId = Guid.NewGuid();
-                Version = _random.Next();
-                RaisedAt = DateTime.UtcNow.AddTicks(_random.Next());
-            }
-
-            public string Content { get; set; } = Guid.NewGuid().ToString();
         }
     }
 }

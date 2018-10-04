@@ -376,6 +376,7 @@
                     .AsEnumerable()
                     .Select(e => new
                     {
+                        e.AggregateType,
                         e.Version,
                         e.EventType,
                         Payload = serializer.Deserialize(e.EventJson),
@@ -386,6 +387,7 @@
 
                 IEnumerable<object> expected = events.Select(e => new
                 {
+                    AggregateType = typeof(FakeUser).FullName,
                     e.Version,
                     EventType = e.GetType().FullName,
                     Payload = e,

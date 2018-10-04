@@ -95,7 +95,7 @@
             using (EventStoreDbContext context = _dbContextFactory.Invoke())
             {
                 await UpsertAggregate<T>(context, sourceId, events, cancellationToken).ConfigureAwait(false);
-                InsertEvents(context, events, operationId, correlationId, contributor);
+                InsertEvents<T>(context, events, operationId, correlationId, contributor);
                 await UpdateUniqueIndexedProperties<T>(context, sourceId, events, cancellationToken).ConfigureAwait(false);
                 InsertCorrelation(sourceId, correlationId, context);
 
@@ -139,28 +139,30 @@
             aggregate.Version = events.Last().Version;
         }
 
-        private void InsertEvents(
+        private void InsertEvents<T>(
             EventStoreDbContext context,
             List<IDomainEvent> events,
             string operationId,
             Guid? correlationId,
             string contributor)
+            where T : class, IEventSourced
         {
             foreach (IDomainEvent domainEvent in events)
             {
-                InsertEvent(context, domainEvent, operationId, correlationId, contributor);
+                InsertEvent<T>(context, domainEvent, operationId, correlationId, contributor);
             }
         }
 
-        private void InsertEvent(
+        private void InsertEvent<T>(
             EventStoreDbContext context,
             IDomainEvent domainEvent,
             string operationId,
             Guid? correlationId,
             string contributor)
+            where T : class, IEventSourced
         {
             var envelope = new Envelope(Guid.NewGuid(), domainEvent, operationId, correlationId, contributor);
-            context.PersistentEvents.Add(PersistentEvent.FromEnvelope(envelope, _serializer));
+            context.PersistentEvents.Add(PersistentEvent.FromEnvelope<T>(envelope, _serializer));
             context.PendingEvents.Add(PendingEvent.FromEnvelope(envelope, _serializer));
         }
 
