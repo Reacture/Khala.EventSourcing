@@ -40,6 +40,7 @@
                 name: "PendingEvents",
                 columns: table => new
                 {
+                    AggregateType = table.Column<string>(type: "nvarchar(128)", maxLength: 128, nullable: false),
                     AggregateId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     Version = table.Column<int>(type: "int", nullable: false),
                     Contributor = table.Column<string>(type: "nvarchar(max)", nullable: true),
@@ -50,7 +51,7 @@
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_PendingEvents", x => new { x.AggregateId, x.Version });
+                    table.PrimaryKey("PK_PendingEvents", x => new { x.AggregateType, x.AggregateId, x.Version });
                 });
 
             migrationBuilder.CreateTable(

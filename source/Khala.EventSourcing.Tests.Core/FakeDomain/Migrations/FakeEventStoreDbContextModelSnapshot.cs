@@ -57,6 +57,9 @@ namespace Khala.FakeDomain.Migrations
 
             modelBuilder.Entity("Khala.EventSourcing.Sql.PendingEvent", b =>
                 {
+                    b.Property<string>("AggregateType")
+                        .HasMaxLength(128);
+
                     b.Property<Guid>("AggregateId");
 
                     b.Property<int>("Version");
@@ -73,7 +76,7 @@ namespace Khala.FakeDomain.Migrations
                     b.Property<string>("OperationId")
                         .HasMaxLength(100);
 
-                    b.HasKey("AggregateId", "Version");
+                    b.HasKey("AggregateType", "AggregateId", "Version");
 
                     b.ToTable("PendingEvents");
                 });

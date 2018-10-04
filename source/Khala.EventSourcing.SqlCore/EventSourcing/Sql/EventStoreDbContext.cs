@@ -42,7 +42,14 @@
                 })
                 .IsUnique();
 
-            modelBuilder.Entity<PendingEvent>().HasKey(nameof(PendingEvent.AggregateId), nameof(PendingEvent.Version));
+            modelBuilder
+                .Entity<PendingEvent>()
+                .HasKey(x => new
+                {
+                    x.AggregateType,
+                    x.AggregateId,
+                    x.Version,
+                });
 
             modelBuilder.Entity<UniqueIndexedProperty>().HasKey(nameof(UniqueIndexedProperty.AggregateType), nameof(UniqueIndexedProperty.PropertyName), nameof(UniqueIndexedProperty.PropertyValue));
 

@@ -2,17 +2,16 @@
 {
     using System;
     using System.ComponentModel.DataAnnotations;
-    using System.ComponentModel.DataAnnotations.Schema;
     using Khala.Messaging;
 
     public class PendingEvent
     {
-        [Key]
-        [Column(Order = 0)]
+        [Required]
+        [StringLength(maximumLength: 128)]
+        public string AggregateType { get; set; }
+
         public Guid AggregateId { get; set; }
 
-        [Key]
-        [Column(Order = 1)]
         public int Version { get; set; }
 
         public Guid MessageId { get; set; }
@@ -27,38 +26,23 @@
 
         public string Contributor { get; set; }
 
-        public static PendingEvent FromEnvelope(
+        public static PendingEvent FromEnvelope<T>(
             Envelope envelope,
             IMessageSerializer serializer)
+            where T : class, IEventSourced
         {
-            if (envelope == null)
+            var domainEvent = (IDomainEvent)envelope.Message;
+            return new PendingEvent
             {
-                throw new ArgumentNullException(nameof(envelope));
-            }
-
-            if (serializer == null)
-            {
-                throw new ArgumentNullException(nameof(serializer));
-            }
-
-            if (envelope.Message is IDomainEvent domainEvent)
-            {
-                return new PendingEvent
-                {
-                    AggregateId = domainEvent.SourceId,
-                    Version = domainEvent.Version,
-                    MessageId = envelope.MessageId,
-                    EventJson = serializer.Serialize(domainEvent),
-                    OperationId = envelope.OperationId,
-                    CorrelationId = envelope.CorrelationId,
-                    Contributor = envelope.Contributor,
-                };
-            }
-            else
-            {
-                string message = $"{nameof(envelope)}.{nameof(envelope.Message)} must be an {nameof(IDomainEvent)}.";
-                throw new ArgumentException(message, nameof(envelope));
-            }
+                AggregateType = typeof(T).FullName,
+                AggregateId = domainEvent.SourceId,
+                Version = domainEvent.Version,
+                MessageId = envelope.MessageId,
+                EventJson = serializer.Serialize(domainEvent),
+                OperationId = envelope.OperationId,
+                CorrelationId = envelope.CorrelationId,
+                Contributor = envelope.Contributor,
+            };
         }
     }
 }

@@ -102,7 +102,10 @@
         }
 
         private Task FlushEvents(T source, CancellationToken cancellationToken)
-            => _eventPublisher.FlushPendingEvents(source.Id, cancellationToken);
+        {
+            return _eventPublisher
+                .FlushPendingEvents<T>(source.Id, cancellationToken);
+        }
 
         private Task SaveMementoIfPossible(T source, CancellationToken cancellationToken)
         {

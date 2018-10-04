@@ -7,15 +7,8 @@
     using System.Threading;
     using System.Threading.Tasks;
     using Khala.Messaging;
-
-#if NETSTANDARD2_0
     using Microsoft.EntityFrameworkCore;
     using Microsoft.EntityFrameworkCore.Storage;
-#else
-    using System.Data.Entity;
-    using System.Data.Entity.Core;
-    using System.Data.Entity.Infrastructure;
-#endif
 
     public class SqlEventStore : ISqlEventStore
     {
@@ -163,7 +156,7 @@
         {
             var envelope = new Envelope(Guid.NewGuid(), domainEvent, operationId, correlationId, contributor);
             context.PersistentEvents.Add(PersistentEvent.FromEnvelope<T>(envelope, _serializer));
-            context.PendingEvents.Add(PendingEvent.FromEnvelope(envelope, _serializer));
+            context.PendingEvents.Add(PendingEvent.FromEnvelope<T>(envelope, _serializer));
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1822:MarkMembersAsStatic", Justification = "This method is extracted.")]
@@ -251,7 +244,6 @@
             CancellationToken cancellationToken)
             where T : class, IEventSourced
         {
-#if NETSTANDARD2_0
             try
             {
                 using (IDbContextTransaction transaction = await
@@ -277,34 +269,6 @@
 
                 throw;
             }
-#else
-            try
-            {
-                await context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
-            }
-            catch (DbUpdateException exception)
-            when (exception.InnerException is UpdateException)
-            {
-                var updateException = (UpdateException)exception.InnerException;
-
-                Correlation correlation = updateException
-                    .StateEntries
-                    .Select(s => s.Entity)
-                    .OfType<Correlation>()
-                    .FirstOrDefault();
-
-                if (correlation != null)
-                {
-                    throw new DuplicateCorrelationException(
-                        typeof(T),
-                        sourceId,
-                        correlation.CorrelationId,
-                        exception);
-                }
-
-                throw;
-            }
-#endif
         }
 
         public Task<IEnumerable<IDomainEvent>> LoadEvents<T>(

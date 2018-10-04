@@ -82,7 +82,7 @@
         }
 
         [TestMethod]
-        public void PendingEvent_entity_has_primary_key_with_AggregateId_Version()
+        public void PendingEvent_entity_has_primary_key_with_AggregateType_AggregateId_and_Version()
         {
             var context = new EventStoreDbContext(_dbContextOptions);
             IEntityType sut = context.Model.FindEntityType(typeof(PendingEvent));
@@ -90,6 +90,7 @@
             actual.Should().NotBeNull();
             actual.Properties.Should().Equal(new[]
             {
+                sut.FindProperty("AggregateType"),
                 sut.FindProperty("AggregateId"),
                 sut.FindProperty("Version"),
             });

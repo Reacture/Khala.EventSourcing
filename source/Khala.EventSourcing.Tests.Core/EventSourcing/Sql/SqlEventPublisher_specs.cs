@@ -50,7 +50,7 @@
             var usernameChanged = new FakeUsernameChanged();
             var sourceId = Guid.NewGuid();
 
-            DomainEvent[] events = new DomainEvent[] { created, usernameChanged };
+            var events = new DomainEvent[] { created, usernameChanged };
             events.Raise(sourceId);
 
             var envelopes = new List<Envelope>();
@@ -66,7 +66,7 @@
                         contributor: Guid.NewGuid().ToString(),
                         message: e);
                     envelopes.Add(envelope);
-                    db.PendingEvents.Add(PendingEvent.FromEnvelope(envelope, serializer));
+                    db.PendingEvents.Add(PendingEvent.FromEnvelope<FakeUser>(envelope, serializer));
                 }
 
                 await db.SaveChangesAsync();
@@ -80,7 +80,7 @@
                 messageBus);
 
             // Act
-            await sut.FlushPendingEvents(sourceId, CancellationToken.None);
+            await sut.FlushPendingEvents<FakeUser>(sourceId, CancellationToken.None);
 
             // Assert
             messageBus.Sent.ShouldAllBeEquivalentTo(envelopes, opts => opts.RespectingRuntimeTypes());
@@ -98,7 +98,7 @@
                 messageBus);
 
             // Act
-            await sut.FlushPendingEvents(sourceId, default);
+            await sut.FlushPendingEvents<FakeUser>(sourceId, default);
 
             // Assert
             Mock.Get(messageBus).Verify(
@@ -115,7 +115,7 @@
 
             var created = new FakeUserCreated();
             var usernameChanged = new FakeUsernameChanged();
-            DomainEvent[] events = new DomainEvent[] { created, usernameChanged };
+            var events = new DomainEvent[] { created, usernameChanged };
             events.Raise(sourceId);
 
             using (var db = new FakeEventStoreDbContext(_dbContextOptions))
@@ -124,7 +124,7 @@
                 foreach (DomainEvent e in events)
                 {
                     var envelope = new Envelope(e);
-                    db.PendingEvents.Add(PendingEvent.FromEnvelope(envelope, serializer));
+                    db.PendingEvents.Add(PendingEvent.FromEnvelope<FakeUser>(envelope, serializer));
                 }
 
                 await db.SaveChangesAsync();
@@ -136,7 +136,7 @@
                 Mock.Of<IMessageBus>());
 
             // Act
-            await sut.FlushPendingEvents(sourceId, CancellationToken.None);
+            await sut.FlushPendingEvents<FakeUser>(sourceId);
 
             // Assert
             using (var db = new FakeEventStoreDbContext(_dbContextOptions))
@@ -263,7 +263,7 @@
             // Act
             Func<Task> action = async () =>
             {
-                Task flushTask = sut.FlushPendingEvents(user.Id, CancellationToken.None);
+                Task flushTask = sut.FlushPendingEvents<FakeUser>(user.Id);
 
                 using (var db = new FakeEventStoreDbContext(_dbContextOptions))
                 {

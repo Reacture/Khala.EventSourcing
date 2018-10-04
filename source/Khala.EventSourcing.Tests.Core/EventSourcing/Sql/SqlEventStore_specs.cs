@@ -635,7 +635,7 @@
                         c.CorrelationId == correlationId)
                     .SingleOrDefaultAsync();
                 correlation.Should().NotBeNull();
-                correlation.HandledAt.Should().BeCloseTo(now);
+                correlation.HandledAt.Should().BeCloseTo(now, precision: 100);
             }
         }
 

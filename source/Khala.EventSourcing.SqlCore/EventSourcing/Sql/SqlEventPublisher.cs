@@ -7,14 +7,7 @@
     using System.Threading;
     using System.Threading.Tasks;
     using Khala.Messaging;
-
-#if NETSTANDARD2_0
     using Microsoft.EntityFrameworkCore;
-#else
-    using System.Data.Entity;
-    using System.Data.Entity.Core;
-    using System.Data.Entity.Infrastructure;
-#endif
 
     public class SqlEventPublisher : ISqlEventPublisher
     {
@@ -32,9 +25,10 @@
             _messageBus = messageBus ?? throw new ArgumentNullException(nameof(messageBus));
         }
 
-        public Task FlushPendingEvents(
+        public Task FlushPendingEvents<T>(
             Guid sourceId,
             CancellationToken cancellationToken = default)
+            where T : class, IEventSourced
         {
             if (sourceId == Guid.Empty)
             {
@@ -42,16 +36,18 @@
                     $"{nameof(sourceId)} cannot be empty.", nameof(sourceId));
             }
 
-            return RunFlushPendingEvents(sourceId, cancellationToken);
+            string sourceType = typeof(T).FullName;
+            return FlushPendingEvents(sourceType, sourceId, cancellationToken);
         }
 
-        private async Task RunFlushPendingEvents(
+        private async Task FlushPendingEvents(
+            string sourceType,
             Guid sourceId,
             CancellationToken cancellationToken)
         {
             using (EventStoreDbContext context = _dbContextFactory.Invoke())
             {
-                List<PendingEvent> pendingEvents = await LoadEvents(context, sourceId, cancellationToken).ConfigureAwait(false);
+                List<PendingEvent> pendingEvents = await LoadEvents(context, sourceType, sourceId, cancellationToken).ConfigureAwait(false);
                 if (pendingEvents.Any())
                 {
                     await SendEvents(pendingEvents, cancellationToken).ConfigureAwait(false);
@@ -62,13 +58,15 @@
 
         private static Task<List<PendingEvent>> LoadEvents(
             EventStoreDbContext context,
+            string sourceType,
             Guid sourceId,
             CancellationToken cancellationToken)
         {
-            IQueryable<PendingEvent> query = from e in context.PendingEvents
-                                             where e.AggregateId == sourceId
-                                             orderby e.Version
-                                             select e;
+            IQueryable<PendingEvent> query =
+                from e in context.PendingEvents
+                where e.AggregateType == sourceType && e.AggregateId == sourceId
+                orderby e.Version
+                select e;
 
             return query.ToListAsync(cancellationToken);
         }
@@ -101,12 +99,7 @@
                     context.PendingEvents.Remove(pendingEvent);
                     await context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
                 }
-#if NETSTANDARD2_0
                 catch (DbUpdateConcurrencyException)
-#else
-                catch (DbUpdateConcurrencyException exception)
-                when (exception.InnerException is OptimisticConcurrencyException)
-#endif
                 {
                     context.Entry(pendingEvent).State = EntityState.Detached;
                 }
@@ -117,29 +110,44 @@
             => await FlushAllPendingEvents(cancellationToken).ConfigureAwait(false);
 
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public async Task FlushAllPendingEvents(CancellationToken cancellationToken)
+        public async Task FlushAllPendingEvents(
+            CancellationToken cancellationToken)
         {
             using (EventStoreDbContext context = _dbContextFactory.Invoke())
             {
                 Loop:
 
-                IEnumerable<Guid> source = await context
+                List<Unit> pending = await context
                     .PendingEvents
-                    .OrderBy(e => e.AggregateId)
-                    .Select(e => e.AggregateId)
+                    .Select(e => new Unit
+                    {
+                        Type = e.AggregateType,
+                        Id = e.AggregateId,
+                    })
                     .Take(1000)
                     .Distinct()
                     .ToListAsync(cancellationToken)
                     .ConfigureAwait(false);
 
-                Task[] tasks = source.Select(sourceId => FlushPendingEvents(sourceId, cancellationToken)).ToArray();
+                Task[] tasks = pending
+                    .Select(unit => FlushPendingEvents(
+                        unit.Type, unit.Id, cancellationToken))
+                    .ToArray();
+
                 await Task.WhenAll(tasks).ConfigureAwait(false);
 
-                if (source.Any())
+                if (pending.Any())
                 {
                     goto Loop;
                 }
             }
+        }
+
+        private struct Unit
+        {
+            public string Type { get; set; }
+
+            public Guid Id { get; set; }
         }
     }
 }

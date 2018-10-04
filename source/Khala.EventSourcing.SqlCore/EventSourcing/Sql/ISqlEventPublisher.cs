@@ -6,8 +6,9 @@
 
     public interface ISqlEventPublisher : IEventPublisher
     {
-        Task FlushPendingEvents(
+        Task FlushPendingEvents<T>(
             Guid sourceId,
-            CancellationToken cancellationToken = default);
+            CancellationToken cancellationToken = default)
+            where T : class, IEventSourced;
     }
 }
