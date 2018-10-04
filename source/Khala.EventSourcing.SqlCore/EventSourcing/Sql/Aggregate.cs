@@ -10,15 +10,11 @@
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public long SequenceId { get; private set; }
 
-#if NETSTANDARD2_0
-#else
-        [Index(IsUnique = true)]
-#endif
-        public Guid AggregateId { get; set; }
-
         [Required]
         [StringLength(maximumLength: 128)]
         public string AggregateType { get; set; }
+
+        public Guid AggregateId { get; set; }
 
         [ConcurrencyCheck]
         public int Version { get; set; }

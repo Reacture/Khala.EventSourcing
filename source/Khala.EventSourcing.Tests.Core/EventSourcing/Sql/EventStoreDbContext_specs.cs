@@ -33,11 +33,17 @@
         }
 
         [TestMethod]
-        public void Aggregate_entity_has_index_with_AggregateId()
+        public void Aggregate_entity_has_index_with_AggregateType_and_AggregateId()
         {
             var context = new EventStoreDbContext(_dbContextOptions);
             IEntityType sut = context.Model.FindEntityType(typeof(Aggregate));
-            IIndex actual = sut.FindIndex(sut.FindProperty("AggregateId"));
+
+            IIndex actual = sut.FindIndex(new[]
+            {
+                sut.FindProperty("AggregateType"),
+                sut.FindProperty("AggregateId"),
+            });
+
             actual.Should().NotBeNull();
             actual.IsUnique.Should().BeTrue();
         }
