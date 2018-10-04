@@ -1,10 +1,18 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netstandard1.3</TargetFramework>
-    <RootNamespace>Khala</RootNamespace>
+    <Product>Khala.EventSourcing.Abstraction</Product>
     <Version>0.21.1</Version>
     <Authors>Gyuwon</Authors>
+    <Copyright>Copyright (c) 2018 Yi Gyuwon</Copyright>
+    <Description>Core implementation of event sourcing pattern.</Description>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <PackageId>Khala.EventSourcing.Abstraction</PackageId>
+    <PackageProjectUrl>https://github.com/Reacture/Khala.EventSourcing</PackageProjectUrl>
+    <PackageLicenseUrl>https://github.com/Reacture/Khala.EventSourcing/blob/master/LICENSE</PackageLicenseUrl>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <RootNamespace>Khala</RootNamespace>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
@@ -18,7 +26,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="StyleCop.Analyzers" Version="1.1.0-beta004" />
+    <PackageReference Include="Khala.EventSourcing.Contracts" Version="0.21.1" Exclude="*" />
+    <PackageReference Include="StyleCop.Analyzers" Version="1.1.0-beta004">
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
   </ItemGroup>
 
   <ItemGroup>

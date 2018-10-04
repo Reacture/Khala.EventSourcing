@@ -1,9 +1,18 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <RootNamespace>Khala</RootNamespace>
+    <Product>Khala.EventSourcing.SqlCore</Product>
     <Version>0.21.1</Version>
+    <Authors>Gyuwon</Authors>
+    <Copyright>Copyright (c) 2018 Yi Gyuwon</Copyright>
+    <Description>Relational databases based event store implementation for .NET Core.</Description>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <PackageId>Khala.EventSourcing.SqlCore</PackageId>
+    <PackageProjectUrl>https://github.com/Reacture/Khala.EventSourcing</PackageProjectUrl>
+    <PackageLicenseUrl>https://github.com/Reacture/Khala.EventSourcing/blob/master/LICENSE</PackageLicenseUrl>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <RootNamespace>Khala</RootNamespace>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
@@ -17,9 +26,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Khala.EventSourcing.Abstraction" Version="0.21.1" Exclude="*" />
     <PackageReference Include="Khala.Messaging.Abstraction" Version="0.19.1" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="2.0.0" />
-    <PackageReference Include="StyleCop.Analyzers" Version="1.1.0-beta004" />
+    <PackageReference Include="StyleCop.Analyzers" Version="1.1.0-beta004">
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
   </ItemGroup>
 
   <ItemGroup>

@@ -2,9 +2,17 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard1.3</TargetFramework>
-    <RootNamespace>Khala</RootNamespace>
-    <Authors>Gyuwon</Authors>
+    <Product>Khala.EventSourcing.Contracts</Product>
     <Version>0.21.2</Version>
+    <Authors>Gyuwon</Authors>
+    <Copyright>Copyright (c) 2018 Yi Gyuwon</Copyright>
+    <Description>Provides contract types for event sourcing pattern.</Description>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <PackageId>Khala.EventSourcing.Contracts</PackageId>
+    <PackageProjectUrl>https://github.com/Reacture/Khala.EventSourcing</PackageProjectUrl>
+    <PackageLicenseUrl>https://github.com/Reacture/Khala.EventSourcing/blob/master/LICENSE</PackageLicenseUrl>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <RootNamespace>Khala</RootNamespace>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
@@ -20,7 +28,9 @@
   <ItemGroup>
     <PackageReference Include="Khala.Messaging.Contracts" Version="0.19.1" />
     <PackageReference Include="Newtonsoft.Json" Version="10.0.2" />
-    <PackageReference Include="StyleCop.Analyzers" Version="1.1.0-beta004" />
+    <PackageReference Include="StyleCop.Analyzers" Version="1.1.0-beta004">
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
   </ItemGroup>
 
 </Project>
