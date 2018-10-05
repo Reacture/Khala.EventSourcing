@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>netstandard1.3</TargetFramework>
     <Product>Khala.EventSourcing.Abstraction</Product>
-    <Version>0.21.1</Version>
+    <Version>0.22.0</Version>
     <Authors>Gyuwon</Authors>
     <Copyright>Copyright (c) 2018 Yi Gyuwon</Copyright>
     <Description>Core implementation of event sourcing pattern.</Description>
@@ -26,7 +26,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Khala.EventSourcing.Contracts" Version="0.21.1" Exclude="*" />
+    <PackageReference Include="Khala.EventSourcing.Contracts" Version="0.22.0" Exclude="*" />
     <PackageReference Include="StyleCop.Analyzers" Version="1.1.0-beta009">
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>

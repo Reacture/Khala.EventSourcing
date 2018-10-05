@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>netstandard1.3</TargetFramework>
     <Product>Khala.EventSourcing.Contracts</Product>
-    <Version>0.21.2</Version>
+    <Version>0.22.0</Version>
     <Authors>Gyuwon</Authors>
     <Copyright>Copyright (c) 2018 Yi Gyuwon</Copyright>
     <Description>Provides contract types for event sourcing pattern.</Description>

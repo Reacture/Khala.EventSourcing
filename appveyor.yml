@@ -1,23 +1,13 @@
-version: 0.21.{build}
+version: 0.22.{build}
 image: Visual Studio 2017
 configuration: Release
 before_build:
-- cmd: .\nuget\nuget.exe restore source\Khala.EventSourcing.sln
+- cmd: nuget restore source\Khala.EventSourcing.sln
 build:
   verbosity: minimal
   project: source\Khala.EventSourcing.sln
 after_build:
-- cmd: >-
-    dotnet test .\source\Khala.EventSourcing.Tests.Core\
-
-    nuget pack nuget\Khala.EventSourcing.Contracts.nuspec -Symbols
-
-    nuget pack nuget\Khala.EventSourcing.Abstraction.nuspec -Symbols
-
-    nuget pack nuget\Khala.EventSourcing.Azure.nuspec -Symbols
-
-    nuget pack nuget\Khala.EventSourcing.SqlCore.nuspec -Symbols
 test:
   assemblies: '**\*.tests.dll'
 artifacts:
-- path: Khala.EventSourcing**.nupkg
+- path: '**\Khala.EventSourcing**.nupkg'

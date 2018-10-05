@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <Product>Khala.EventSourcing.SqlCore</Product>
-    <Version>0.21.1</Version>
+    <Version>0.22.0</Version>
     <Authors>Gyuwon</Authors>
     <Copyright>Copyright (c) 2018 Yi Gyuwon</Copyright>
     <Description>Relational databases based event store implementation for .NET Core.</Description>
@@ -26,7 +26,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Khala.EventSourcing.Abstraction" Version="0.21.1" Exclude="*" />
+    <PackageReference Include="Khala.EventSourcing.Abstraction" Version="0.22.0" Exclude="*" />
     <PackageReference Include="Khala.Messaging.Abstraction" Version="0.19.1" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="2.0.0" />
     <PackageReference Include="StyleCop.Analyzers" Version="1.1.0-beta009">
