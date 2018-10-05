@@ -631,6 +631,7 @@
                     .Correlations
                     .Where(
                         c =>
+                        c.AggregateType == typeof(FakeUser).FullName &&
                         c.AggregateId == userId &&
                         c.CorrelationId == correlationId)
                     .SingleOrDefaultAsync();

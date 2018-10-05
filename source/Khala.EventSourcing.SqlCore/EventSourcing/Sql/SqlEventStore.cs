@@ -90,7 +90,7 @@
                 await UpsertAggregate<T>(context, sourceId, events, cancellationToken).ConfigureAwait(false);
                 InsertEvents<T>(context, events, operationId, correlationId, contributor);
                 await UpdateUniqueIndexedProperties<T>(context, sourceId, events, cancellationToken).ConfigureAwait(false);
-                InsertCorrelation(sourceId, correlationId, context);
+                InsertCorrelation<T>(sourceId, correlationId, context);
 
                 await SaveChanges<T>(context, sourceId, correlationId, cancellationToken);
             }
@@ -217,10 +217,11 @@
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1822:MarkMembersAsStatic", Justification = "This method is extracted.")]
-        private void InsertCorrelation(
+        private void InsertCorrelation<T>(
             Guid sourceId,
             Guid? correlationId,
             EventStoreDbContext context)
+            where T : class, IEventSourced
         {
             if (correlationId == null)
             {
@@ -229,6 +230,7 @@
 
             context.Correlations.Add(new Correlation
             {
+                AggregateType = typeof(T).FullName,
                 AggregateId = sourceId,
                 CorrelationId = correlationId.Value,
                 HandledAt = DateTime.UtcNow,

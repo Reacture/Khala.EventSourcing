@@ -2,16 +2,14 @@
 {
     using System;
     using System.ComponentModel.DataAnnotations;
-    using System.ComponentModel.DataAnnotations.Schema;
 
     public class Correlation
     {
-        [Key]
-        [Column(Order = 0)]
+        [StringLength(128)]
+        public string AggregateType { get; set; }
+
         public Guid AggregateId { get; set; }
 
-        [Key]
-        [Column(Order = 1)]
         public Guid CorrelationId { get; set; }
 
         public DateTime HandledAt { get; set; }

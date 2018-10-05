@@ -11,7 +11,7 @@ using System;
 namespace Khala.FakeDomain.Migrations
 {
     [DbContext(typeof(FakeEventStoreDbContext))]
-    [Migration("20181004091714_TheMigration")]
+    [Migration("20181004092343_TheMigration")]
     partial class TheMigration
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -45,13 +45,16 @@ namespace Khala.FakeDomain.Migrations
 
             modelBuilder.Entity("Khala.EventSourcing.Sql.Correlation", b =>
                 {
+                    b.Property<string>("AggregateType")
+                        .HasMaxLength(128);
+
                     b.Property<Guid>("AggregateId");
 
                     b.Property<Guid>("CorrelationId");
 
                     b.Property<DateTime>("HandledAt");
 
-                    b.HasKey("AggregateId", "CorrelationId");
+                    b.HasKey("AggregateType", "AggregateId", "CorrelationId");
 
                     b.ToTable("Correlations");
                 });

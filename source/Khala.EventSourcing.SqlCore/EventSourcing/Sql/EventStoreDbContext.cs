@@ -70,7 +70,14 @@
                 })
                 .IsUnique();
 
-            modelBuilder.Entity<Correlation>().HasKey(nameof(Correlation.AggregateId), nameof(Correlation.CorrelationId));
+            modelBuilder
+                .Entity<Correlation>()
+                .HasKey(x => new
+                {
+                    x.AggregateType,
+                    x.AggregateId,
+                    x.CorrelationId,
+                });
         }
     }
 }

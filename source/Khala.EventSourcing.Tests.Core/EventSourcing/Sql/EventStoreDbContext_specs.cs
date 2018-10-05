@@ -143,7 +143,7 @@
         }
 
         [TestMethod]
-        public void Correlation_entity_has_primary_key_with_AggregateId_CorrelationId()
+        public void Correlation_entity_has_primary_key_with_AggregateType_AggregateId_and_CorrelationId()
         {
             var context = new EventStoreDbContext(_dbContextOptions);
             IEntityType sut = context.Model.FindEntityType(typeof(Correlation));
@@ -151,6 +151,7 @@
             actual.Should().NotBeNull();
             actual.Properties.Should().Equal(new[]
             {
+                sut.FindProperty("AggregateType"),
                 sut.FindProperty("AggregateId"),
                 sut.FindProperty("CorrelationId"),
             });

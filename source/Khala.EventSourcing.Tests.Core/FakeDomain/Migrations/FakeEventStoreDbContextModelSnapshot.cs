@@ -44,13 +44,16 @@ namespace Khala.FakeDomain.Migrations
 
             modelBuilder.Entity("Khala.EventSourcing.Sql.Correlation", b =>
                 {
+                    b.Property<string>("AggregateType")
+                        .HasMaxLength(128);
+
                     b.Property<Guid>("AggregateId");
 
                     b.Property<Guid>("CorrelationId");
 
                     b.Property<DateTime>("HandledAt");
 
-                    b.HasKey("AggregateId", "CorrelationId");
+                    b.HasKey("AggregateType", "AggregateId", "CorrelationId");
 
                     b.ToTable("Correlations");
                 });

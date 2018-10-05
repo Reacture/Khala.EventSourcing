@@ -27,13 +27,14 @@
                 name: "Correlations",
                 columns: table => new
                 {
+                    AggregateType = table.Column<string>(type: "nvarchar(128)", maxLength: 128, nullable: false),
                     AggregateId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     CorrelationId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     HandledAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Correlations", x => new { x.AggregateId, x.CorrelationId });
+                    table.PrimaryKey("PK_Correlations", x => new { x.AggregateType, x.AggregateId, x.CorrelationId });
                 });
 
             migrationBuilder.CreateTable(
