@@ -784,8 +784,8 @@
     <Rule Id="CS8313" Action="Error" />
   </Rules>
   <Rules AnalyzerId="Microsoft.CodeAnalysis.CSharp.EditorFeatures" RuleNamespace="Microsoft.CodeAnalysis.CSharp.EditorFeatures">
-    <Rule Id="IDE0032" Action="Error" />
-    <Rule Id="IDE0032WithoutSuggestion" Action="Error" />
+    <Rule Id="IDE0032" Action="None" />
+    <Rule Id="IDE0032WithoutSuggestion" Action="None" />
   </Rules>
   <Rules AnalyzerId="Microsoft.CodeAnalysis.CSharp.Features" RuleNamespace="Microsoft.CodeAnalysis.CSharp.Features">
     <Rule Id="IDE0001" Action="Error" />
